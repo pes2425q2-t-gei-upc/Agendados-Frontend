@@ -2,44 +2,68 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Importa tus traducciones
-import es from './translations/es.json';
-import en from './translations/en.json';
-import ca from './translations/ca.json';
-
-const LANGUAGE_KEY = '@app_language';
-
+// Recursos de traducción
 const resources = {
-  es: { translation: es },
-  en: { translation: en },
-  ca: { translation: ca }
+  en: {
+    translation: {
+      welcome: 'Welcome to the App!',
+      goToSettings: 'Go to Settings',
+      settings: 'Settings',
+      language: 'Language',
+      spanish: 'Español',
+      catalan: 'Català',
+      english: 'English'
+    }
+  },
+  es: {
+    translation: {
+      welcome: '¡Bienvenido a la Aplicación!',
+      goToSettings: 'Ir a Configuración',
+      settings: 'Configuración',
+      language: 'Idioma',
+      spanish: 'Español',
+      catalan: 'Català',
+      english: 'English'
+    }
+  },
+  ca: {
+    translation: {
+      welcome: 'Benvingut a l\'Aplicació!',
+      goToSettings: 'Anar a Configuració',
+      settings: 'Configuració',
+      language: 'Idioma',
+      spanish: 'Español',
+      catalan: 'Català',
+      english: 'English'
+    }
+  }
 };
 
+// Configurar i18n
 i18n
   .use(initReactI18next)
   .init({
+    compatibilityJSON: 'v3', // Necesario para Android
     resources,
-    lng: 'es', // Idioma predeterminado
+    lng: 'es', // Idioma por defecto
     fallbackLng: 'es',
     interpolation: {
       escapeValue: false,
     },
   });
 
+// Función para cambiar el idioma
 export const changeLanguage = async (language) => {
-  try {
-    await AsyncStorage.setItem(LANGUAGE_KEY, language);
-    i18n.changeLanguage(language);
-  } catch (error) {
-    console.error('Error al guardar el idioma:', error);
-  }
+  await i18n.changeLanguage(language);
+  await AsyncStorage.setItem('userLanguage', language);
 };
 
-export const loadSavedLanguage = async () => {
+// Función para inicializar el idioma desde el almacenamiento
+export const initializeLanguage = async () => {
   try {
-    const savedLanguage = await AsyncStorage.getItem(LANGUAGE_KEY);
+    const savedLanguage = await AsyncStorage.getItem('userLanguage');
     if (savedLanguage) {
-      i18n.changeLanguage(savedLanguage);
+      await i18n.changeLanguage(savedLanguage);
     }
   } catch (error) {
     console.error('Error al cargar el idioma:', error);
