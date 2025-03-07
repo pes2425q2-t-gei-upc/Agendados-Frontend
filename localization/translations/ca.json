@@ -1,0 +1,12 @@
+{
+    "welcome": {
+      "title": "Benvingut a Agendados!",
+      "subtitle": "La teva aplicació per organitzar tasques"
+    },
+    "language": {
+      "selectLanguage": "Selecciona idioma:",
+      "spanish": "Espanyol",
+      "english": "Anglès",
+      "catalan": "Català"
+    }
+  }

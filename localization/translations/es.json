@@ -1,0 +1,12 @@
+{
+    "welcome": {
+      "title": "¡Bienvenido a Agendados!",
+      "subtitle": "Tu aplicación para encontrar eventos"
+    },
+    "language": {
+      "selectLanguage": "Seleccionar idioma:",
+      "spanish": "Español",
+      "english": "Inglés",
+      "catalan": "Catalán"
+    }
+  }
