@@ -1,11 +1,13 @@
-import { useTranslation } from "react-i18next";
-import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { useTranslation } from 'react-i18next';
+import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 
 interface LanguageSelectorProps {
   onLanguageChange: (lang: 'es' | 'en' | 'ca') => void;
 }
 
-const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onLanguageChange }) => {
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({
+  onLanguageChange,
+}) => {
   const { t, i18n } = useTranslation();
 
   const handleChangeLanguage = (lang: 'es' | 'en' | 'ca') => {
@@ -16,7 +18,10 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onLanguageChange })
   return (
     <View style={styles.langButtonContainer}>
       <TouchableOpacity
-        style={[styles.langButton, i18n.language === 'es' ? styles.selectedLang : null]}
+        style={[
+          styles.langButton,
+          i18n.language === 'es' ? styles.selectedLang : null,
+        ]}
         onPress={() => handleChangeLanguage('es')}
       >
         <Text style={i18n.language === 'es' ? styles.selectedText : null}>
@@ -24,7 +29,10 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onLanguageChange })
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={[styles.langButton, i18n.language === 'en' ? styles.selectedLang : null]}
+        style={[
+          styles.langButton,
+          i18n.language === 'en' ? styles.selectedLang : null,
+        ]}
         onPress={() => handleChangeLanguage('en')}
       >
         <Text style={i18n.language === 'en' ? styles.selectedText : null}>
@@ -32,7 +40,10 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onLanguageChange })
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={[styles.langButton, i18n.language === 'ca' ? styles.selectedLang : null]}
+        style={[
+          styles.langButton,
+          i18n.language === 'ca' ? styles.selectedLang : null,
+        ]}
         onPress={() => handleChangeLanguage('ca')}
       >
         <Text style={i18n.language === 'ca' ? styles.selectedText : null}>
@@ -44,25 +55,25 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onLanguageChange })
 };
 
 const styles = StyleSheet.create({
-  langButtonContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    flexWrap: "wrap",
-    gap: 10,
-  },
   langButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
     borderRadius: 20,
-    backgroundColor: "#f0f0f0",
     minWidth: 100,
-    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  langButtonContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'center',
   },
   selectedLang: {
-    backgroundColor: "#007AFF",
+    backgroundColor: '#007AFF',
   },
   selectedText: {
-    color: "white",
+    color: 'white',
   },
 });
 

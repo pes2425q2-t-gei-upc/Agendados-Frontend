@@ -1,5 +1,6 @@
+import { Stack } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Stack } from "expo-router";
+
 import { initializeLanguage } from '../localization/i18n';
 
 export default function RootLayout() {
@@ -10,8 +11,8 @@ export default function RootLayout() {
 
   return (
     <Stack>
-      <Stack.Screen name="index" options={{ title: "Inicio" }} />
-      <Stack.Screen name="config" options={{ title: "Configuración" }} />
+      <Stack.Screen name='index' options={{ title: 'Inicio' }} />
+      <Stack.Screen name='config' options={{ title: 'Configuración' }} />
     </Stack>
   );
 }
