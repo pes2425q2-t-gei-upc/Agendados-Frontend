@@ -1,6 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Recursos de traducción
 const resources = {
@@ -12,8 +12,8 @@ const resources = {
       language: 'Language',
       spanish: 'Español',
       catalan: 'Català',
-      english: 'English'
-    }
+      english: 'English',
+    },
   },
   es: {
     translation: {
@@ -23,34 +23,32 @@ const resources = {
       language: 'Idioma',
       spanish: 'Español',
       catalan: 'Català',
-      english: 'English'
-    }
+      english: 'English',
+    },
   },
   ca: {
     translation: {
-      welcome: 'Benvingut a l\'Aplicació!',
+      welcome: "Benvingut a l'Aplicació!",
       goToSettings: 'Anar a Configuració',
       settings: 'Configuració',
       language: 'Idioma',
       spanish: 'Español',
       catalan: 'Català',
-      english: 'English'
-    }
-  }
+      english: 'English',
+    },
+  },
 };
 
 // Configurar i18n
-i18n
-  .use(initReactI18next)
-  .init({
-    compatibilityJSON: 'v3', // Necesario para Android
-    resources,
-    lng: 'es', // Idioma por defecto
-    fallbackLng: 'es',
-    interpolation: {
-      escapeValue: false,
-    },
-  });
+i18n.use(initReactI18next).init({
+  compatibilityJSON: 'v3', // Necesario para Android
+  resources,
+  lng: 'es', // Idioma por defecto
+  fallbackLng: 'es',
+  interpolation: {
+    escapeValue: false,
+  },
+});
 
 // Función para cambiar el idioma
 export const changeLanguage = async (language) => {
