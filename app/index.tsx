@@ -10,7 +10,10 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('welcome')}</Text>
-      <Button title={t('goToSettings')} onPress={() => router.push('/config')} />
+      <Button
+        title={t('goToSettings')}
+        onPress={() => router.push('/config')}
+      />
     </View>
   );
 }

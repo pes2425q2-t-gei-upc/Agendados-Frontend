@@ -12,8 +12,8 @@ module.exports = {
     'plugin:react-native/all',
     'plugin:import/recommended',
     'plugin:import/typescript',
-    'plugin:react-hooks/recommended', // Add explicitly
-    'plugin:prettier/recommended', // Last
+    'plugin:react-hooks/recommended',
+    'plugin:prettier/recommended' // Last to ensure Prettier overrides others
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -43,7 +43,7 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     'no-console': ['warn', { allow: ['error'] }],
     'no-debugger': 'error',
-    curly: ['error', 'all'],
+    'curly': ['error', 'all'],
     'import/order': [
       'error',
       {

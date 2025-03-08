@@ -22,28 +22,49 @@ export default function Config() {
 
         <View style={styles.languageOptions}>
           <TouchableOpacity
-            style={[styles.languageButton, language === 'es' && styles.selectedLanguage]}
+            style={[
+              styles.languageButton,
+              language === 'es' && styles.selectedLanguage,
+            ]}
             onPress={() => handleLanguageChange('es')}
           >
-            <Text style={language === 'es' ? styles.selectedText : styles.languageText}>
+            <Text
+              style={
+                language === 'es' ? styles.selectedText : styles.languageText
+              }
+            >
               {t('spanish')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.languageButton, language === 'ca' && styles.selectedLanguage]}
+            style={[
+              styles.languageButton,
+              language === 'ca' && styles.selectedLanguage,
+            ]}
             onPress={() => handleLanguageChange('ca')}
           >
-            <Text style={language === 'ca' ? styles.selectedText : styles.languageText}>
+            <Text
+              style={
+                language === 'ca' ? styles.selectedText : styles.languageText
+              }
+            >
               {t('catalan')}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.languageButton, language === 'en' && styles.selectedLanguage]}
+            style={[
+              styles.languageButton,
+              language === 'en' && styles.selectedLanguage,
+            ]}
             onPress={() => handleLanguageChange('en')}
           >
-            <Text style={language === 'en' ? styles.selectedText : styles.languageText}>
+            <Text
+              style={
+                language === 'en' ? styles.selectedText : styles.languageText
+              }
+            >
               {t('english')}
             </Text>
           </TouchableOpacity>
