@@ -13,6 +13,7 @@ export default function RootLayout() {
     <Stack>
       <Stack.Screen name='index' options={{ title: 'Inicio' }} />
       <Stack.Screen name='config' options={{ title: 'Configuración' }} />
+      <Stack.Screen name='mainPage' options={{ title: 'Pagina principal' }} />
     </Stack>
   );
 }

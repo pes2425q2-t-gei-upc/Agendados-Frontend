@@ -14,6 +14,10 @@ export default function Index() {
         title={t('goToSettings')}
         onPress={() => router.push('/config')}
       />
+      <Button
+        title={t('Pantalla principal')}
+        onPress={() => router.push('/mainPage')}
+      />
     </View>
   );
 }
