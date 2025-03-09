@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import React, { useEffect } from 'react';
 
-import { initializeLanguage } from '../localization/i18n';
+import { initializeLanguage } from 'localization/i18n';
 
 export default function RootLayout() {
   useEffect(() => {
@@ -11,9 +11,7 @@ export default function RootLayout() {
 
   return (
     <Stack>
-      <Stack.Screen name='index' options={{ title: 'Inicio' }} />
-      <Stack.Screen name='config' options={{ title: 'Configuración' }} />
-      <Stack.Screen name='mainPage' options={{ title: 'Pagina principal' }} />
+      <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
     </Stack>
   );
 }
