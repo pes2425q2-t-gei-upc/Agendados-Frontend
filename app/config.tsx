@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
-import { changeLanguage } from '../localization/i18n';
+import { changeLanguage } from 'localization/i18n';
 
 export default function Config() {
   const { t, i18n } = useTranslation();
