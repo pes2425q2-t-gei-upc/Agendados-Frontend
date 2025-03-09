@@ -5,7 +5,8 @@
     "strict": true,
     "baseUrl": ".", 
     "paths": {
-      "@/*": ["./*"] 
+      "@localization/*": ["./src/localization/*"],
+      "@styles/*": ["./styles/*"]
     }
   },
   "include": [
