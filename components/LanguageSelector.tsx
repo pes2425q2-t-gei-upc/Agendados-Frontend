@@ -1,3 +1,4 @@
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 
