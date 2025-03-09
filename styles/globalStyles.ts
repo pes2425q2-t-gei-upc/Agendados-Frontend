@@ -1,15 +1,15 @@
 import { StyleSheet } from 'react-native';
 
 export const colors = {
-  primary: '#2E86AB', // Blue - primary brand color
-  primaryDark: '#1A6F92', // Darker blue for hover/active states
-  primaryLight: '#7BBFD9', // Lighter blue for backgrounds/accents
+  primary: '#D11149', // Red/Pink - primary brand color
+  primaryDark: '#A60D3A', // Darker red for hover/active states
+  primaryLight: '#F4587D', // Lighter red for backgrounds/accents
 
-  secondary: '#FFA552', // Orange - secondary brand color
-  secondaryDark: '#E88A37', // Darker orange for hover/active states
-  secondaryLight: '#FFCFA3', // Lighter orange for backgrounds/accents
+  secondary: '#2E86AB', // Teal blue - secondary brand color
+  secondaryDark: '#1A6F92', // Darker teal for hover/active states
+  secondaryLight: '#7BBFD9', // Lighter teal for backgrounds/accents
 
-  accent: '#D11149', // Red - accent for attention/CTAs
+  accent: '#FFA552', // Orange - accent for attention/CTAs
 
   background: '#F8F1FF', // Light lavender for main backgrounds
   backgroundAlt: '#EDE5F2', // Alternative background for cards/sections
@@ -22,10 +22,10 @@ export const colors = {
   border: '#D1D1D1', // Subtle border color
   borderActive: '#B3B3B3', // Darker border for active elements
 
-  error: '#D11149', // Red for errors
+  error: '#D11149', // Red for errors (same as primary)
   success: '#4CAF50', // Green for success
-  warning: '#FFA552', // Orange for warnings
-  info: '#2E86AB', // Blue for info
+  warning: '#FFA552', // Orange for warnings (same as accent)
+  info: '#2E86AB', // Blue for info (same as secondary)
 
   disabled: '#E0E0E0', // For disabled elements
   overlay: 'rgba(0,0,0,0.5)', // For overlays and modals

@@ -1,34 +1,22 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button } from 'react-native';
 
-export default function Profile() {
+import { colors, globalStyles, typography } from '@styles/globalStyles';
+
+export default function Explore() {
   const router = useRouter();
   const { t } = useTranslation();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('welcome')}</Text>
+    <View style={globalStyles.container}>
+      <Text style={typography.title}>{'Profile'}</Text>
       <Button
         title={t('goToSettings')}
         onPress={() => router.push('/config')}
+        color={colors.primary}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-});

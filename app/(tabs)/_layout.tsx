@@ -1,21 +1,43 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
+
+import { colors } from '@styles/globalStyles';
+
+// Custom Header Component
+function CustomHeader() {
+  const router = useRouter();
+
+  const handlePress = () => {
+    router.push('/main');
+  };
+  return (
+    <TouchableOpacity
+      onPress={handlePress}
+      style={styles.headerContainer}
+      activeOpacity={0.9}
+    >
+      <Text style={styles.headerTitle}>Agendados</Text>
+    </TouchableOpacity>
+  );
+}
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#0066CC',
-        tabBarInactiveTintColor: '#888888',
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarShowLabel: true,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.background,
           borderTopWidth: 1,
-          borderTopColor: '#EEEEEE',
-          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-          height: Platform.OS === 'ios' ? 85 : 65,
-          shadowColor: '#000',
+          borderTopColor: colors.border,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: Platform.OS === 'ios' ? 90 : 80,
+          shadowColor: colors.darkBackground,
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.1,
           shadowRadius: 4,
@@ -24,7 +46,15 @@ export default function TabLayout() {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '500',
-          marginBottom: Platform.OS === 'ios' ? 0 : 5,
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginBottom: 0,
+        },
+        // Add the custom header to all screens
+        header: () => <CustomHeader />,
+        headerStyle: {
+          backgroundColor: colors.background,
         },
       }}
     >
@@ -35,12 +65,10 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
-              size={24}
+              size={30}
               color={color}
             />
           ),
-          headerStyle: { backgroundColor: '#FFFFFF' },
-          headerTitleStyle: { fontWeight: 'bold' },
         }}
       />
       <Tabs.Screen
@@ -50,12 +78,10 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'compass' : 'compass-outline'}
-              size={24}
+              size={30}
               color={color}
             />
           ),
-          headerStyle: { backgroundColor: '#FFFFFF' },
-          headerTitleStyle: { fontWeight: 'bold' },
         }}
       />
       <Tabs.Screen
@@ -65,12 +91,10 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'bookmark' : 'bookmark-outline'}
-              size={24}
+              size={30}
               color={color}
             />
           ),
-          headerStyle: { backgroundColor: '#FFFFFF' },
-          headerTitleStyle: { fontWeight: 'bold' },
         }}
       />
       <Tabs.Screen
@@ -80,14 +104,32 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}
-              size={24}
+              size={30}
               color={color}
             />
           ),
-          headerStyle: { backgroundColor: '#FFFFFF' },
-          headerTitleStyle: { fontWeight: 'bold' },
         }}
       />
     </Tabs>
   );
 }
+
+// Styles for the Custom Header
+const styles = StyleSheet.create({
+  headerContainer: {
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    elevation: 3,
+    height: Platform.OS === 'ios' ? 100 : 80,
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    color: colors.primary,
+    fontSize: 24,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    paddingTop: Platform.OS === 'ios' ? 40 : 20,
+  },
+});
