@@ -1,4 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
+// src/screens/AuthScreen.tsx
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -9,14 +10,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
+import { login, register } from '../api/auth';
 import {
   globalStyles,
   typography,
   colors,
   spacing,
-} from '../styles/globalStyles'; // Ajusta la ruta según tu estructura
+} from '../styles/globalStyles';
 
-export default function RegisterLoginPage() {
+const AuthScreen: React.FC = () => {
   const router = useRouter();
   const [showLogin, setShowLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -25,7 +27,7 @@ export default function RegisterLoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Validación básica de email con expresión regular
+  // Validación básica de email
   const validateEmail = (email: string) => {
     const re = /\S+@\S+\.\S+/;
     return re.test(email);
@@ -46,11 +48,11 @@ export default function RegisterLoginPage() {
 
     try {
       setLoading(true);
-      // Simula la petición de red (reemplaza con tu lógica real)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await login(email, password);
+      // Opcional: guarda el token recibido, por ejemplo, con AsyncStorage
       router.replace('/(tabs)/main');
-    } catch (error) {
-      setErrorMessage('Error al iniciar sesión. Inténtalo de nuevo.');
+    } catch (error: any) {
+      setErrorMessage(error.message);
       console.error(error);
     } finally {
       setLoading(false);
@@ -77,11 +79,11 @@ export default function RegisterLoginPage() {
 
     try {
       setLoading(true);
-      // Simula la petición de red (reemplaza con tu lógica real)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await register(fullName, email, password);
+      // Opcional: guarda el token recibido
       router.replace('/(tabs)/main');
-    } catch (error) {
-      setErrorMessage('Error al registrar usuario. Inténtalo de nuevo.');
+    } catch (error: any) {
+      setErrorMessage(error.message);
       console.error(error);
     } finally {
       setLoading(false);
@@ -196,7 +198,6 @@ export default function RegisterLoginPage() {
             disabled={loading}
           >
             <Text
-              // eslint-disable-next-line react-native/no-inline-styles
               style={{
                 color: colors.primary,
                 fontSize: 14,
@@ -211,4 +212,6 @@ export default function RegisterLoginPage() {
       )}
     </View>
   );
-}
+};
+
+export default AuthScreen;
