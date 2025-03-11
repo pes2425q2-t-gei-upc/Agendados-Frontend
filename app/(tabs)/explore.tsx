@@ -16,6 +16,7 @@ export default function Explore() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [eventsModalVisible, setEventsModalVisible] = useState(false);
 
   const markers = [
     {
@@ -43,6 +44,7 @@ export default function Explore() {
       description: 'cultura - centre - gratuït',
     },
   ];
+
   const filters = [
     { id: 'cultura', label: 'Cultura', icon: 'color-palette' as const },
     { id: 'esports', label: 'Esports', icon: 'football' as const },
@@ -58,6 +60,10 @@ export default function Explore() {
 
   const toggleFilterModal = () => {
     setFilterModalVisible(!filterModalVisible);
+  };
+
+  const toggleEventsModal = () => {
+    setEventsModalVisible(!eventsModalVisible);
   };
 
   return (
@@ -137,6 +143,12 @@ export default function Explore() {
         </ScrollView>
       </View>
 
+      {/* Botón para mostrar el desplegable de eventos */}
+      <TouchableOpacity style={styles.eventsButton} onPress={toggleEventsModal}>
+        <Text style={styles.eventsButtonText}>Ver Eventos</Text>
+      </TouchableOpacity>
+
+      {/* Modal de filtros existente */}
       <Modal
         animationType='slide'
         transparent={true}
@@ -189,6 +201,35 @@ export default function Explore() {
           </View>
         </View>
       </Modal>
+
+      {/* Modal de eventos (desplegable desde abajo) */}
+      <Modal
+        animationType='slide'
+        transparent={true}
+        visible={eventsModalVisible}
+        onRequestClose={toggleEventsModal}
+      >
+        <View style={styles.eventsModalContainer}>
+          <View style={styles.eventsModalContent}>
+            <View style={styles.eventsModalHeader}>
+              <Text style={styles.eventsModalTitle}>Eventos</Text>
+              <TouchableOpacity onPress={toggleEventsModal}>
+                <Ionicons name='close' size={24} color='#333' />
+              </TouchableOpacity>
+            </View>
+            <ScrollView>
+              {markers.map((event) => (
+                <View key={event.id} style={styles.eventCard}>
+                  <Text style={styles.eventTitle}>{event.title}</Text>
+                  <Text style={styles.eventDescription}>
+                    {event.description}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -208,6 +249,63 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+  },
+  eventCard: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+    marginBottom: 10,
+    padding: 15,
+  },
+  eventDescription: {
+    color: '#666',
+    fontSize: 14,
+    marginTop: 5,
+  },
+  eventTitle: {
+    color: '#333',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  eventsButton: {
+    alignSelf: 'center',
+    backgroundColor: '#4285F4',
+    borderRadius: 25,
+    bottom: 20,
+    elevation: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    position: 'absolute',
+  },
+  eventsButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  eventsModalContainer: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  eventsModalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '50%',
+    padding: 20,
+  },
+  eventsModalHeader: {
+    alignItems: 'center',
+    borderBottomColor: '#eee',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    paddingBottom: 10,
+  },
+  eventsModalTitle: {
+    color: '#333',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   filterButton: {
     padding: 8,
