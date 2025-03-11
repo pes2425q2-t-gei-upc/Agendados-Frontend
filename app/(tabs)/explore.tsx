@@ -8,12 +8,14 @@ import {
   ScrollView,
   TouchableOpacity,
   Text,
+  Modal,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 export default function Explore() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('');
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
 
   const markers = [
     {
@@ -41,18 +43,21 @@ export default function Explore() {
       description: 'cultura - centre - gratuït',
     },
   ];
-
   const filters = [
-    { id: 'cultura', label: 'Cultura', icon: 'color-palette' },
-    { id: 'esports', label: 'Esports', icon: 'football' },
-    { id: 'gratuït', label: 'Gratuït', icon: 'pricetag' },
-    { id: 'pagament', label: 'Pagament', icon: 'card' },
-    { id: 'centre', label: 'Centre', icon: 'location' },
-    { id: 'gràcia', label: 'Gràcia', icon: 'map' },
+    { id: 'cultura', label: 'Cultura', icon: 'color-palette' as const },
+    { id: 'esports', label: 'Esports', icon: 'football' as const },
+    { id: 'gratuït', label: 'Gratuït', icon: 'pricetag' as const },
+    { id: 'pagament', label: 'Pagament', icon: 'card' as const },
+    { id: 'centre', label: 'Centre', icon: 'location' as const },
+    { id: 'gràcia', label: 'Gràcia', icon: 'map' as const },
   ];
 
   const handleFilterPress = (filterId: React.SetStateAction<string>) => {
     setActiveFilter(activeFilter === filterId ? '' : filterId);
+  };
+
+  const toggleFilterModal = () => {
+    setFilterModalVisible(!filterModalVisible);
   };
 
   return (
@@ -92,6 +97,12 @@ export default function Explore() {
             onChangeText={setSearchQuery}
             placeholderTextColor='#999'
           />
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={toggleFilterModal}
+          >
+            <Ionicons name='options-outline' size={24} color='#666' />
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -103,7 +114,7 @@ export default function Explore() {
             <TouchableOpacity
               key={filter.id}
               style={[
-                styles.filterButton,
+                styles.filterChip,
                 activeFilter === filter.id && styles.filterButtonActive,
               ]}
               onPress={() => handleFilterPress(filter.id)}
@@ -125,15 +136,86 @@ export default function Explore() {
           ))}
         </ScrollView>
       </View>
+
+      <Modal
+        animationType='slide'
+        transparent={true}
+        visible={filterModalVisible}
+        onRequestClose={toggleFilterModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Personalització de cerca</Text>
+              <TouchableOpacity onPress={toggleFilterModal}>
+                <Ionicons name='close' size={24} color='#333' />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.sectionTitle}>Categories</Text>
+            <View style={styles.filterGridContainer}>
+              {filters.map((filter) => (
+                <TouchableOpacity
+                  key={filter.id}
+                  style={[
+                    styles.filterGridItem,
+                    activeFilter === filter.id && styles.filterButtonActive,
+                  ]}
+                  onPress={() => handleFilterPress(filter.id)}
+                >
+                  <Ionicons
+                    name={filter.icon}
+                    size={24}
+                    color={activeFilter === filter.id ? '#fff' : '#666'}
+                  />
+                  <Text
+                    style={[
+                      styles.filterGridText,
+                      activeFilter === filter.id && styles.filterTextActive,
+                    ]}
+                  >
+                    {filter.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity
+              style={styles.applyButton}
+              onPress={toggleFilterModal}
+            >
+              <Text style={styles.applyButtonText}>Aplicar filtres</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  applyButton: {
+    alignItems: 'center',
+    backgroundColor: '#4285F4',
+    borderRadius: 10,
+    marginTop: 40,
+    paddingVertical: 15,
+  },
+  applyButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   container: {
     flex: 1,
   },
   filterButton: {
+    padding: 8,
+  },
+  filterButtonActive: {
+    backgroundColor: '#4285F4',
+  },
+  filterChip: {
     alignItems: 'center',
     backgroundColor: 'white',
     borderRadius: 20,
@@ -147,8 +229,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
   },
-  filterButtonActive: {
-    backgroundColor: '#4285F4',
+  filterGridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  filterGridItem: {
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    marginBottom: 12,
+    padding: 16,
+    width: '30%',
+  },
+  filterGridText: {
+    color: '#666',
+    fontSize: 12,
+    marginTop: 8,
   },
   filterText: {
     color: '#666',
@@ -164,6 +261,32 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  modalContainer: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    minHeight: '60%',
+    padding: 20,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    borderBottomColor: '#eee',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    paddingBottom: 15,
+  },
+  modalTitle: {
+    color: '#333',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   searchBar: {
     alignItems: 'center',
@@ -194,5 +317,12 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     height: 40,
+  },
+  sectionTitle: {
+    color: '#333',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 15,
+    marginTop: 5,
   },
 });
