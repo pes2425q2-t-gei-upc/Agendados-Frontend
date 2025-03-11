@@ -1,14 +1,15 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography } from '@styles/globalStyles';
+import { styles } from '@styles/EventDetailModal.styles';
+import { colors } from '@styles/globalStyles';
 import { useRouter } from 'expo-router';
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Modal,
   ScrollView,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   Image,
   Linking,
   Dimensions,
@@ -49,10 +50,24 @@ const EventDetailModal = ({
   onClose,
 }: EventDetailModalProps) => {
   const router = useRouter();
-  const panY = useRef(new Animated.Value(0)).current;
+  const panY = useRef(new Animated.Value(screenHeight)).current;
+  const [modalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setModalVisible(true);
+      // Start the slide-up animation when modal becomes visible
+      Animated.timing(panY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [visible, panY]);
+
   const translateY = panY.interpolate({
-    inputRange: [-1, 0, 1],
-    outputRange: [0, 0, 1],
+    inputRange: [0, screenHeight],
+    outputRange: [0, screenHeight],
   });
 
   const resetPositionAnim = Animated.timing(panY, {
@@ -63,9 +78,16 @@ const EventDetailModal = ({
 
   const closeAnim = Animated.timing(panY, {
     toValue: screenHeight,
-    duration: 500,
+    duration: 300,
     useNativeDriver: true,
   });
+
+  const handleClose = () => {
+    closeAnim.start(() => {
+      setModalVisible(false);
+      onClose();
+    });
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -80,7 +102,7 @@ const EventDetailModal = ({
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > 100) {
-          closeAnim.start(() => onClose());
+          handleClose();
         } else {
           resetPositionAnim.start();
         }
@@ -167,336 +189,166 @@ const EventDetailModal = ({
 
   return (
     <Modal
-      visible={visible}
-      animationType='slide'
+      visible={modalVisible}
+      animationType='none'
       transparent={true}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
-      <View style={styles.modalOverlay}>
-        <Animated.View
-          style={[styles.modalContainer, { transform: [{ translateY }] }]}
-        >
-          <View style={styles.dragHandle} {...panResponder.panHandlers}>
-            <View style={styles.dragHandleBar} />
-          </View>
-
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <MaterialIcons name='close' size={24} color={colors.text} />
-          </TouchableOpacity>
-
-          <ScrollView
-            style={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={handleClose}
+      >
+        <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+          <Animated.View
+            style={[styles.modalContainer, { transform: [{ translateY }] }]}
           >
-            {/* Header with title */}
-            <View style={styles.header}>
-              <Text style={styles.title}>{event.title}</Text>
+            <View style={styles.dragHandle} {...panResponder.panHandlers}>
+              <View style={styles.dragHandleBar} />
             </View>
 
-            {/* Image carousel */}
-            {event.images && event.images.length > 0 ? (
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                style={styles.imageCarousel}
-              >
-                {event.images.map((image, index) => (
-                  <Image
-                    key={index}
-                    source={{ uri: image }}
-                    style={styles.eventImage}
-                    resizeMode='cover'
-                  />
-                ))}
-              </ScrollView>
-            ) : (
-              <View style={styles.imagePlaceholder}>
-                <MaterialIcons name='image' size={80} color={colors.border} />
-              </View>
-            )}
+            <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+              <MaterialIcons name='close' size={24} color={colors.text} />
+            </TouchableOpacity>
 
-            {/* Categories */}
-            {event.categories && event.categories.length > 0 && (
-              <View style={styles.categoriesContainer}>
-                {event.categories.map((category, index) => (
-                  <View key={index} style={styles.categoryTag}>
-                    <Text style={styles.categoryText}>{category}</Text>
-                  </View>
-                ))}
+            <ScrollView
+              style={styles.scrollContainer}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Header with title */}
+              <View style={styles.header}>
+                <Text style={styles.title}>{event.title}</Text>
               </View>
-            )}
 
-            {/* Date and time */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <MaterialIcons name='event' size={22} color={colors.primary} />
-                <Text style={styles.sectionTitle}>Date & Time</Text>
-              </View>
-              <View style={styles.sectionContent}>{formatDateRange()}</View>
-            </View>
-
-            {/* Location */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <MaterialIcons
-                  name='location-on'
-                  size={22}
-                  color={colors.primary}
-                />
-                <Text style={styles.sectionTitle}>Location</Text>
-              </View>
-              <View style={styles.sectionContent}>
-                <Text style={styles.locationName}>{event.location}</Text>
-                {event.address && (
-                  <Text style={styles.locationAddress}>{event.address}</Text>
-                )}
-                {(event.latitude || event.address) && (
-                  <TouchableOpacity style={styles.mapButton} onPress={openMap}>
-                    <Text style={styles.mapButtonText}>View on map</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-
-            {/* Organizer */}
-            {event.organizer && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <MaterialIcons
-                    name='people'
-                    size={22}
-                    color={colors.primary}
-                  />
-                  <Text style={styles.sectionTitle}>Organizer</Text>
+              {/* Image carousel */}
+              {event.images && event.images.length > 0 ? (
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.imageCarousel}
+                >
+                  {event.images.map((image, index) => (
+                    <Image
+                      key={index}
+                      source={{ uri: image }}
+                      style={styles.eventImage}
+                      resizeMode='cover'
+                    />
+                  ))}
+                </ScrollView>
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <MaterialIcons name='image' size={80} color={colors.border} />
                 </View>
-                <View style={styles.sectionContent}>
-                  <Text style={styles.organizerText}>{event.organizer}</Text>
-                </View>
-              </View>
-            )}
-
-            {/* Description */}
-            {event.description && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <MaterialIcons
-                    name='description'
-                    size={22}
-                    color={colors.primary}
-                  />
-                  <Text style={styles.sectionTitle}>Description</Text>
-                </View>
-                <View style={styles.sectionContent}>
-                  <Text style={styles.description}>{event.description}</Text>
-                </View>
-              </View>
-            )}
-
-            {/* Spacer at the bottom */}
-            <View style={styles.bottomSpacer} />
-          </ScrollView>
-
-          {/* Buy tickets button */}
-          {event.ticketUrl && (
-            <View style={styles.buttonContainer}>
-              {event.price !== undefined && (
-                <Text style={styles.priceText}>
-                  Price starting from ${event.price}
-                </Text>
               )}
-              <TouchableOpacity style={styles.buyButton} onPress={buyTickets}>
-                <Text style={styles.buyButtonText}>Buy Tickets</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </Animated.View>
-      </View>
+
+              {/* Categories */}
+              {event.categories && event.categories.length > 0 && (
+                <View style={styles.categoriesContainer}>
+                  {event.categories.map((category, index) => (
+                    <View key={index} style={styles.categoryTag}>
+                      <Text style={styles.categoryText}>{category}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Date and time */}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons
+                    name='event'
+                    size={22}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.sectionTitle}>Date & Time</Text>
+                </View>
+                <View style={styles.sectionContent}>{formatDateRange()}</View>
+              </View>
+
+              {/* Location */}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons
+                    name='location-on'
+                    size={22}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.sectionTitle}>Location</Text>
+                </View>
+                <View style={styles.sectionContent}>
+                  <Text style={styles.locationName}>{event.location}</Text>
+                  {event.address && (
+                    <Text style={styles.locationAddress}>{event.address}</Text>
+                  )}
+                  {(event.latitude || event.address) && (
+                    <TouchableOpacity
+                      style={styles.mapButton}
+                      onPress={openMap}
+                    >
+                      <Text style={styles.mapButtonText}>View on map</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              {/* Organizer */}
+              {event.organizer && (
+                <View style={styles.section}>
+                  <View style={styles.sectionHeader}>
+                    <MaterialIcons
+                      name='people'
+                      size={22}
+                      color={colors.primary}
+                    />
+                    <Text style={styles.sectionTitle}>Organizer</Text>
+                  </View>
+                  <View style={styles.sectionContent}>
+                    <Text style={styles.organizerText}>{event.organizer}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Description */}
+              {event.description && (
+                <View style={styles.section}>
+                  <View style={styles.sectionHeader}>
+                    <MaterialIcons
+                      name='description'
+                      size={22}
+                      color={colors.primary}
+                    />
+                    <Text style={styles.sectionTitle}>Description</Text>
+                  </View>
+                  <View style={styles.sectionContent}>
+                    <Text style={styles.description}>{event.description}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Spacer at the bottom */}
+              <View style={styles.bottomSpacer} />
+            </ScrollView>
+
+            {/* Buy tickets button */}
+            {event.ticketUrl && (
+              <View style={styles.buttonContainer}>
+                {event.price !== undefined && (
+                  <Text style={styles.priceText}>
+                    Price starting from ${event.price}
+                  </Text>
+                )}
+                <TouchableOpacity style={styles.buyButton} onPress={buyTickets}>
+                  <Text style={styles.buyButtonText}>Buy Tickets</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </Animated.View>
+        </TouchableWithoutFeedback>
+      </TouchableOpacity>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  bottomSpacer: {
-    height: 80,
-  },
-  buttonContainer: {
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    borderTopColor: colors.border,
-    borderTopWidth: 1,
-    bottom: 0,
-    justifyContent: 'center',
-    left: 0,
-    padding: spacing.md,
-    position: 'absolute',
-    right: 0,
-  },
-  buyButton: {
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    justifyContent: 'center',
-    padding: spacing.md,
-    width: '90%',
-  },
-  buyButtonText: {
-    color: colors.lightText,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: spacing.md,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.sm,
-  },
-  categoryTag: {
-    backgroundColor: colors.primaryLight,
-    borderRadius: 15,
-    marginBottom: 5,
-    marginRight: 5,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  categoryText: {
-    color: colors.darkBackground,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  closeButton: {
-    padding: spacing.md,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    zIndex: 1,
-  },
-  container: {
-    backgroundColor: colors.background,
-    flex: 1,
-    position: 'relative',
-  },
-  dateTimeText: {
-    color: colors.text,
-    fontSize: 15,
-    marginBottom: 2,
-  },
-  description: {
-    color: colors.text,
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  dragHandle: {
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    height: 30,
-    justifyContent: 'center',
-    width: '100%',
-  },
-  dragHandleBar: {
-    backgroundColor: colors.border,
-    borderRadius: 3,
-    height: 5,
-    width: 40,
-  },
-  eventImage: {
-    height: 250,
-    width: screenWidth,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.lg,
-  },
-  imageCarousel: {
-    height: 250,
-    marginBottom: spacing.sm,
-  },
-  imagePlaceholder: {
-    alignItems: 'center',
-    backgroundColor: colors.backgroundAlt,
-    height: 200,
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
-  locationAddress: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    marginBottom: spacing.xs,
-  },
-  locationName: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  mapButton: {
-    backgroundColor: colors.secondaryLight,
-    borderRadius: 5,
-    marginTop: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    width: 100,
-  },
-  mapButtonText: {
-    color: colors.secondary,
-    fontSize: 13,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  modalContainer: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    height: screenHeight * 0.9,
-    overflow: 'hidden',
-  },
-  modalOverlay: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  organizerText: {
-    color: colors.text,
-    fontSize: 15,
-  },
-  priceText: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: spacing.xs,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  section: {
-    marginBottom: spacing.lg,
-    marginHorizontal: spacing.md,
-  },
-  sectionContent: {
-    marginTop: spacing.xs,
-  },
-  sectionHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    marginBottom: spacing.xs,
-  },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: spacing.xs,
-  },
-  title: {
-    color: colors.text,
-    flex: 1,
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginRight: spacing.md,
-  },
-});
 
 export default EventDetailModal;

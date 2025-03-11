@@ -1,16 +1,17 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   Animated,
   Share,
+  GestureResponderEvent,
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
-import { colors, spacing } from '@styles/globalStyles';
+import { colors } from '@styles/globalStyles';
+import { styles } from '@styles/SavedEventCard.styles';
 
 import EventDetailModal from './EventDetailModal';
 
@@ -31,6 +32,11 @@ interface EventCardProps {
 
 const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
+  const swipeableRef = useRef<Swipeable>(null);
+  // Track touch start position to detect horizontal swipes
+  const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
+  const isSwiping = useRef<boolean>(false);
 
   // Format time range
   const formatTimeRange = () => {
@@ -80,6 +86,32 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
     );
   };
 
+  // Handle touch start to record initial position
+  const handleTouchStart = (e: GestureResponderEvent) => {
+    touchStartX.current = e.nativeEvent.pageX;
+    touchStartY.current = e.nativeEvent.pageY;
+    isSwiping.current = false;
+  };
+
+  // Handle touch move to detect horizontal swipes
+  const handleTouchMove = (e: GestureResponderEvent) => {
+    const deltaX = Math.abs(e.nativeEvent.pageX - touchStartX.current);
+    const deltaY = Math.abs(e.nativeEvent.pageY - touchStartY.current);
+
+    // If horizontal movement is greater than vertical and beyond a threshold,
+    // mark as swiping to prevent detail modal from opening
+    if (deltaX > deltaY && deltaX > 10) {
+      isSwiping.current = true;
+    }
+  };
+
+  // Only open details if not detected as a horizontal swipe
+  const handlePress = () => {
+    if (!isSwiping.current) {
+      setShowDetails(true);
+    }
+  };
+
   // Extended event data with mock details
   // In a real app, this would come from your API
   const detailedEvent = {
@@ -101,13 +133,16 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
   return (
     <>
       <Swipeable
+        ref={swipeableRef}
         renderRightActions={renderRightActions}
         friction={2}
         rightThreshold={40}
       >
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={() => setShowDetails(true)}
+          onPress={handlePress}
+          onPressIn={handleTouchStart}
+          onTouchMove={handleTouchMove}
         >
           <View style={styles.card}>
             <View style={styles.cardHeader}>
@@ -155,96 +190,5 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.backgroundAlt,
-    borderRadius: 8,
-    elevation: 2,
-    marginVertical: spacing.xs,
-    padding: spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  cardFooter: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.xs,
-  },
-  cardHeader: {
-    alignItems: 'flex-start',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.xs,
-  },
-  cardTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  categoryTag: {
-    backgroundColor: colors.primaryLight,
-    borderRadius: 12,
-    marginBottom: 5,
-    marginRight: 5,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-  },
-  deleteActionContainer: {
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    width: 100,
-  },
-  deleteButton: {
-    alignItems: 'center',
-    backgroundColor: '#C70000',
-    borderRadius: 8,
-    height: '85%',
-    justifyContent: 'center',
-    marginVertical: spacing.xs,
-    width: 60,
-  },
-  locationText: {
-    color: colors.textSecondary,
-    flex: 1,
-    fontSize: 14,
-    textAlign: 'left',
-  },
-  priceTag: {
-    alignItems: 'center',
-    backgroundColor: colors.accent,
-    borderRadius: 12,
-    minWidth: 45,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  priceText: {
-    color: colors.darkBackground,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  shareButton: {
-    padding: spacing.xs,
-  },
-  tagText: {
-    color: colors.darkBackground,
-    fontSize: 12,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: spacing.sm,
-  },
-  timeRange: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    marginBottom: spacing.sm,
-  },
-});
 
 export default SavedEventCard;
