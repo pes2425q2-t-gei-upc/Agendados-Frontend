@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-native/no-inline-styles */
 // src/screens/AuthScreen.tsx
 import { useRouter } from 'expo-router';
