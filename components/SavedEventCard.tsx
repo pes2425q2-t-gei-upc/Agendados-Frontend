@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
 import { Swipeable } from 'react-native-gesture-handler';
 
 import { colors, spacing } from '@styles/globalStyles';
+
+import EventDetailModal from './EventDetailModal';
 
 interface Event {
   id: string;
@@ -28,6 +30,8 @@ interface EventCardProps {
 }
 
 const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
+  const [showDetails, setShowDetails] = useState(false);
+
   // Format time range
   const formatTimeRange = () => {
     const options = { hour: '2-digit', minute: '2-digit' };
@@ -44,7 +48,10 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
   // Handle share event
   const handleShare = async () => {
     try {
-      console.log('Sharing event:', event.title);
+      await Share.share({
+        title: event.title,
+        message: `Check out this event: ${event.title} at ${event.location}, ${formatTimeRange()}`,
+      });
     } catch (error) {
       console.error('Error sharing event:', error);
     }
@@ -73,39 +80,79 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
     );
   };
 
+  // Extended event data with mock details
+  // In a real app, this would come from your API
+  const detailedEvent = {
+    ...event,
+    description:
+      'This is a detailed description of the event. In a real app, this would contain comprehensive information about what attendees can expect, the agenda, speakers, and other relevant details.',
+    address: '123 Example Street, City, State, ZIP',
+    organizer: 'Example Organization',
+    ticketUrl: 'https://example.com/buy-tickets',
+    images: [
+      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
+      'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4',
+      'https://images.unsplash.com/photo-1505236858219-8359eb29e329',
+    ],
+    latitude: 40.7128,
+    longitude: -74.006,
+  };
+
   return (
-    <Swipeable
-      renderRightActions={renderRightActions}
-      friction={2}
-      rightThreshold={40}
-    >
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>{event.title}</Text>
-          <View style={styles.priceTag}>
-            <Text style={styles.priceText}>${event.price}</Text>
-          </View>
-        </View>
-
-        <Text style={styles.timeRange}>{formatTimeRange()}</Text>
-
-        <View style={styles.tagsContainer}>
-          {event.categories.map((category, index) => (
-            <View key={index} style={styles.categoryTag}>
-              <Text style={styles.tagText}>{category}</Text>
+    <>
+      <Swipeable
+        renderRightActions={renderRightActions}
+        friction={2}
+        rightThreshold={40}
+      >
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => setShowDetails(true)}
+        >
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>{event.title}</Text>
+              <View style={styles.priceTag}>
+                <Text style={styles.priceText}>${event.price}</Text>
+              </View>
             </View>
-          ))}
-        </View>
 
-        <View style={styles.cardFooter}>
-          <Text style={styles.locationText}>📍 {event.location}</Text>
+            <Text style={styles.timeRange}>{formatTimeRange()}</Text>
 
-          <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-            <MaterialIcons name='share' size={20} color={colors.secondary} />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Swipeable>
+            <View style={styles.tagsContainer}>
+              {event.categories.map((category, index) => (
+                <View key={index} style={styles.categoryTag}>
+                  <Text style={styles.tagText}>{category}</Text>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.cardFooter}>
+              <Text style={styles.locationText}>📍 {event.location}</Text>
+
+              <TouchableOpacity
+                style={styles.shareButton}
+                onPress={handleShare}
+                // Stop propagation to prevent opening details when pressing share
+                onPressIn={(e) => e.stopPropagation()}
+              >
+                <MaterialIcons
+                  name='share'
+                  size={20}
+                  color={colors.secondary}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Swipeable>
+
+      <EventDetailModal
+        event={detailedEvent}
+        visible={showDetails}
+        onClose={() => setShowDetails(false)}
+      />
+    </>
   );
 };
 
