@@ -277,35 +277,13 @@ export default function Explore() {
 
   // Filter markers based on active filters
   const filteredMarkers = markers.filter((marker) => {
-    // If no filters are active, show all markers
+    // Si no hay filtros activos (y tampoco se ha seleccionado rango de fechas), mostramos todos los marcadores
     if (activeFilters.size === 0 && !startDate && !endDate) {
       return true;
     }
 
-    let matchesCategory = true;
-    let matchesLocation = true;
-    const matchesDateRange = true;
-
-    // Check if any category filters are active
-    const categoryFilters = filterCategories[0].items
-      .map((item) => item.id)
-      .filter((id) => activeFilters.has(id));
-    if (categoryFilters.length > 0) {
-      matchesCategory = categoryFilters.includes(marker.category);
-    }
-
-    // Check if any location filters are active
-    const locationFilters = filterCategories[1].items
-      .map((item) => item.id)
-      .filter((id) => activeFilters.has(id));
-    if (locationFilters.length > 0) {
-      matchesLocation = locationFilters.includes(marker.location);
-    }
-
-    // Date range filtering could be implemented here
-    // This would require proper Date objects in the markers
-
-    return matchesCategory && matchesLocation && matchesDateRange;
+    // Por ahora, filtramos únicamente por categoría
+    return activeFilters.has(marker.category);
   });
 
   // Get closest events based on user location
@@ -609,7 +587,7 @@ export default function Explore() {
               style={styles.eventCard}
               onPress={() => {
                 // You could navigate to event details or show more info here
-                console.log(`Event ${event.id} pressed`);
+                //console.log(`Event ${event.id} pressed`);
               }}
             >
               <Image
@@ -642,7 +620,7 @@ export default function Explore() {
 
       {/* Botón para mostrar el desplegable de eventos */}
       <TouchableOpacity style={styles.eventsButton} onPress={toggleEventsModal}>
-        <Text style={styles.eventsButtonText}>Ver Esdeveniments</Text>
+        <Text style={styles.eventsButtonText}>Tots els esdeveniments</Text>
       </TouchableOpacity>
 
       {/* Date picker modals */}
@@ -833,12 +811,46 @@ export default function Explore() {
             </View>
             <ScrollView>
               {filteredMarkers.map((event) => (
-                <View key={event.id} style={styles.eventModalCard}>
-                  <Text style={styles.eventTitle}>{event.title}</Text>
-                  <Text style={styles.eventDescription}>
-                    {event.description}
-                  </Text>
-                </View>
+                <TouchableOpacity
+                  key={event.id}
+                  style={styles.eventModalCard}
+                  onPress={() => {
+                    // Acción al pulsar sobre el evento
+                    console.log(`Event ${event.id} pressed`);
+                  }}
+                >
+                  <Image
+                    source={{ uri: event.image }}
+                    style={styles.eventImage}
+                    resizeMode='cover'
+                  />
+                  <View style={styles.eventCardContent}>
+                    <Text style={styles.eventCardTitle} numberOfLines={1}>
+                      {event.title}
+                    </Text>
+                    <Text style={styles.eventCardDescription} numberOfLines={1}>
+                      {event.description}
+                    </Text>
+                    <View style={styles.eventCardFooter}>
+                      <View style={styles.eventCardTime}>
+                        <Ionicons
+                          name='calendar-outline'
+                          size={12}
+                          color='#666'
+                        />
+                        <Text style={styles.eventCardTimeText}>
+                          {event.date}
+                        </Text>
+                      </View>
+                      <View style={styles.eventCardTime}>
+                        <Ionicons name='time-outline' size={12} color='#666' />
+                        <Text style={styles.eventCardTimeText}>
+                          {event.time}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
@@ -1019,12 +1031,6 @@ const styles = StyleSheet.create({
     height: 100,
     width: '100%',
   },
-  eventModalCard: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    marginBottom: 10,
-    padding: 15,
-  },
   eventTitle: {
     color: '#333',
     fontSize: 16,
@@ -1051,10 +1057,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   eventsModalContent: {
+    alignItems: 'center',
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '50%',
+    justifyContent: 'flex-end',
+    maxHeight: '85%',
     padding: 20,
   },
   eventsModalHeader: {
@@ -1170,7 +1178,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    top: 150,
+    top: 130,
     width: 56,
     zIndex: 1,
   },
@@ -1209,7 +1217,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '60%',
+    maxHeight: '80%', // ahora ocupa el 80% de la pantalla
     padding: 20,
   },
   populationDropdownHeader: {
@@ -1314,6 +1322,19 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     paddingHorizontal: 15,
     paddingVertical: 8,
+  },
+  eventModalCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    elevation: 3,
+    marginBottom: 10, // Space between cards in the modal
+    marginRight: 15,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    width: 220,
   },
   /* eslint-enable sort-keys */
 });
