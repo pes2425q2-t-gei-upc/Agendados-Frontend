@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
 
   gradientContainer: {
     bottom: 0,
-    height: '60%',
+    height: '54%',
     left: 0,
     position: 'absolute',
     right: 0,
