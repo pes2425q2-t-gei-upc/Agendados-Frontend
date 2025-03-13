@@ -1,29 +1,26 @@
-import { colors, spacing } from '@styles/globalStyles';
 import { StyleSheet } from 'react-native';
+
+import { colors, spacing } from '@styles/globalStyles';
 
 export const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.backgroundAlt,
+    backgroundColor: '#f7f7f7',
     borderRadius: 8,
     elevation: 2,
     marginVertical: spacing.xs,
-    padding: spacing.md,
+    padding: 0, // Remove padding to allow image to touch edges
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  cardFooter: {
-    alignItems: 'center',
+    shadowRadius: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.xs,
+    height: 120, // Two-column layout
   },
   cardHeader: {
     alignItems: 'flex-start',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: spacing.xs,
+    marginBottom: 5,
   },
   cardTitle: {
     flex: 1,
@@ -33,10 +30,16 @@ export const styles = StyleSheet.create({
   categoryTag: {
     backgroundColor: colors.primaryLight,
     borderRadius: 12,
-    marginBottom: 5,
     marginRight: 5,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
+  },
+  contentContainer: {
+    flex: 1, // Take remaining space
+    justifyContent: 'center',
+    marginLeft: 10,
+    marginTop: 5,
+    marginBottom: 5,
   },
   deleteActionContainer: {
     alignItems: 'center',
@@ -54,27 +57,23 @@ export const styles = StyleSheet.create({
     marginVertical: spacing.xs,
     width: 60,
   },
+  eventImage: {
+    borderRadius: 8,
+    height: '100%',
+    width: '100%',
+  },
+  eventImageContainer: {
+    alignItems: 'center',
+    height: 120,
+    justifyContent: 'center',
+    padding: 8,
+    width: 120,
+  },
   locationText: {
     color: colors.textSecondary,
-    flex: 1,
     fontSize: 14,
-    textAlign: 'left',
-  },
-  priceTag: {
-    alignItems: 'center',
-    backgroundColor: colors.accent,
-    borderRadius: 12,
-    minWidth: 45,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  priceText: {
-    color: colors.darkBackground,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  shareButton: {
-    padding: spacing.xs,
+    marginBottom: 3,
+    marginTop: 3,
   },
   tagText: {
     color: colors.darkBackground,
@@ -83,11 +82,11 @@ export const styles = StyleSheet.create({
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: spacing.sm,
+    marginTop: 5,
   },
   timeRange: {
     color: colors.textSecondary,
     fontSize: 14,
-    marginBottom: spacing.sm,
+    marginBottom: 1,
   },
 });

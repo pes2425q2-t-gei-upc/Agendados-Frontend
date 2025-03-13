@@ -22,6 +22,7 @@ const mockEvents = [
     price: 50,
     categories: ['Technology', 'Networking'],
     location: 'Convention Center',
+    imageUrl: '',
   },
   {
     id: '2',
@@ -31,6 +32,7 @@ const mockEvents = [
     price: 25,
     categories: ['Art', 'Culture'],
     location: 'Downtown Gallery',
+    imageUrl: '',
   },
   {
     id: '3',
