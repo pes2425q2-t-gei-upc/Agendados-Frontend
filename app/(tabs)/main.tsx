@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-  Pressable,
-  useWindowDimensions,
-} from 'react-native';
+import { View, Text, Pressable, useWindowDimensions } from 'react-native';
 //import { Pressable } from 'react-native-gesture-handler';
 import {
   GestureHandlerRootView,
@@ -21,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import Card from '@components/cardEvent';
+import { styles } from '@styles/mainPageStyles';
 
 const eventos = [
   {
@@ -38,27 +33,6 @@ const eventos = [
     date: '02/12/2028',
   },
 ];
-
-const styles = StyleSheet.create({
-  animatedCard: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    width: '100%',
-  },
-
-  nextCardContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...StyleSheet.absoluteFillObject,
-  },
-
-  pageContainer: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-  },
-});
 
 const SWIPE_VELOCITY = 800;
 
@@ -118,6 +92,7 @@ export default function main() {
         return;
       }
 
+      //Depenent de cap a on fas el swipe, que s'envagi pel costat del swipe (- o + hiddenTranslateX)
       translateX.value = withSpring(hiddenTranslateX);
     },
   });
