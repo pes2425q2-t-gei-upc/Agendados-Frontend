@@ -41,6 +41,7 @@ module.exports = {
     'react-native/no-color-literals': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/no-require-imports': 'off',
     'no-console': ['warn', { allow: ['error'] }],
     'no-debugger': 'error',
     'curly': ['error', 'all'],
