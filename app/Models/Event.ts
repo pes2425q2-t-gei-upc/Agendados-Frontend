@@ -2,28 +2,25 @@ export interface EventDTO {
   id: string;
   title: string;
   location: string;
-  startDate: Date;
-  endDate: Date;
+  data: Date;
   coverImage: string;
-  categories: string[];
+  categoria: string;
 }
 
 export class Event implements EventDTO {
   id: string;
   title: string;
   location: string;
-  startDate: Date;
-  endDate: Date;
+  data: Date;
   coverImage: string;
-  categories: string[];
+  categoria: string;
 
   constructor(dto: EventDTO) {
     this.id = dto.id;
     this.title = dto.title;
     this.coverImage = dto.coverImage;
     this.location = dto.location;
-    this.startDate = dto.startDate;
-    this.endDate = dto.endDate;
-    this.categories = dto.categories;
+    this.data = dto.data;
+    this.categoria = dto.categoria;
   }
 }

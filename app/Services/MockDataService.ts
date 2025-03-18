@@ -2,8 +2,8 @@ import { DetailedEventDTO, DetailedEvent } from '@models/DetailedEvent';
 import { EventDTO, Event } from '@models/Event';
 
 export class MockDataService {
-  private mockEvents: EventDTO[];
-  private mockDetailedEvents: DetailedEventDTO[];
+  private mockEvents: EventDTO[] = [];
+  private mockDetailedEvents: DetailedEventDTO[] = [];
 
   constructor() {
     this.initializeMockData();
@@ -19,28 +19,25 @@ export class MockDataService {
         id: '1',
         title: 'Concert in the Park',
         location: 'Central Park',
-        startDate: new Date(2023, 7, 15, 18, 0),
-        endDate: new Date(2023, 7, 15, 22, 0),
+        data: new Date(2023, 7, 15, 18, 0),
         coverImage: require('@assets/images/FotoJazz.jpg'),
-        categories: ['Music', 'Outdoor'],
+        categoria: 'Music',
       },
       {
         id: '2',
         title: 'Tech Conference',
         location: 'Convention Center',
-        startDate: new Date(2023, 8, 10, 9, 0),
-        endDate: new Date(2023, 8, 12, 17, 0),
+        data: new Date(2023, 8, 10, 9, 0),
         coverImage: require('@assets/images/FotoJazz.jpg'),
-        categories: ['Technology', 'Business'],
+        categoria: 'Technology',
       },
       {
         id: '3',
         title: 'Food Festival',
         location: 'Downtown Square',
-        startDate: new Date(2023, 9, 5, 11, 0),
-        endDate: new Date(2023, 9, 5, 20, 0),
+        data: new Date(2023, 9, 5, 11, 0),
         coverImage: require('@assets/images/FotoConcierto.jpg'),
-        categories: ['Food', 'Culture'],
+        categoria: 'Food',
       },
     ];
 
@@ -92,20 +89,11 @@ export class MockDataService {
    * @param userId Optional user ID for personalized recommendations
    * @returns Promise with an array of Event objects
    */
-  async getEvents(
-    page: number = 1,
-    limit: number = 10,
-    userId?: string
-  ): Promise<Event[]> {
-    // Calculate pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedEvents = this.mockEvents.slice(startIndex, endIndex);
-
+  async getEvents(): Promise<Event[]> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 300));
 
-    return paginatedEvents.map((eventDto) => new Event(eventDto));
+    return this.mockEvents.map((eventDto) => new Event(eventDto));
   }
 
   /**
@@ -125,38 +113,5 @@ export class MockDataService {
     }
 
     return new DetailedEvent(detailedEvent);
-  }
-
-  /**
-   * Searches for events based on a query string
-   * @param query Search query
-   * @param page Page number for pagination
-   * @param limit Number of events per page
-   * @returns Promise with an array of Event objects
-   */
-  async searchEvents(
-    query: string,
-    page: number = 1,
-    limit: number = 10
-  ): Promise<Event[]> {
-    // Filter events that match the query
-    const filteredEvents = this.mockEvents.filter(
-      (event) =>
-        event.title.toLowerCase().includes(query.toLowerCase()) ||
-        event.location.toLowerCase().includes(query.toLowerCase()) ||
-        event.categories.some((cat) =>
-          cat.toLowerCase().includes(query.toLowerCase())
-        )
-    );
-
-    // Calculate pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedEvents = filteredEvents.slice(startIndex, endIndex);
-
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    return paginatedEvents.map((eventDto) => new Event(eventDto));
   }
 }

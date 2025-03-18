@@ -1,10 +1,9 @@
 import { DetailedEvent } from '@models/DetailedEvent';
-import { Event } from '@models/Event';
+import { EventDTO, Event } from '@models/Event';
 
-import { IEventService } from './IEventService';
 import { MockDataService } from './MockDataService';
 
-export class DataService implements IEventService {
+export class DataService {
   private baseUrl: string;
   private useFakeBackend: boolean;
   private mockService: MockDataService;
@@ -33,26 +32,22 @@ export class DataService implements IEventService {
    * @returns Promise with an array of Event objects
    */
   async getEvents(
-    page: number = 1,
-    limit: number = 10,
-    userId?: string
+    //page: number = 1,
+    limit: number = 10
   ): Promise<Event[]> {
     if (this.useFakeBackend) {
-      return this.mockService.getEvents(page, limit, userId);
+      return this.mockService.getEvents();
     }
 
     try {
-      const userParam = userId ? `&userId=${userId}` : '';
-      const response = await fetch(
-        `${this.baseUrl}/events?page=${page}&limit=${limit}${userParam}`
-      );
+      const response = await fetch(`${this.baseUrl}/events?&limit=${limit}`);
 
       if (!response.ok) {
         throw new Error(`Error fetching events: ${response.statusText}`);
       }
 
       const data = await response.json();
-      return data.map((eventDto: any) => new Event(eventDto));
+      return data.map((eventDto: EventDTO) => new Event(eventDto));
     } catch (error) {
       console.error('Failed to fetch events:', error);
       throw error;
@@ -76,7 +71,7 @@ export class DataService implements IEventService {
         throw new Error(`Error fetching event details: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data: DetailedEvent = await response.json();
       return new DetailedEvent(data);
     } catch (error) {
       console.error(`Failed to fetch details for event ${eventId}:`, error);
@@ -96,10 +91,6 @@ export class DataService implements IEventService {
     page: number = 1,
     limit: number = 10
   ): Promise<Event[]> {
-    if (this.useFakeBackend) {
-      return this.mockService.searchEvents(query, page, limit);
-    }
-
     try {
       const response = await fetch(
         `${this.baseUrl}/events/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
@@ -110,10 +101,12 @@ export class DataService implements IEventService {
       }
 
       const data = await response.json();
-      return data.map((eventDto: any) => new Event(eventDto));
+      return data.map((eventDto: EventDTO) => new Event(eventDto));
     } catch (error) {
       console.error('Failed to search events:', error);
       throw error;
     }
   }
 }
+
+//TODO: Like Method, Reject Method
