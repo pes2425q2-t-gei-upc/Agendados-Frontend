@@ -288,8 +288,8 @@ export const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '80%',
-    padding: 20,
+    maxHeight: '85%',
+    padding: 25,
   },
   modalHeader: {
     alignItems: 'center',
@@ -357,8 +357,8 @@ export const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '80%', // ahora ocupa el 80% de la pantalla
-    padding: 20,
+    maxHeight: '85%',
+    padding: 25,
   },
   populationDropdownHeader: {
     alignItems: 'center',
@@ -375,7 +375,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   populationList: {
-    maxHeight: 400,
+    maxHeight: 450,
   },
   populationListItem: {
     alignItems: 'center',
@@ -442,7 +442,7 @@ export const styles = StyleSheet.create({
     marginVertical: 10,
   },
   dateOptionsList: {
-    maxHeight: 350,
+    maxHeight: 400,
   },
   dateOption: {
     borderBottomColor: '#eee',
