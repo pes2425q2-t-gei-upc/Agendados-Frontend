@@ -10,20 +10,11 @@ import {
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
+import { Event } from '@models/Event';
 import { colors } from '@styles/globalStyles';
 import { styles } from '@styles/SavedEventCard.styles';
 
 import EventDetailModal from './EventDetailModal';
-
-interface Event {
-  id: string;
-  title: string;
-  startDate: Date;
-  endDate: Date;
-  price: number;
-  categories: string[];
-  location: string;
-}
 
 interface EventCardProps {
   event: Event;
