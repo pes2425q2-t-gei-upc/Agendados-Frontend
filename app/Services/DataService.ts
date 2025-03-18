@@ -24,17 +24,7 @@ export class DataService {
     this.useFakeBackend = useFake;
   }
 
-  /**
-   * Fetches a list of events, optionally personalized for a specific user
-   * @param page Page number for pagination
-   * @param limit Number of events per page
-   * @param userId Optional user ID for personalized recommendations
-   * @returns Promise with an array of Event objects
-   */
-  async getEvents(
-    //page: number = 1,
-    limit: number = 10
-  ): Promise<Event[]> {
+  async getEvents(limit: number = 10): Promise<Event[]> {
     if (this.useFakeBackend) {
       return this.mockService.getEvents();
     }
