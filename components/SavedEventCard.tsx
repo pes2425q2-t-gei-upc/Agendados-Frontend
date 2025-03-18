@@ -7,6 +7,7 @@ import {
   Animated,
   Share,
   GestureResponderEvent,
+  Image,
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
@@ -15,6 +16,17 @@ import { colors } from '@styles/globalStyles';
 import { styles } from '@styles/SavedEventCard.styles';
 
 import EventDetailModal from './EventDetailModal';
+
+interface Event {
+  id: string;
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  price: number;
+  categories: string[];
+  location: string;
+  imageUrl?: string; // Add optional image URL property
+}
 
 interface EventCardProps {
   event: Event;
@@ -28,6 +40,11 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
   const isSwiping = useRef<boolean>(false);
+
+  // Default image if none provided
+  const imageSource = event.imageUrl
+    ? { uri: event.imageUrl }
+    : require('@assets/images/FotoJazz.jpg'); // Create or use an existing placeholder
 
   // Format time range
   const formatTimeRange = () => {
@@ -136,38 +153,41 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
           onTouchMove={handleTouchMove}
         >
           <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>{event.title}</Text>
-              <View style={styles.priceTag}>
-                <Text style={styles.priceText}>${event.price}</Text>
-              </View>
+            <View style={styles.eventImageContainer}>
+              <Image source={imageSource} style={styles.eventImage} />
             </View>
 
-            <Text style={styles.timeRange}>{formatTimeRange()}</Text>
-
-            <View style={styles.tagsContainer}>
-              {event.categories.map((category, index) => (
-                <View key={index} style={styles.categoryTag}>
-                  <Text style={styles.tagText}>{category}</Text>
+            <View style={styles.contentContainer}>
+              <View>
+                <View style={styles.cardHeader}>
+                  <Text style={styles.cardTitle}>{event.title}</Text>
                 </View>
-              ))}
-            </View>
 
-            <View style={styles.cardFooter}>
-              <Text style={styles.locationText}>📍 {event.location}</Text>
+                <View style={styles.iconTextContainer}>
+                  <MaterialIcons
+                    name='event'
+                    size={16}
+                    color={colors.textSecondary}
+                  />
+                  <Text style={styles.timeRange}>{formatTimeRange()}</Text>
+                </View>
+                <View style={styles.iconTextContainer}>
+                  <MaterialIcons
+                    name='location-on'
+                    size={16}
+                    color={colors.textSecondary}
+                  />
+                  <Text style={styles.locationText}>{event.location}</Text>
+                </View>
 
-              <TouchableOpacity
-                style={styles.shareButton}
-                onPress={handleShare}
-                // Stop propagation to prevent opening details when pressing share
-                onPressIn={(e) => e.stopPropagation()}
-              >
-                <MaterialIcons
-                  name='share'
-                  size={20}
-                  color={colors.secondary}
-                />
-              </TouchableOpacity>
+                <View style={styles.tagsContainer}>
+                  {event.categories.length > 0 && (
+                    <View style={styles.categoryTag}>
+                      <Text style={styles.tagText}>{event.categories[0]}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
             </View>
           </View>
         </TouchableOpacity>

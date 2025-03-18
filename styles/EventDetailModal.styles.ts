@@ -1,5 +1,6 @@
-import { colors, spacing } from '@styles/globalStyles';
 import { StyleSheet, Dimensions } from 'react-native';
+
+import { colors, spacing } from '@styles/globalStyles';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
