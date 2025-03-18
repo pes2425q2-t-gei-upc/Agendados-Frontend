@@ -162,8 +162,22 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
                   <Text style={styles.cardTitle}>{event.title}</Text>
                 </View>
 
-                <Text style={styles.timeRange}>📅 {formatTimeRange()}</Text>
-                <Text style={styles.locationText}>📍 {event.location}</Text>
+                <View style={styles.iconTextContainer}>
+                  <MaterialIcons
+                    name='event'
+                    size={16}
+                    color={colors.textSecondary}
+                  />
+                  <Text style={styles.timeRange}>{formatTimeRange()}</Text>
+                </View>
+                <View style={styles.iconTextContainer}>
+                  <MaterialIcons
+                    name='location-on'
+                    size={16}
+                    color={colors.textSecondary}
+                  />
+                  <Text style={styles.locationText}>{event.location}</Text>
+                </View>
 
                 <View style={styles.tagsContainer}>
                   {event.categories.length > 0 && (

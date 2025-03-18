@@ -6,29 +6,30 @@ export const styles = StyleSheet.create({
   card: {
     backgroundColor: '#f7f7f7',
     borderRadius: 8,
-    elevation: 2,
-    marginVertical: spacing.xs,
-    padding: 0, // Remove padding to allow image to touch edges
+    elevation: 4,
+    marginVertical: 5,
+    padding: 10, // Remove padding to allow image to touch edges
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 1,
     flexDirection: 'row',
-    height: 120, // Two-column layout
+    height: 140,
+    width: '100%',
   },
   cardHeader: {
     alignItems: 'flex-start',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 5,
   },
   cardTitle: {
     flex: 1,
     fontSize: 18,
     fontWeight: '600',
+    marginBottom: 5,
   },
   categoryTag: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: 'rgba(255, 169, 169, 0.37)',
     borderRadius: 12,
     marginRight: 5,
     paddingHorizontal: spacing.sm,
@@ -36,17 +37,18 @@ export const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1, // Take remaining space
+    flexDirection: 'column',
     justifyContent: 'center',
+    marginBottom: 5,
     marginLeft: 10,
     marginTop: 5,
-    marginBottom: 5,
   },
   deleteActionContainer: {
     alignItems: 'center',
     backgroundColor: 'transparent',
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    width: 100,
+    width: 80,
   },
   deleteButton: {
     alignItems: 'center',
@@ -55,7 +57,7 @@ export const styles = StyleSheet.create({
     height: '85%',
     justifyContent: 'center',
     marginVertical: spacing.xs,
-    width: 60,
+    width: 50,
   },
   eventImage: {
     borderRadius: 8,
@@ -66,8 +68,13 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     height: 120,
     justifyContent: 'center',
-    padding: 8,
     width: 120,
+  },
+  iconTextContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4,
+    marginBottom: 4,
   },
   locationText: {
     color: colors.textSecondary,
@@ -76,7 +83,7 @@ export const styles = StyleSheet.create({
     marginTop: 3,
   },
   tagText: {
-    color: colors.darkBackground,
+    color: colors.primaryDark,
     fontSize: 12,
   },
   tagsContainer: {
