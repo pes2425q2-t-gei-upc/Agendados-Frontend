@@ -1,5 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, useWindowDimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  useWindowDimensions,
+  Image,
+} from 'react-native';
 //import { Pressable } from 'react-native-gesture-handler';
 import {
   GestureHandlerRootView,
@@ -9,11 +15,14 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  runOnJS,
   useDerivedValue,
   useAnimatedGestureHandler,
   interpolate,
 } from 'react-native-reanimated';
 
+import Like from '@assets/images/GreenColor.jpeg';
+import Dislike from '@assets/images/RedColor.png';
 import Card from '@components/cardEvent';
 import { styles } from '@styles/mainPageStyles';
 
@@ -31,6 +40,20 @@ const eventos = [
     place: 'Playa Barceloneta',
     cat: 'Festivales',
     date: '02/12/2028',
+  },
+  {
+    name: 'Teatro Rey Leon',
+    image: require('@assets/images/ReyLeon.jpg'),
+    place: 'Sala Apolo',
+    cat: 'Teatros',
+    date: '26/8/2025',
+  },
+  {
+    name: 'Museo de Arte Contemporaneo',
+    image: require('@assets/images/MuseoContemporaneo.jpg'),
+    place: 'Museo Historia de Catalunya',
+    cat: 'Museos',
+    date: '16/4/2025',
   },
 ];
 
@@ -93,9 +116,31 @@ export default function main() {
       }
 
       //Depenent de cap a on fas el swipe, que s'envagi pel costat del swipe (- o + hiddenTranslateX)
-      translateX.value = withSpring(hiddenTranslateX);
+      translateX.value = withSpring(
+        event.velocityX > 0 ? hiddenTranslateX : -hiddenTranslateX,
+        {},
+        () => runOnJS(setCurrentIndex)(currentIndex + 1)
+      );
     },
   });
+
+  useEffect(() => {
+    translateX.value = 0;
+    setNextIndex(currentIndex + 1);
+  }, [currentIndex, translateX]);
+
+  const likeStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateX.value, [0, hiddenTranslateX / 4], [0, 0.5]),
+  }));
+
+  const dislikeStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      translateX.value,
+      [0, -hiddenTranslateX / 4],
+      [0, 0.5]
+    ),
+  }));
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.pageContainer}>
@@ -106,6 +151,16 @@ export default function main() {
         </View>
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View style={[styles.animatedCard, cardStyle]}>
+            <Animated.Image
+              source={Like}
+              style={[styles.like, { left: 0 }, likeStyle]}
+              resizeMode='stretch'
+            />
+            <Animated.Image
+              source={Dislike}
+              style={[styles.like, { right: 0 }, dislikeStyle]}
+              resizeMode='stretch'
+            />
             <Card event1={currentProfile} />
           </Animated.View>
         </PanGestureHandler>

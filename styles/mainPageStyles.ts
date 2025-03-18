@@ -4,14 +4,15 @@ export const styles = StyleSheet.create({
   animatedCard: {
     alignItems: 'center',
     flex: 1,
+    height: '70%',
     justifyContent: 'center',
-    width: '100%',
+    width: '95%',
   },
 
   card: {
     borderRadius: 10,
     elevation: 12,
-    height: '95%',
+    height: '99%',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -19,7 +20,7 @@ export const styles = StyleSheet.create({
     },
     shadowOpacity: 0.37,
     shadowRadius: 7.49,
-    width: '95%',
+    width: '100%',
   },
 
   cardInner: {
@@ -75,6 +76,16 @@ export const styles = StyleSheet.create({
     width: 50,
   },
 
+  like: {
+    elevation: 1,
+    height: '100%',
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    width: '100%',
+    zIndex: 1,
+  },
+
   name: {
     color: 'white',
     fontSize: 30,
@@ -103,7 +114,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
-
   tagText: {
     color: '#fff',
     fontSize: 14,
