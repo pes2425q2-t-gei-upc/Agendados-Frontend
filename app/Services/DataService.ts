@@ -1,11 +1,13 @@
-import { DetailedEventDTO, DetailedEvent } from '@models/DetailedEvent';
-import { EventDTO, Event } from '@models/Event';
+import { DetailedEvent } from '@models/DetailedEvent';
+import { Event } from '@models/Event';
 
-export class DataService {
+import { IEventService } from './IEventService';
+import { MockDataService } from './MockDataService';
+
+export class DataService implements IEventService {
   private baseUrl: string;
   private useFakeBackend: boolean;
-  private mockEvents: EventDTO[];
-  private mockDetailedEvents: DetailedEventDTO[];
+  private mockService: MockDataService;
 
   constructor(
     baseUrl: string = 'https://api.agendados.com',
@@ -13,83 +15,7 @@ export class DataService {
   ) {
     this.baseUrl = baseUrl;
     this.useFakeBackend = useFakeBackend;
-    this.initializeMockData();
-  }
-
-  /**
-   * Initializes mock data for fake backend
-   */
-  private initializeMockData(): void {
-    // Initialize mock events
-    this.mockEvents = [
-      {
-        id: '1',
-        title: 'Concert in the Park',
-        location: 'Central Park',
-        startDate: new Date(2023, 7, 15, 18, 0),
-        endDate: new Date(2023, 7, 15, 22, 0),
-        coverImage: require('@assets/images/FotoJazz.jpg'),
-        categories: ['Music', 'Outdoor'],
-      },
-      {
-        id: '2',
-        title: 'Tech Conference',
-        location: 'Convention Center',
-        startDate: new Date(2023, 8, 10, 9, 0),
-        endDate: new Date(2023, 8, 12, 17, 0),
-        coverImage: require('@assets/images/FotoJazz.jpg'),
-        categories: ['Technology', 'Business'],
-      },
-      {
-        id: '3',
-        title: 'Food Festival',
-        location: 'Downtown Square',
-        startDate: new Date(2023, 9, 5, 11, 0),
-        endDate: new Date(2023, 9, 5, 20, 0),
-        coverImage: require('@assets/images/FotoConcierto.jpg'),
-        categories: ['Food', 'Culture'],
-      },
-    ];
-
-    // Initialize mock detailed events
-    this.mockDetailedEvents = [
-      {
-        ...this.mockEvents[0],
-        images: [
-          'https://example.com/images/concert1.jpg',
-          'https://example.com/images/concert2.jpg',
-          'https://example.com/images/concert3.jpg',
-        ],
-        description:
-          'Join us for a night of amazing music under the stars. Featuring top artists and great food.',
-        price: 45.99,
-        ticketsAvailable: 250,
-      },
-      {
-        ...this.mockEvents[1],
-        images: [
-          'https://example.com/images/conference.jpg',
-          'https://example.com/images/conf-hall.jpg',
-          'https://example.com/images/speakers.jpg',
-        ],
-        description:
-          'A three-day conference featuring the latest in tech innovation and networking opportunities.',
-        price: 299.99,
-        ticketsAvailable: 500,
-      },
-      {
-        ...this.mockEvents[2],
-        images: [
-          'https://example.com/images/food-fest.jpg',
-          'https://example.com/images/food1.jpg',
-          'https://example.com/images/food2.jpg',
-        ],
-        description:
-          'Experience cuisines from around the world with over 50 food vendors and live cooking demonstrations.',
-        price: 15.0,
-        ticketsAvailable: 1000,
-      },
-    ];
+    this.mockService = new MockDataService();
   }
 
   /**
@@ -100,35 +26,33 @@ export class DataService {
   }
 
   /**
-   * Fetches a list of events
+   * Fetches a list of events, optionally personalized for a specific user
    * @param page Page number for pagination
    * @param limit Number of events per page
+   * @param userId Optional user ID for personalized recommendations
    * @returns Promise with an array of Event objects
    */
-  async getEvents(page: number = 1, limit: number = 10): Promise<Event[]> {
+  async getEvents(
+    page: number = 1,
+    limit: number = 10,
+    userId?: string
+  ): Promise<Event[]> {
     if (this.useFakeBackend) {
-      // Calculate pagination
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedEvents = this.mockEvents.slice(startIndex, endIndex);
-
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      return paginatedEvents.map((eventDto) => new Event(eventDto));
+      return this.mockService.getEvents(page, limit, userId);
     }
 
     try {
+      const userParam = userId ? `&userId=${userId}` : '';
       const response = await fetch(
-        `${this.baseUrl}/events?page=${page}&limit=${limit}`
+        `${this.baseUrl}/events?page=${page}&limit=${limit}${userParam}`
       );
 
       if (!response.ok) {
         throw new Error(`Error fetching events: ${response.statusText}`);
       }
 
-      const data = (await response.json()) as EventDTO[];
-      return data.map((eventDto) => new Event(eventDto));
+      const data = await response.json();
+      return data.map((eventDto: any) => new Event(eventDto));
     } catch (error) {
       console.error('Failed to fetch events:', error);
       throw error;
@@ -142,19 +66,7 @@ export class DataService {
    */
   async getEventDetails(eventId: string): Promise<DetailedEvent> {
     if (this.useFakeBackend) {
-      // Find the event by ID in mock data
-      const detailedEvent = this.mockDetailedEvents.find(
-        (e) => e.id === eventId
-      );
-
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      if (!detailedEvent) {
-        throw new Error(`Event with ID ${eventId} not found`);
-      }
-
-      return new DetailedEvent(detailedEvent);
+      return this.mockService.getEventDetails(eventId);
     }
 
     try {
@@ -164,7 +76,7 @@ export class DataService {
         throw new Error(`Error fetching event details: ${response.statusText}`);
       }
 
-      const data = (await response.json()) as DetailedEventDTO;
+      const data = await response.json();
       return new DetailedEvent(data);
     } catch (error) {
       console.error(`Failed to fetch details for event ${eventId}:`, error);
@@ -185,25 +97,7 @@ export class DataService {
     limit: number = 10
   ): Promise<Event[]> {
     if (this.useFakeBackend) {
-      // Filter events that match the query
-      const filteredEvents = this.mockEvents.filter(
-        (event) =>
-          event.title.toLowerCase().includes(query.toLowerCase()) ||
-          event.location.toLowerCase().includes(query.toLowerCase()) ||
-          event.categories.some((cat) =>
-            cat.toLowerCase().includes(query.toLowerCase())
-          )
-      );
-
-      // Calculate pagination
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedEvents = filteredEvents.slice(startIndex, endIndex);
-
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      return paginatedEvents.map((eventDto) => new Event(eventDto));
+      return this.mockService.searchEvents(query, page, limit);
     }
 
     try {
@@ -215,8 +109,8 @@ export class DataService {
         throw new Error(`Error searching events: ${response.statusText}`);
       }
 
-      const data = (await response.json()) as EventDTO[];
-      return data.map((eventDto) => new Event(eventDto));
+      const data = await response.json();
+      return data.map((eventDto: any) => new Event(eventDto));
     } catch (error) {
       console.error('Failed to search events:', error);
       throw error;
