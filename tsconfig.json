@@ -8,7 +8,9 @@
       "@localization/*": ["./src/localization/*"],
       "@styles/*": ["./styles/*"],
       "@components/*": ["./components/*"],
-      "@assets/*": ["./assets/*"]
+      "@assets/*": ["./assets/*"],
+      "@models/*": ["./app/Models/*"],
+      "@services/*": ["./app/Services/*"],
     }
   },
   "include": [
