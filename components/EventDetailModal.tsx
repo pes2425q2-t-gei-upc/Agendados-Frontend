@@ -1,6 +1,4 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { styles } from '@styles/EventDetailModal.styles';
-import { colors } from '@styles/globalStyles';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState, useEffect } from 'react';
 import {
@@ -16,6 +14,9 @@ import {
   PanResponder,
   Animated,
 } from 'react-native';
+
+import { styles } from '@styles/EventDetailModal.styles';
+import { colors } from '@styles/globalStyles';
 
 // Extended event interface with additional details
 interface DetailedEvent {

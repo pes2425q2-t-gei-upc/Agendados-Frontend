@@ -22,6 +22,7 @@ const mockEvents = [
     price: 50,
     categories: ['Technology', 'Networking'],
     location: 'Convention Center',
+    imageUrl: '',
   },
   {
     id: '2',
@@ -31,6 +32,7 @@ const mockEvents = [
     price: 25,
     categories: ['Art', 'Culture'],
     location: 'Downtown Gallery',
+    imageUrl: '',
   },
   {
     id: '3',
@@ -148,14 +150,13 @@ export default function SavedEvents() {
 
 const styles = StyleSheet.create({
   dateGroup: {
-    marginBottom: spacing.lg,
+    marginBottom: 30,
   },
   dateText: {
     color: colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
     marginBottom: spacing.xs,
-    marginLeft: spacing.xs,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   eventsContainer: {
-    paddingLeft: spacing.md, // This shifts cards to the right
+    paddingLeft: 10, // This shifts cards to the right
   },
   scrollContainer: {
     flex: 1,
