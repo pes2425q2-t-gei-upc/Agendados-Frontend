@@ -68,6 +68,9 @@ export default function Explore() {
 
   const mapRef = useRef<MapView | null>(null);
 
+  // NUEVO ESTADO para la región actual del mapa
+  const [currentRegion, setCurrentRegion] = useState(INITIAL_REGION);
+
   // Categorías y lista de poblaciones
   const filterCategories: FilterCategory[] = [
     {
@@ -268,6 +271,32 @@ export default function Explore() {
     return true;
   });
 
+  // NUEVA FUNCIÓN para filtrar solo los marcadores dentro de la región visible
+  const getVisibleMarkers = () => {
+    const marginFactor = 0.2; // 20% extra de margen
+    const latMargin = currentRegion.latitudeDelta * marginFactor;
+    const lngMargin = currentRegion.longitudeDelta * marginFactor;
+
+    const minLat =
+      currentRegion.latitude - currentRegion.latitudeDelta / 2 - latMargin;
+    const maxLat =
+      currentRegion.latitude + currentRegion.latitudeDelta / 2 + latMargin;
+    const minLng =
+      currentRegion.longitude - currentRegion.longitudeDelta / 2 - lngMargin;
+    const maxLng =
+      currentRegion.longitude + currentRegion.longitudeDelta / 2 + lngMargin;
+
+    return filteredMarkers.filter((marker) => {
+      const { latitude, longitude } = marker.coordinate;
+      return (
+        latitude >= minLat &&
+        latitude <= maxLat &&
+        longitude >= minLng &&
+        longitude <= maxLng
+      );
+    });
+  };
+
   const getNearbyEvents = () => {
     if (!userLocation) {
       return filteredMarkers;
@@ -309,8 +338,10 @@ export default function Explore() {
         showsUserLocation={locationPermission}
         showsMyLocationButton={false}
         initialRegion={INITIAL_REGION}
+        // Actualiza la región actual al moverse o hacer zoom
+        onRegionChangeComplete={(region) => setCurrentRegion(region)}
       >
-        {filteredMarkers.map((marker) => (
+        {getVisibleMarkers().map((marker) => (
           <Marker
             key={marker.id}
             coordinate={marker.coordinate}
