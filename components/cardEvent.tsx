@@ -1,13 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import {
-  Text,
-  ImageBackground,
-  View,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { Text, ImageBackground, View, TouchableOpacity } from 'react-native';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 
 import { styles } from '@styles/mainPageStyles';
