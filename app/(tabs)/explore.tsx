@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -13,7 +16,9 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
+import EventDetailModal from '../../components/EventDetailModal';
 import { styles } from '../../styles/Explore';
+import { MockDataService } from '../Services/MockDataService';
 
 import { EventCard, MarkerData } from './exploreComponents/EventCard';
 import { EventsModal } from './exploreComponents/EventsModal';
@@ -34,7 +39,9 @@ const INITIAL_REGION = {
 };
 
 export default function Explore() {
-  // Estados
+  const router = useRouter();
+
+  // Estados existentes
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -53,18 +60,22 @@ export default function Explore() {
     null
   );
   const [populationSearchQuery, setPopulationSearchQuery] = useState('');
+  const [events, setEvents] = useState<MarkerData[]>([]);
+
+  // NUEVOS ESTADOS para el modal de detalle
+  const [selectedEventDetail, setSelectedEventDetail] = useState<any>(null);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
 
   const mapRef = useRef<MapView | null>(null);
 
-  // Datos estáticos
+  // Categorías y lista de poblaciones
   const filterCategories: FilterCategory[] = [
     {
       title: 'Categoria',
       items: [
-        { id: 'cultura', label: 'Cultura', icon: 'color-palette' },
-        { id: 'esports', label: 'Esports', icon: 'football' },
-        { id: 'música', label: 'Música', icon: 'musical-notes' },
-        { id: 'art', label: 'Art', icon: 'brush' },
+        { id: 'Music', label: 'Music', icon: 'musical-notes' },
+        { id: 'Technology', label: 'Technology', icon: 'laptop' },
+        { id: 'Food', label: 'Food', icon: 'restaurant' },
       ],
     },
   ];
@@ -77,34 +88,48 @@ export default function Explore() {
     // …otros elementos
   ];
 
-  const markers: MarkerData[] = [
-    {
-      id: 1,
-      coordinate: { latitude: 41.3851, longitude: 2.1734 },
-      title: 'Esdeveniment 1',
-      description: 'esports - centre - gratuït',
-      image: 'https://picsum.photos/200/200?random=1',
-      date: '15 May',
-      time: '18:30',
-      category: 'esports',
-      location: 'centre',
-    },
-    {
-      id: 2,
-      coordinate: { latitude: 41.3891, longitude: 2.1654 },
-      title: 'Esdeveniment 2',
-      description: 'cultura - eixample - pagament',
-      image: 'https://picsum.photos/200/200?random=2',
-      date: '20 May',
-      time: '19:00',
-      category: 'cultura',
-      location: 'eixample',
-    },
-  ];
-
-  // Efecto para solicitar permisos de ubicación
+  // Solicitar permisos de ubicación
   useEffect(() => {
     requestLocationPermission();
+  }, []);
+
+  // Cargar eventos del servicio mockup
+  useEffect(() => {
+    const dataService = new MockDataService();
+
+    const fetchEvents = async () => {
+      try {
+        const eventsFromService = await dataService.getEvents();
+        const mappedEvents = eventsFromService.map((event) => {
+          const eventDate = new Date(event.data);
+          return {
+            id: event.id,
+            coordinate: event.coordinate,
+            title: event.title,
+            description: `${event.categoria} - ${event.location}`,
+            image: event.coverImage
+              ? event.coverImage
+              : require('@assets/images/ReyLeon.jpg'),
+            date: eventDate.toLocaleDateString('ca-ES', {
+              day: '2-digit',
+              month: 'short',
+            }),
+            time: eventDate.toLocaleTimeString('ca-ES', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            fullDate: eventDate,
+            category: event.categoria,
+            location: event.location,
+          } as unknown as MarkerData;
+        });
+        setEvents(mappedEvents);
+      } catch (error) {
+        Alert.alert('Error', "No s'han pogut carregar els esdeveniments.");
+      }
+    };
+
+    fetchEvents();
   }, []);
 
   const requestLocationPermission = async () => {
@@ -137,7 +162,6 @@ export default function Explore() {
         { latitude, longitude, latitudeDelta: 0.01, longitudeDelta: 0.01 },
         1000
       );
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Manejo de error
     }
@@ -167,42 +191,32 @@ export default function Explore() {
       setShowStartDatePicker(mode === 'start');
       setShowEndDatePicker(mode === 'end');
     } else {
-      if (mode === 'start') {
-        setShowStartDatePicker(true);
-      } else {
-        setShowEndDatePicker(true);
-      }
+      mode === 'start'
+        ? setShowStartDatePicker(true)
+        : setShowEndDatePicker(true);
     }
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
     if (selectedDate) {
-      // Actualiza el estado intermedio para confirmar posteriormente la selección
       setDatePickerDate(selectedDate);
-
       if (Platform.OS === 'android') {
-        if (currentMode === 'start') {
-          setStartDate(selectedDate);
-        } else {
-          setEndDate(selectedDate);
-        }
-        // En Android, se cierra el picker inmediatamente
+        currentMode === 'start'
+          ? setStartDate(selectedDate)
+          : setEndDate(selectedDate);
         setShowStartDatePicker(false);
         setShowEndDatePicker(false);
       }
     } else {
-      // Si se cancela la selección, se ocultan ambos pickers
       setShowStartDatePicker(false);
       setShowEndDatePicker(false);
     }
   };
 
   const handleDatePickerConfirm = () => {
-    if (currentMode === 'start') {
-      setStartDate(datePickerDate);
-    } else {
-      setEndDate(datePickerDate);
-    }
+    currentMode === 'start'
+      ? setStartDate(datePickerDate)
+      : setEndDate(datePickerDate);
     setShowStartDatePicker(false);
     setShowEndDatePicker(false);
   };
@@ -241,13 +255,11 @@ export default function Explore() {
     });
   };
 
-  const allFilters = filterCategories.flatMap((category) => category.items);
-  const filteredMarkers = markers.filter((marker) => {
-    const markerDate = new Date(`${marker.date} 2023`);
-    if (startDate && markerDate < startDate) {
+  const filteredMarkers = events.filter((marker) => {
+    if (startDate && marker.fullDate < startDate) {
       return false;
     }
-    if (endDate && markerDate > endDate) {
+    if (endDate && marker.fullDate > endDate) {
       return false;
     }
     if (activeFilters.size > 0 && !activeFilters.has(marker.category)) {
@@ -271,6 +283,21 @@ export default function Explore() {
       );
       return distA - distB;
     });
+  };
+
+  // Función para cargar los detalles del evento y abrir el modal
+  const openDetailModal = async (eventId: string | number) => {
+    try {
+      const dataService = new MockDataService();
+      const detail = await dataService.getEventDetails(eventId.toString());
+      setSelectedEventDetail(detail);
+      setDetailModalVisible(true);
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        "No s'han pogut carregar els detalls de l'esdeveniment."
+      );
+    }
   };
 
   return (
@@ -343,7 +370,9 @@ export default function Explore() {
             </View>
           )}
           {Array.from(activeFilters).map((filterId) => {
-            const filter = allFilters.find((f) => f.id === filterId);
+            const filter = filterCategories
+              .flatMap((cat) => cat.items)
+              .find((f) => f.id === filterId);
             if (!filter) {
               return null;
             }
@@ -378,9 +407,7 @@ export default function Explore() {
             <EventCard
               key={event.id}
               event={event}
-              onPress={() => {
-                /* Navegación al detalle del evento */
-              }}
+              onPress={() => openDetailModal(event.id)}
             />
           ))}
         </ScrollView>
@@ -426,6 +453,17 @@ export default function Explore() {
         toggleEventsModal={toggleEventsModal}
         filteredMarkers={filteredMarkers}
       />
+
+      {selectedEventDetail && (
+        <EventDetailModal
+          event={selectedEventDetail}
+          visible={detailModalVisible}
+          onClose={() => {
+            setDetailModalVisible(false);
+            setSelectedEventDetail(null);
+          }}
+        />
+      )}
     </View>
   );
 }

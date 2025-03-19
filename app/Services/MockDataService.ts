@@ -10,38 +10,41 @@ export class MockDataService {
   }
 
   /**
-   * Initializes mock data for fake backend
+   * Inicializa datos mock para backend falso
    */
   private initializeMockData(): void {
-    // Initialize mock events
+    // Se añaden las coordenadas y se actualiza la localización para situar los eventos en Barcelona
     this.mockEvents = [
       {
         id: '1',
         title: 'Concert in the Park',
-        location: 'Central Park',
+        location: 'Parc de la Ciutadella, Barcelona',
         data: new Date(2023, 7, 15, 18, 0),
         coverImage: require('@assets/images/FotoJazz.jpg'),
         categoria: 'Music',
+        coordinate: { latitude: 41.3887, longitude: 2.187 },
       },
       {
         id: '2',
         title: 'Tech Conference',
-        location: 'Convention Center',
+        location: 'Fira de Barcelona, Barcelona',
         data: new Date(2023, 8, 10, 9, 0),
         coverImage: require('@assets/images/FotoJazz.jpg'),
         categoria: 'Technology',
+        coordinate: { latitude: 41.378, longitude: 2.149 },
       },
       {
         id: '3',
         title: 'Food Festival',
-        location: 'Downtown Square',
+        location: 'Mercat de la Boqueria, Barcelona',
         data: new Date(2023, 9, 5, 11, 0),
         coverImage: require('@assets/images/FotoConcierto.jpg'),
         categoria: 'Food',
+        coordinate: { latitude: 41.382, longitude: 2.1734 },
       },
     ];
 
-    // Initialize mock detailed events
+    // Se inicializan eventos detallados propagando la propiedad "coordinate"
     this.mockDetailedEvents = [
       {
         ...this.mockEvents[0],
@@ -83,35 +86,24 @@ export class MockDataService {
   }
 
   /**
-   * Fetches a list of events, optionally personalized for a specific user
-   * @param page Page number for pagination
-   * @param limit Number of events per page
-   * @param userId Optional user ID for personalized recommendations
-   * @returns Promise with an array of Event objects
+   * Obtiene una lista de eventos, opcionalmente personalizados para un usuario
    */
   async getEvents(): Promise<Event[]> {
-    // Simulate network delay
+    // Simula un retardo en la red
     await new Promise((resolve) => setTimeout(resolve, 300));
 
     return this.mockEvents.map((eventDto) => new Event(eventDto));
   }
 
   /**
-   * Fetches detailed information for a specific event
-   * @param eventId The ID of the event to fetch
-   * @returns Promise with a DetailedEvent object
+   * Obtiene información detallada de un evento específico
    */
   async getEventDetails(eventId: string): Promise<DetailedEvent> {
-    // Find the event by ID in mock data
     const detailedEvent = this.mockDetailedEvents.find((e) => e.id === eventId);
-
-    // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 300));
-
     if (!detailedEvent) {
       throw new Error(`Event with ID ${eventId} not found`);
     }
-
     return new DetailedEvent(detailedEvent);
   }
 }

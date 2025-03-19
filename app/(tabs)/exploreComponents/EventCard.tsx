@@ -5,6 +5,7 @@ import { TouchableOpacity, View, Text, Image } from 'react-native';
 import { styles } from '../../../styles/Explore';
 
 export type MarkerData = {
+  fullDate: Date;
   id: number;
   coordinate: { latitude: number; longitude: number };
   title: string;

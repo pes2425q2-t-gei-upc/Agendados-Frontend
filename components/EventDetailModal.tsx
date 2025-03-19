@@ -1,5 +1,4 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
@@ -42,7 +41,6 @@ interface EventDetailModalProps {
   onClose: () => void;
 }
 
-const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
 const EventDetailModal = ({
@@ -50,7 +48,6 @@ const EventDetailModal = ({
   visible,
   onClose,
 }: EventDetailModalProps) => {
-  const router = useRouter();
   const panY = useRef(new Animated.Value(screenHeight)).current;
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -283,7 +280,7 @@ const EventDetailModal = ({
                   {event.address && (
                     <Text style={styles.locationAddress}>{event.address}</Text>
                   )}
-                  {(event.latitude || event.address) && (
+                  {(event.latitude ?? event.address) && (
                     <TouchableOpacity
                       style={styles.mapButton}
                       onPress={openMap}
