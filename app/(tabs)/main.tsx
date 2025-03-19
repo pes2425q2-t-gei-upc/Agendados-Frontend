@@ -115,7 +115,6 @@ export default function main() {
         return;
       }
 
-      //Depenent de cap a on fas el swipe, que s'envagi pel costat del swipe (- o + hiddenTranslateX)
       translateX.value = withSpring(
         event.velocityX > 0 ? hiddenTranslateX : -hiddenTranslateX,
         {},
