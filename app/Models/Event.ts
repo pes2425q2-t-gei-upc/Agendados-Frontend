@@ -1,3 +1,8 @@
+export interface Coordinate {
+  latitude: number;
+  longitude: number;
+}
+
 export interface EventDTO {
   id: string;
   title: string;
@@ -5,6 +10,7 @@ export interface EventDTO {
   data: Date;
   coverImage: string;
   categoria: string;
+  coordinate?: Coordinate;
 }
 
 export class Event implements EventDTO {
@@ -14,6 +20,7 @@ export class Event implements EventDTO {
   data: Date;
   coverImage: string;
   categoria: string;
+  coordinate?: Coordinate;
 
   constructor(dto: EventDTO) {
     this.id = dto.id;
@@ -22,5 +29,6 @@ export class Event implements EventDTO {
     this.location = dto.location;
     this.data = dto.data;
     this.categoria = dto.categoria;
+    this.coordinate = dto.coordinate;
   }
 }
