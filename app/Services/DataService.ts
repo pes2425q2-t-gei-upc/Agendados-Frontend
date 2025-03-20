@@ -9,7 +9,7 @@ export class DataService {
   private mockService: MockDataService;
 
   constructor(
-    baseUrl: string = 'https://api.agendados.com',
+    baseUrl: string = 'http://localhost:8000',
     useFakeBackend: boolean = false
   ) {
     this.baseUrl = baseUrl;
