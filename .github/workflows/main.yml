@@ -3,13 +3,9 @@ on:
   push:
     branches:
       - main
-      - develop
-      - feature/67/ConfigCI
   pull_request:
     branches:
       - main
-      - develop
-      - feature/67/ConfigCI
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
