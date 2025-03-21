@@ -351,7 +351,7 @@ export default function Explore() {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder='Cerca esdeveniments...'
+            placeholder='Barcelona, concerts...'
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor='#999'
