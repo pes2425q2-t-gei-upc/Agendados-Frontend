@@ -18,7 +18,8 @@ import MapView, { Marker } from 'react-native-maps';
 
 import EventDetailModal from '../../components/EventDetailModal';
 import { styles } from '../../styles/Explore';
-import { MockDataService } from '../Services/MockDataService';
+import { getEvents, getEventDetails } from '../Services/EventsService';
+import { getTowns } from '../Services/LocationService';
 
 import { EventCard, MarkerData } from './exploreComponents/EventCard';
 import { EventsModal } from './exploreComponents/EventsModal';
@@ -41,145 +42,141 @@ const INITIAL_REGION = {
 export default function Explore() {
   const router = useRouter();
 
-  // Estados existentes
+  // Estados para filtros: separamos categorías y población
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectedPopulation, setSelectedPopulation] = useState<string | null>(
+    null
+  );
+
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [eventsModalVisible, setEventsModalVisible] = useState(false);
   const [populationDropdownVisible, setPopulationDropdownVisible] =
     useState(false);
+
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [currentMode, setCurrentMode] = useState<'start' | 'end'>('start');
   const [datePickerDate, setDatePickerDate] = useState(new Date());
+  const [populationList, setPopulationList] = useState<PopulationItem[]>([]);
+
+  // Estados para eventos y ubicación
+  const [events, setEvents] = useState<MarkerData[]>([]);
   const [userLocation, setUserLocation] = useState<LocationCoords | null>(null);
   const [locationPermission, setLocationPermission] = useState(false);
-  const [selectedPopulation, setSelectedPopulation] = useState<string | null>(
-    null
-  );
-  const [populationSearchQuery, setPopulationSearchQuery] = useState('');
-  const [events, setEvents] = useState<MarkerData[]>([]);
 
-  // NUEVOS ESTADOS para el modal de detalle
+  // Estados para detalles y modales
   const [selectedEventDetail, setSelectedEventDetail] = useState<any>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
   const mapRef = useRef<MapView | null>(null);
-
-  // NUEVO ESTADO para la región actual del mapa
   const [currentRegion, setCurrentRegion] = useState(INITIAL_REGION);
 
-  // Categorías y lista de poblaciones
+  // Definición de categorías para filtro
   const filterCategories: FilterCategory[] = [
     {
       title: 'Categoria',
       items: [
-        { id: 'Music', label: 'Music', icon: 'musical-notes' },
-        { id: 'Technology', label: 'Technology', icon: 'laptop' },
-        { id: 'Food', label: 'Food', icon: 'restaurant' },
+        {
+          id: 'ActivitatsVirtuals',
+          label: 'Activitats Virtuals',
+          icon: 'globe-outline',
+        },
+        { id: 'RutesIVisites', label: 'Rutes I Visites', icon: 'map-outline' },
+        { id: 'Conferencies', label: 'Conferencies', icon: 'mic-outline' },
+        { id: 'Exposicions', label: 'Exposicions', icon: 'image-outline' },
+        { id: 'Infantil', label: 'Infantil', icon: 'happy-outline' },
+        { id: 'Teatre', label: 'Teatre', icon: 'film-outline' },
+        { id: 'Concerts', label: 'Concerts', icon: 'musical-notes-outline' },
+        { id: 'Dansa', label: 'Dansa', icon: 'body-outline' },
+        { id: 'Cursos', label: 'Cursos', icon: 'school-outline' },
+        {
+          id: 'FestivalsIMostres',
+          label: 'Festivals I Mostres',
+          icon: 'sparkles-outline',
+        },
+        { id: 'Carnavals', label: 'Carnavals', icon: 'people-outline' },
+        { id: 'Cicles', label: 'Cicles', icon: 'repeat-outline' },
+        { id: 'Circ', label: 'Circ', icon: 'color-wand-outline' },
+        { id: 'Festes', label: 'Festes', icon: 'beer-outline' },
+        {
+          id: 'FiresIMercats',
+          label: 'Fires I Mercats',
+          icon: 'basket-outline',
+        },
+        { id: 'Commemoracions', label: 'Commemoracions', icon: 'flag-outline' },
+        { id: 'SetmanaSanta', label: 'Setmana Santa', icon: 'flower-outline' },
+        { id: 'Sardanes', label: 'Sardanes', icon: 'people-circle-outline' },
+        { id: 'Gegants', label: 'Gegants', icon: 'accessibility-outline' },
+        { id: 'Nadal', label: 'Nadal', icon: 'snow-outline' },
+        {
+          id: 'CulturaDigital',
+          label: 'Cultura Digital',
+          icon: 'code-outline',
+        },
       ],
     },
   ];
 
-  const populationList: PopulationItem[] = [
-    { id: 'barcelona', label: 'Barcelona' },
-    { id: 'girona', label: 'Girona' },
-    { id: 'lleida', label: 'Lleida' },
-    { id: 'tarragona', label: 'Tarragona' },
-    // …otros elementos
-  ];
-
-  // Solicitar permisos de ubicación
   useEffect(() => {
-    requestLocationPermission();
+    const fetchTowns = async () => {
+      try {
+        const towns = await getTowns();
+        console.log('Towns:', towns);
+        setPopulationList(towns);
+      } catch (error) {
+        console.error('Error loading towns:', error);
+      }
+    };
+    fetchTowns();
   }, []);
 
-  // Cargar eventos del servicio mockup
+  // Para este ejemplo se fakea la ubicación del usuario: Barcelona
   useEffect(() => {
-    const dataService = new MockDataService();
+    // Se omite la solicitud de permisos y se asigna la ubicación de Barcelona
+    const fakeLocation = { latitude: 41.3851, longitude: 2.1734 };
+    setUserLocation(fakeLocation);
+    setLocationPermission(true);
+    mapRef.current?.animateToRegion(
+      { ...fakeLocation, latitudeDelta: 0.01, longitudeDelta: 0.01 },
+      1000
+    );
+  }, []);
 
-    const fetchEvents = async () => {
+  // Cargar eventos desde el backend usando el eventsService
+  useEffect(() => {
+    const fetchEventsData = async () => {
       try {
-        const eventsFromService = await dataService.getEvents();
-        const mappedEvents = eventsFromService.map((event) => {
-          const eventDate = new Date(event.data);
-          return {
-            id: event.id,
-            coordinate: event.coordinate,
-            title: event.title,
-            description: `${event.categoria} - ${event.location}`,
-            image: event.coverImage
-              ? event.coverImage
-              : require('@assets/images/ReyLeon.jpg'),
-            date: eventDate.toLocaleDateString('ca-ES', {
-              day: '2-digit',
-              month: 'short',
-            }),
-            time: eventDate.toLocaleTimeString('ca-ES', {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            fullDate: eventDate,
-            category: event.categoria,
-            location: event.location,
-          } as unknown as MarkerData;
-        });
-        setEvents(mappedEvents);
+        const eventsFromService = await getEvents();
+        setEvents(eventsFromService);
       } catch (error) {
         Alert.alert('Error', "No s'han pogut carregar els esdeveniments.");
       }
     };
-
-    fetchEvents();
+    fetchEventsData();
   }, []);
 
-  const requestLocationPermission = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    const hasPermission = status === 'granted';
-    setLocationPermission(hasPermission);
-
-    if (!hasPermission) {
-      Alert.alert(
-        'Permiso de ubicación denegado',
-        'No podrás ver tu ubicación actual en el mapa sin este permiso.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-    getUserLocation();
-  };
-
-  const getUserLocation = async () => {
-    if (!locationPermission) {
-      return;
-    }
-    try {
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-      const { latitude, longitude } = location.coords;
-      setUserLocation({ latitude, longitude });
-      mapRef.current?.animateToRegion(
-        { latitude, longitude, latitudeDelta: 0.01, longitudeDelta: 0.01 },
-        1000
-      );
-    } catch (error) {
-      // Manejo de error
-    }
-  };
-
-  const handleFilterPress = (filterId: string) => {
-    setActiveFilters((prev) => {
-      const newFilters = new Set(prev);
-      if (newFilters.has(filterId)) {
-        newFilters.delete(filterId);
+  // Permite agregar o quitar una categoría sin afectar otras
+  const handleCategoryPress = (filterId: string) => {
+    setSelectedCategories((prev) => {
+      const newCategories = new Set(prev);
+      if (newCategories.has(filterId)) {
+        newCategories.delete(filterId);
       } else {
-        newFilters.add(filterId);
+        newCategories.add(filterId);
       }
-      return newFilters;
+      return newCategories;
     });
+  };
+
+  // Para población se mantiene de forma independiente (se asume selección única)
+  const handlePopulationSelect = (populationId: string) => {
+    setSelectedPopulation(populationId);
+    setPopulationDropdownVisible(false);
   };
 
   const toggleFilterModal = () => setFilterModalVisible(!filterModalVisible);
@@ -229,72 +226,54 @@ export default function Explore() {
     setShowEndDatePicker(false);
   };
 
-  const handlePopulationSelect = (populationId: string) => {
-    setSelectedPopulation(populationId);
-    setPopulationDropdownVisible(false);
-    setActiveFilters((prev) => {
-      const newFilters = new Set(prev);
-      populationList.forEach((pop) => newFilters.delete(pop.id));
-      newFilters.add(populationId);
-      return newFilters;
-    });
-  };
-
   const clearFilters = () => {
-    setActiveFilters(new Set());
+    setSelectedCategories(new Set());
     setStartDate(null);
     setEndDate(null);
     setSelectedPopulation(null);
   };
 
-  const formatDate = (date: Date | null) => {
-    if (!date) {
-      return currentMode === 'start' ? 'Data inici' : 'Data fi';
-    }
-    return date.toLocaleDateString('ca-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
+  // Se filtran los marcadores combinando fechas, categorías y población
   const filteredMarkers = events.filter((marker) => {
+    // Filtro por fechas
     if (startDate && marker.fullDate < startDate) {
       return false;
     }
     if (endDate && marker.fullDate > endDate) {
       return false;
     }
-    if (activeFilters.size > 0 && !activeFilters.has(marker.category)) {
+
+    // Filtro por categorías
+    if (
+      selectedCategories.size > 0 &&
+      !selectedCategories.has(marker.category)
+    ) {
       return false;
     }
+
+    // Filtro por población
+    if (selectedPopulation && marker.location !== selectedPopulation) {
+      return false;
+    }
+
+    // Filtro por búsqueda (buscando en título, categoría y ubicación)
+    if (searchQuery.trim() !== '') {
+      const searchText = searchQuery.toLowerCase();
+      if (
+        !marker.title.toLowerCase().includes(searchText) &&
+        !marker.category.toLowerCase().includes(searchText) &&
+        !marker.location.toLowerCase().includes(searchText)
+      ) {
+        return false;
+      }
+    }
+
     return true;
   });
 
-  // NUEVA FUNCIÓN para filtrar solo los marcadores dentro de la región visible
+  // En este ejemplo se muestran todos los marcadores filtrados (se puede habilitar filtrado por región si se desea)
   const getVisibleMarkers = () => {
-    const marginFactor = 0.2; // 20% extra de margen
-    const latMargin = currentRegion.latitudeDelta * marginFactor;
-    const lngMargin = currentRegion.longitudeDelta * marginFactor;
-
-    const minLat =
-      currentRegion.latitude - currentRegion.latitudeDelta / 2 - latMargin;
-    const maxLat =
-      currentRegion.latitude + currentRegion.latitudeDelta / 2 + latMargin;
-    const minLng =
-      currentRegion.longitude - currentRegion.longitudeDelta / 2 - lngMargin;
-    const maxLng =
-      currentRegion.longitude + currentRegion.longitudeDelta / 2 + lngMargin;
-
-    return filteredMarkers.filter((marker) => {
-      const { latitude, longitude } = marker.coordinate;
-      return (
-        latitude >= minLat &&
-        latitude <= maxLat &&
-        longitude >= minLng &&
-        longitude <= maxLng
-      );
-    });
+    return filteredMarkers;
   };
 
   const getNearbyEvents = () => {
@@ -314,11 +293,10 @@ export default function Explore() {
     });
   };
 
-  // Función para cargar los detalles del evento y abrir el modal
+  // Se carga el detalle del evento usando el servicio
   const openDetailModal = async (eventId: string | number) => {
     try {
-      const dataService = new MockDataService();
-      const detail = await dataService.getEventDetails(eventId.toString());
+      const detail = await getEventDetails(eventId);
       setSelectedEventDetail(detail);
       setDetailModalVisible(true);
     } catch (error) {
@@ -338,7 +316,6 @@ export default function Explore() {
         showsUserLocation={locationPermission}
         showsMyLocationButton={false}
         initialRegion={INITIAL_REGION}
-        // Actualiza la región actual al moverse o hacer zoom
         onRegionChangeComplete={(region) => setCurrentRegion(region)}
       >
         {getVisibleMarkers().map((marker) => (
@@ -352,7 +329,15 @@ export default function Explore() {
       </MapView>
       <TouchableOpacity
         style={styles.myLocationButton}
-        onPress={getUserLocation}
+        onPress={() => {
+          // Fijamos de nuevo la ubicación a Barcelona
+          const fakeLocation = { latitude: 41.3851, longitude: 2.1734 };
+          setUserLocation(fakeLocation);
+          mapRef.current?.animateToRegion(
+            { ...fakeLocation, latitudeDelta: 0.01, longitudeDelta: 0.01 },
+            1000
+          );
+        }}
       >
         <Ionicons name='locate' size={24} color='#4285F4' />
       </TouchableOpacity>
@@ -383,7 +368,7 @@ export default function Explore() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersScrollContainer}
         >
-          {activeFilters.size > 0 && (
+          {(selectedCategories.size > 0 || selectedPopulation) && (
             <TouchableOpacity
               style={styles.clearFilterChip}
               onPress={clearFilters}
@@ -396,11 +381,25 @@ export default function Explore() {
             <View style={styles.dateRangeChip}>
               <Ionicons name='calendar' size={16} color='#666' />
               <Text style={styles.filterText}>
-                {formatDate(startDate)} - {formatDate(endDate)}
+                {startDate
+                  ? startDate.toLocaleDateString('ca-ES', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    })
+                  : 'Data inici'}{' '}
+                -{' '}
+                {endDate
+                  ? endDate.toLocaleDateString('ca-ES', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    })
+                  : 'Data fi'}
               </Text>
             </View>
           )}
-          {Array.from(activeFilters).map((filterId) => {
+          {Array.from(selectedCategories).map((filterId) => {
             const filter = filterCategories
               .flatMap((cat) => cat.items)
               .find((f) => f.id === filterId);
@@ -411,7 +410,7 @@ export default function Explore() {
               <TouchableOpacity
                 key={filter.id}
                 style={[styles.filterChip, styles.filterButtonActive]}
-                onPress={() => handleFilterPress(filter.id)}
+                onPress={() => handleCategoryPress(filter.id)}
               >
                 <Ionicons name={filter.icon} size={16} color='#fff' />
                 <Text style={[styles.filterText, styles.filterTextActive]}>
@@ -449,6 +448,9 @@ export default function Explore() {
 
       <FilterModal
         visible={filterModalVisible}
+        onSelectPopulation={(populationId: string) =>
+          handlePopulationSelect(populationId)
+        }
         toggleFilterModal={toggleFilterModal}
         startDate={startDate}
         endDate={endDate}
@@ -460,22 +462,36 @@ export default function Explore() {
         showStartDatePicker={showStartDatePicker}
         showEndDatePicker={showEndDatePicker}
         filterCategories={filterCategories}
-        activeFilters={activeFilters}
-        handleFilterPress={handleFilterPress}
-        populationList={populationList}
+        // Ahora se pasan ambas variables de filtro de forma separada
+        selectedCategories={selectedCategories}
+        onCategoryPress={handleCategoryPress}
         selectedPopulation={selectedPopulation}
+        populationList={populationList}
         setPopulationDropdownVisible={setPopulationDropdownVisible}
         clearFilters={clearFilters}
-        formatDate={formatDate}
+        formatDate={(date: Date | null) =>
+          date
+            ? date.toLocaleDateString('ca-ES', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              })
+            : currentMode === 'start'
+              ? 'Data inici'
+              : 'Data fi'
+        }
+        populationDropdownVisible={populationDropdownVisible}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
 
       <PopulationSelector
         visible={populationDropdownVisible}
         onClose={() => setPopulationDropdownVisible(false)}
         selectedPopulation={selectedPopulation}
-        searchQuery={populationSearchQuery}
-        setSearchQuery={setPopulationSearchQuery}
-        populations={populationList}
+        searchQuery={''}
+        setSearchQuery={() => {}}
+        populations={[]} // O la lista de poblaciones obtenida de getTowns
         onSelect={handlePopulationSelect}
       />
 
@@ -497,4 +513,7 @@ export default function Explore() {
       )}
     </View>
   );
+}
+function setPopulationList(towns: PopulationItem[]) {
+  throw new Error('Function not implemented.');
 }

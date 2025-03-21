@@ -35,10 +35,10 @@ export const PopulationSelector: React.FC<PopulationSelectorProps> = ({
   populations,
   onSelect,
 }) => {
-  const filteredPopulations = !searchQuery.trim()
+  const filteredPopulations = !(searchQuery || '').trim()
     ? populations
     : populations.filter((item) =>
-        item.label.toLowerCase().includes(searchQuery.toLowerCase())
+        item.label.toLowerCase().includes((searchQuery || '').toLowerCase())
       );
 
   return (

@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+  // Ejemplo de estilos para el carrusel (ajusta según tu línea gráfica)
   applyButton: {
     alignItems: 'center',
     backgroundColor: '#4285F4',
@@ -14,6 +15,32 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  carouselContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  carouselItem: {
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    height: 80,
+    justifyContent: 'center',
+    marginHorizontal: 10,
+    width: 120,
+  },
+  carouselItemActive: {
+    backgroundColor: '#4285F4',
+  },
+  carouselText: {
+    color: '#666',
+    fontWeight: '500',
+    marginTop: 5,
+  },
+
+  carouselTextActive: {
+    color: '#fff',
+  },
+
   clearButton: {
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
