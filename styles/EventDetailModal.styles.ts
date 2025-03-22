@@ -26,6 +26,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderRadius: 10,
     justifyContent: 'center',
+    marginBottom: 10,
     padding: spacing.md,
     width: '90%',
   },
@@ -53,13 +54,6 @@ export const styles = StyleSheet.create({
     color: colors.darkBackground,
     fontSize: 13,
     fontWeight: '500',
-  },
-  closeButton: {
-    padding: spacing.md,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    zIndex: 1,
   },
   container: {
     backgroundColor: colors.background,
@@ -142,11 +136,14 @@ export const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     height: screenHeight * 0.9,
     overflow: 'hidden',
+    width: screenWidth,
   },
   modalOverlay: {
     backgroundColor: 'rgba(0,0,0,0.5)',
-    flex: 1,
-    justifyContent: 'flex-end',
+    height: screenHeight,
+    minHeight: screenHeight * 0.1,
+    position: 'absolute',
+    width: screenWidth,
   },
   organizerText: {
     color: colors.text,
