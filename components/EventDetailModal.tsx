@@ -6,7 +6,6 @@ import {
   Modal,
   ScrollView,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   Image,
   Linking,
   Dimensions,
@@ -172,7 +171,9 @@ const EventDetailModal = ({
   };
 
   // Handle image carousel scrolling
-  const handleImageScroll = (event) => {
+  const handleImageScroll = (event: {
+    nativeEvent: { contentOffset: { x: any } };
+  }) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const currentIndex = Math.round(
       contentOffsetX / Dimensions.get('window').width
