@@ -80,9 +80,9 @@ export const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   categoryText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '600',
+    color: colors.darkBackground,
+    fontSize: 13,
+    fontWeight: '500',
   },
   container: {
     backgroundColor: colors.background,

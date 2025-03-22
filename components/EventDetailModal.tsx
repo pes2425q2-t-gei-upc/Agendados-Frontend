@@ -208,41 +208,21 @@ const EventDetailModal = ({
 
             {/* Image carousel */}
             {event.images && event.images.length > 0 ? (
-              <View style={{ position: 'relative' }}>
-                <ScrollView
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.imageCarousel}
-                  onScroll={handleImageScroll}
-                  scrollEventThrottle={16}
-                >
-                  {event.images.map((image, index) => (
-                    <Image
-                      key={index}
-                      source={{ uri: image.image_url }}
-                      style={styles.eventImage}
-                      resizeMode='cover'
-                    />
-                  ))}
-                </ScrollView>
-
-                {/* Carousel position indicator */}
-                {event.images.length > 1 && (
-                  <View style={styles.carouselDotsContainer}>
-                    {event.images.map((_, index) => (
-                      <View
-                        key={index}
-                        style={[
-                          styles.carouselIndicatorDot,
-                          currentImageIndex === index &&
-                            styles.carouselIndicatorActiveDot,
-                        ]}
-                      />
-                    ))}
-                  </View>
-                )}
-              </View>
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                style={styles.imageCarousel}
+              >
+                {event.images.map((image, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: image }}
+                    style={styles.eventImage}
+                    resizeMode='cover'
+                  />
+                ))}
+              </ScrollView>
             ) : (
               <View style={styles.imagePlaceholder}>
                 <MaterialIcons name='image' size={80} color={colors.border} />
@@ -254,7 +234,7 @@ const EventDetailModal = ({
               <View style={styles.categoriesContainer}>
                 {event.categories.map((category, index) => (
                   <View key={index} style={styles.categoryTag}>
-                    <Text style={styles.categoryText}>{category.name}</Text>
+                    <Text style={styles.categoryText}>{category}</Text>
                   </View>
                 ))}
               </View>
@@ -269,58 +249,42 @@ const EventDetailModal = ({
               <View style={styles.sectionContent}>{formatDateRange()}</View>
             </View>
 
-            {/* Schedule */}
-            {event.schedule && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <MaterialIcons
-                    name='schedule'
-                    size={22}
-                    color={colors.primary}
-                  />
-                  <Text style={styles.sectionTitle}>Schedule</Text>
-                </View>
-                <Text style={[styles.dateTimeText, { marginTop: 8 }]}>
-                  {event.schedule}
-                </Text>
-              </View>
-            )}
-
             {/* Location */}
-            {event.location && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <MaterialIcons
+                  name='location-on'
+                  size={22}
+                  color={colors.primary}
+                />
+                <Text style={styles.sectionTitle}>Location</Text>
+              </View>
+              <View style={styles.sectionContent}>
+                <Text style={styles.locationName}>{event.location}</Text>
+                {event.address && (
+                  <Text style={styles.locationAddress}>{event.address}</Text>
+                )}
+                {(event.latitude ?? event.address) && (
+                  <TouchableOpacity style={styles.mapButton} onPress={openMap}>
+                    <Text style={styles.mapButtonText}>View on map</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            {/* Organizer */}
+            {event.organizer && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <MaterialIcons
-                    name='location-on'
+                    name='people'
                     size={22}
                     color={colors.primary}
                   />
-                  <Text style={styles.sectionTitle}>Location</Text>
+                  <Text style={styles.sectionTitle}>Organizer</Text>
                 </View>
                 <View style={styles.sectionContent}>
-                  {event.location.space && (
-                    <Text style={styles.locationName}>
-                      {event.location.space}
-                    </Text>
-                  )}
-                  {event.location.address && (
-                    <Text style={styles.locationAddress}>
-                      {event.location.address}
-                    </Text>
-                  )}
-                  {event.location.town && (
-                    <Text style={styles.locationAddress}>
-                      {event.location.town.name}, {event.location.region.name}
-                    </Text>
-                  )}
-                  {(event.location.latitude || event.location.address) && (
-                    <TouchableOpacity
-                      style={styles.mapButton}
-                      onPress={openMap}
-                    >
-                      <Text style={styles.mapButtonText}>View on map</Text>
-                    </TouchableOpacity>
-                  )}
+                  <Text style={styles.organizerText}>{event.organizer}</Text>
                 </View>
               </View>
             )}
@@ -342,71 +306,20 @@ const EventDetailModal = ({
               </View>
             )}
 
-            {/* Ticket Information */}
-            {event.info_tickets && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <MaterialIcons
-                    name='confirmation-number'
-                    size={22}
-                    color={colors.primary}
-                  />
-                  <Text style={styles.sectionTitle}>Ticket Information</Text>
-                </View>
-                <View style={styles.sectionContent}>
-                  <Text style={styles.description}>{event.info_tickets}</Text>
-                </View>
-              </View>
-            )}
-
-            {/* Links */}
-            {event.links && event.links.length > 0 && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <MaterialIcons name='link' size={22} color={colors.primary} />
-                  <Text style={styles.sectionTitle}>Related Links</Text>
-                </View>
-                <View style={styles.sectionContent}>
-                  {event.links.map((link, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.linkButton}
-                      onPress={() => openLink(link.link)}
-                    >
-                      <Text
-                        style={styles.linkText}
-                        numberOfLines={1}
-                        ellipsizeMode='tail'
-                      >
-                        {link.link.replace(/^https?:\/\//, '').split('/')[0]}
-                      </Text>
-                      <MaterialIcons
-                        name='open-in-new'
-                        size={16}
-                        color={colors.primary}
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
-
             {/* Spacer at the bottom */}
             <View style={styles.bottomSpacer} />
           </ScrollView>
 
-          {/* Tickets action button */}
-          {event.info_tickets && (
+          {/* Buy tickets button */}
+          {event.ticketUrl && (
             <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.buyButton}
-                onPress={() =>
-                  event.links && event.links.length > 0
-                    ? openLink(event.links[0].link)
-                    : null
-                }
-              >
-                <Text style={styles.buyButtonText}>More Information</Text>
+              {event.price !== undefined && (
+                <Text style={styles.priceText}>
+                  Price starting from ${event.price}
+                </Text>
+              )}
+              <TouchableOpacity style={styles.buyButton} onPress={buyTickets}>
+                <Text style={styles.buyButtonText}>Buy Tickets</Text>
               </TouchableOpacity>
             </View>
           )}
