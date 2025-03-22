@@ -14,6 +14,7 @@ export type MarkerData = {
   date: string;
   time: string;
   category: string;
+  categoryId: number | null;
   location: string;
 };
 

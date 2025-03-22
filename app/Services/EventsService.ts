@@ -48,6 +48,11 @@ export const getEvents = async (): Promise<MarkerData[]> => {
             event.categories && event.categories.length > 0
               ? event.categories[0].name
               : '',
+          // Extraemos también el id de la categoría
+          categoryId:
+            event.categories && event.categories.length > 0
+              ? event.categories[0].id
+              : null,
           location: event.location.town?.name ?? '',
         } as MarkerData;
       })

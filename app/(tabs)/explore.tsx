@@ -1,9 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 import { Ionicons } from '@expo/vector-icons';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import * as Location from 'expo-location';
-import { useRouter } from 'expo-router';
-import React, { useState, useEffect, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   View,
   StatusBar,
@@ -13,14 +17,18 @@ import {
   Text,
   Alert,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
+import { getEventDetails } from '@services/EventsService';
+
 import EventDetailModal from '../../components/EventDetailModal';
+import { useEvents } from '../../context/eventsContext'; // <-- Usamos el contexto
 import { styles } from '../../styles/Explore';
-import { getEvents, getEventDetails } from '../Services/EventsService';
 import { getTowns } from '../Services/LocationService';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { EventCard, MarkerData } from './exploreComponents/EventCard';
 import { EventsModal } from './exploreComponents/EventsModal';
 import { FilterModal } from './exploreComponents/FilterModal';
@@ -40,9 +48,9 @@ const INITIAL_REGION = {
 };
 
 export default function Explore() {
-  const router = useRouter();
+  // Obtenemos eventos desde el contexto global
+  const { events, loading, error } = useEvents();
 
-  // Estados para filtros: separamos categorías y población
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
     new Set()
@@ -64,69 +72,51 @@ export default function Explore() {
   const [datePickerDate, setDatePickerDate] = useState(new Date());
   const [populationList, setPopulationList] = useState<PopulationItem[]>([]);
 
-  // Estados para eventos y ubicación
-  const [events, setEvents] = useState<MarkerData[]>([]);
+  // Estados para ubicación
   const [userLocation, setUserLocation] = useState<LocationCoords | null>(null);
   const [locationPermission, setLocationPermission] = useState(false);
 
-  // Estados para detalles y modales
+  // Estados para detalle y modales
   const [selectedEventDetail, setSelectedEventDetail] = useState<any>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
   const mapRef = useRef<MapView | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentRegion, setCurrentRegion] = useState(INITIAL_REGION);
 
-  // Definición de categorías para filtro
+  // Definición de filtros de categorías (ligados con id y label)
   const filterCategories: FilterCategory[] = [
     {
       title: 'Categoria',
       items: [
-        {
-          id: 'ActivitatsVirtuals',
-          label: 'Activitats Virtuals',
-          icon: 'globe-outline',
-        },
-        { id: 'RutesIVisites', label: 'Rutes I Visites', icon: 'map-outline' },
-        { id: 'Conferencies', label: 'Conferencies', icon: 'mic-outline' },
-        { id: 'Exposicions', label: 'Exposicions', icon: 'image-outline' },
-        { id: 'Infantil', label: 'Infantil', icon: 'happy-outline' },
-        { id: 'Teatre', label: 'Teatre', icon: 'film-outline' },
-        { id: 'Concerts', label: 'Concerts', icon: 'musical-notes-outline' },
-        { id: 'Dansa', label: 'Dansa', icon: 'body-outline' },
-        { id: 'Cursos', label: 'Cursos', icon: 'school-outline' },
-        {
-          id: 'FestivalsIMostres',
-          label: 'Festivals I Mostres',
-          icon: 'sparkles-outline',
-        },
-        { id: 'Carnavals', label: 'Carnavals', icon: 'people-outline' },
-        { id: 'Cicles', label: 'Cicles', icon: 'repeat-outline' },
-        { id: 'Circ', label: 'Circ', icon: 'color-wand-outline' },
-        { id: 'Festes', label: 'Festes', icon: 'beer-outline' },
-        {
-          id: 'FiresIMercats',
-          label: 'Fires I Mercats',
-          icon: 'basket-outline',
-        },
-        { id: 'Commemoracions', label: 'Commemoracions', icon: 'flag-outline' },
-        { id: 'SetmanaSanta', label: 'Setmana Santa', icon: 'flower-outline' },
-        { id: 'Sardanes', label: 'Sardanes', icon: 'people-circle-outline' },
-        { id: 'Gegants', label: 'Gegants', icon: 'accessibility-outline' },
-        { id: 'Nadal', label: 'Nadal', icon: 'snow-outline' },
-        {
-          id: 'CulturaDigital',
-          label: 'Cultura Digital',
-          icon: 'code-outline',
-        },
+        { id: '1', label: 'Concerts', icon: 'musical-notes-outline' },
+        { id: '2', label: 'Exposicions', icon: 'image-outline' },
+        { id: '3', label: 'Rutes I Visites', icon: 'map-outline' },
+        { id: '4', label: 'Festivals I Mostres', icon: 'sparkles-outline' },
+        { id: '5', label: 'Cicles', icon: 'repeat-outline' },
+        { id: '6', label: 'Teatre', icon: 'film-outline' },
+        { id: '7', label: 'Conferencies', icon: 'mic-outline' },
+        { id: '8', label: 'Infantil', icon: 'happy-outline' },
+        { id: '9', label: 'Commemoracions', icon: 'flag-outline' },
+        { id: '10', label: 'Setmana Santa', icon: 'flower-outline' },
+        { id: '11', label: 'Sardanes', icon: 'people-circle-outline' },
+        { id: '12', label: 'Dansa', icon: 'body-outline' },
+        { id: '13', label: 'Cursos', icon: 'school-outline' },
+        { id: '14', label: 'Festes', icon: 'beer-outline' },
+        { id: '15', label: 'Fires I Mercats', icon: 'basket-outline' },
+        { id: '16', label: 'Gegants', icon: 'accessibility-outline' },
+        { id: '17', label: 'Circ', icon: 'color-wand-outline' },
+        { id: '18', label: 'Cultura Digital', icon: 'code-outline' },
+        { id: '19', label: 'Activitats Virtuals', icon: 'globe-outline' },
       ],
     },
   ];
 
   useEffect(() => {
+    // Pre-cargar poblaciones
     const fetchTowns = async () => {
       try {
         const towns = await getTowns();
-        console.log('Towns:', towns);
         setPopulationList(towns);
       } catch (error) {
         console.error('Error loading towns:', error);
@@ -135,9 +125,8 @@ export default function Explore() {
     fetchTowns();
   }, []);
 
-  // Para este ejemplo se fakea la ubicación del usuario: Barcelona
+  // Fake location para Barcelona
   useEffect(() => {
-    // Se omite la solicitud de permisos y se asigna la ubicación de Barcelona
     const fakeLocation = { latitude: 41.3851, longitude: 2.1734 };
     setUserLocation(fakeLocation);
     setLocationPermission(true);
@@ -147,21 +136,8 @@ export default function Explore() {
     );
   }, []);
 
-  // Cargar eventos desde el backend usando el eventsService
-  useEffect(() => {
-    const fetchEventsData = async () => {
-      try {
-        const eventsFromService = await getEvents();
-        setEvents(eventsFromService);
-      } catch (error) {
-        Alert.alert('Error', "No s'han pogut carregar els esdeveniments.");
-      }
-    };
-    fetchEventsData();
-  }, []);
-
-  // Permite agregar o quitar una categoría sin afectar otras
-  const handleCategoryPress = (filterId: string) => {
+  // Función para agregar/quitar categorías
+  const handleCategoryPress = useCallback((filterId: string) => {
     setSelectedCategories((prev) => {
       const newCategories = new Set(prev);
       if (newCategories.has(filterId)) {
@@ -171,16 +147,16 @@ export default function Explore() {
       }
       return newCategories;
     });
-  };
+  }, []);
 
-  // Para población se mantiene de forma independiente (se asume selección única)
+  // Selección única de población
   const handlePopulationSelect = (populationId: string) => {
     setSelectedPopulation(populationId);
     setPopulationDropdownVisible(false);
   };
 
-  const toggleFilterModal = () => setFilterModalVisible(!filterModalVisible);
-  const toggleEventsModal = () => setEventsModalVisible(!eventsModalVisible);
+  const toggleFilterModal = () => setFilterModalVisible((prev) => !prev);
+  const toggleEventsModal = () => setEventsModalVisible((prev) => !prev);
 
   const openDatePicker = (mode: 'start' | 'end') => {
     setCurrentMode(mode);
@@ -191,19 +167,23 @@ export default function Explore() {
       setShowStartDatePicker(mode === 'start');
       setShowEndDatePicker(mode === 'end');
     } else {
-      mode === 'start'
-        ? setShowStartDatePicker(true)
-        : setShowEndDatePicker(true);
+      if (mode === 'start') {
+        setShowStartDatePicker(true);
+      } else {
+        setShowEndDatePicker(true);
+      }
     }
   };
 
-  const onDateChange = (event: any, selectedDate?: Date) => {
+  const onDateChange = (event: unknown, selectedDate?: Date) => {
     if (selectedDate) {
       setDatePickerDate(selectedDate);
       if (Platform.OS === 'android') {
-        currentMode === 'start'
-          ? setStartDate(selectedDate)
-          : setEndDate(selectedDate);
+        if (currentMode === 'start') {
+          setStartDate(selectedDate);
+        } else {
+          setEndDate(selectedDate);
+        }
         setShowStartDatePicker(false);
         setShowEndDatePicker(false);
       }
@@ -214,9 +194,11 @@ export default function Explore() {
   };
 
   const handleDatePickerConfirm = () => {
-    currentMode === 'start'
-      ? setStartDate(datePickerDate)
-      : setEndDate(datePickerDate);
+    if (currentMode === 'start') {
+      setStartDate(datePickerDate);
+    } else {
+      setEndDate(datePickerDate);
+    }
     setShowStartDatePicker(false);
     setShowEndDatePicker(false);
   };
@@ -233,50 +215,51 @@ export default function Explore() {
     setSelectedPopulation(null);
   };
 
-  // Se filtran los marcadores combinando fechas, categorías y población
-  const filteredMarkers = events.filter((marker) => {
-    // Filtro por fechas
-    if (startDate && marker.fullDate < startDate) {
-      return false;
-    }
-    if (endDate && marker.fullDate > endDate) {
-      return false;
-    }
-
-    // Filtro por categorías
-    if (
-      selectedCategories.size > 0 &&
-      !selectedCategories.has(marker.category)
-    ) {
-      return false;
-    }
-
-    // Filtro por población
-    if (selectedPopulation && marker.location !== selectedPopulation) {
-      return false;
-    }
-
-    // Filtro por búsqueda (buscando en título, categoría y ubicación)
-    if (searchQuery.trim() !== '') {
-      const searchText = searchQuery.toLowerCase();
+  const filteredMarkers = useMemo(() => {
+    return events.filter((marker) => {
+      if (startDate && marker.fullDate < startDate) {
+        return false;
+      }
+      if (endDate && marker.fullDate > endDate) {
+        return false;
+      }
       if (
-        !marker.title.toLowerCase().includes(searchText) &&
-        !marker.category.toLowerCase().includes(searchText) &&
-        !marker.location.toLowerCase().includes(searchText)
+        selectedCategories.size > 0 &&
+        marker.categoryId !== undefined &&
+        marker.categoryId !== null &&
+        !selectedCategories.has(marker.categoryId.toString())
       ) {
         return false;
       }
-    }
+      if (selectedPopulation && marker.location !== selectedPopulation) {
+        return false;
+      }
+      if (searchQuery.trim() !== '') {
+        const searchText = searchQuery.toLowerCase();
+        if (
+          !marker.title.toLowerCase().includes(searchText) &&
+          !marker.category.toLowerCase().includes(searchText) &&
+          !marker.location.toLowerCase().includes(searchText)
+        ) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [
+    events,
+    startDate,
+    endDate,
+    selectedCategories,
+    selectedPopulation,
+    searchQuery,
+  ]);
 
-    return true;
-  });
-
-  // En este ejemplo se muestran todos los marcadores filtrados (se puede habilitar filtrado por región si se desea)
   const getVisibleMarkers = () => {
     return filteredMarkers;
   };
 
-  const getNearbyEvents = () => {
+  const getNearbyEvents = useMemo(() => {
     if (!userLocation) {
       return filteredMarkers;
     }
@@ -291,21 +274,39 @@ export default function Explore() {
       );
       return distA - distB;
     });
-  };
+  }, [filteredMarkers, userLocation]);
 
-  // Se carga el detalle del evento usando el servicio
-  const openDetailModal = async (eventId: string | number) => {
+  const openDetailModal = useCallback(async (eventId: string | number) => {
     try {
       const detail = await getEventDetails(eventId);
       setSelectedEventDetail(detail);
       setDetailModalVisible(true);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       Alert.alert(
         'Error',
         "No s'han pogut carregar els detalls de l'esdeveniment."
       );
     }
-  };
+  }, []);
+
+  // Mientras se cargan los eventos, mostramos un spinner
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size='large' color='#4285F4' />
+        <Text>Cargando eventos...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -330,7 +331,6 @@ export default function Explore() {
       <TouchableOpacity
         style={styles.myLocationButton}
         onPress={() => {
-          // Fijamos de nuevo la ubicación a Barcelona
           const fakeLocation = { latitude: 41.3851, longitude: 2.1734 };
           setUserLocation(fakeLocation);
           mapRef.current?.animateToRegion(
@@ -402,7 +402,7 @@ export default function Explore() {
           {Array.from(selectedCategories).map((filterId) => {
             const filter = filterCategories
               .flatMap((cat) => cat.items)
-              .find((f) => f.id === filterId);
+              .find((f) => f.id.toString() === filterId);
             if (!filter) {
               return null;
             }
@@ -410,7 +410,7 @@ export default function Explore() {
               <TouchableOpacity
                 key={filter.id}
                 style={[styles.filterChip, styles.filterButtonActive]}
-                onPress={() => handleCategoryPress(filter.id)}
+                onPress={() => handleCategoryPress(filter.id.toString())}
               >
                 <Ionicons name={filter.icon} size={16} color='#fff' />
                 <Text style={[styles.filterText, styles.filterTextActive]}>
@@ -433,7 +433,7 @@ export default function Explore() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.nearbyEventsScrollContainer}
         >
-          {getNearbyEvents().map((event) => (
+          {getNearbyEvents.map((event) => (
             <EventCard
               key={event.id}
               event={event}
@@ -445,7 +445,6 @@ export default function Explore() {
       <TouchableOpacity style={styles.eventsButton} onPress={toggleEventsModal}>
         <Text style={styles.eventsButtonText}>Tots els esdeveniments</Text>
       </TouchableOpacity>
-
       <FilterModal
         visible={filterModalVisible}
         onSelectPopulation={(populationId: string) =>
@@ -462,7 +461,6 @@ export default function Explore() {
         showStartDatePicker={showStartDatePicker}
         showEndDatePicker={showEndDatePicker}
         filterCategories={filterCategories}
-        // Ahora se pasan ambas variables de filtro de forma separada
         selectedCategories={selectedCategories}
         onCategoryPress={handleCategoryPress}
         selectedPopulation={selectedPopulation}
@@ -484,23 +482,20 @@ export default function Explore() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />
-
       <PopulationSelector
         visible={populationDropdownVisible}
         onClose={() => setPopulationDropdownVisible(false)}
         selectedPopulation={selectedPopulation}
         searchQuery={''}
         setSearchQuery={() => {}}
-        populations={[]} // O la lista de poblaciones obtenida de getTowns
+        populations={populationList} // Usamos la lista cargada
         onSelect={handlePopulationSelect}
       />
-
       <EventsModal
         visible={eventsModalVisible}
         toggleEventsModal={toggleEventsModal}
         filteredMarkers={filteredMarkers}
       />
-
       {selectedEventDetail && (
         <EventDetailModal
           event={selectedEventDetail}
@@ -513,7 +508,4 @@ export default function Explore() {
       )}
     </View>
   );
-}
-function setPopulationList(towns: PopulationItem[]) {
-  throw new Error('Function not implemented.');
 }
