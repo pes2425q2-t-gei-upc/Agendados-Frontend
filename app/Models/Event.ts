@@ -9,14 +9,8 @@ interface EventDTO {
   categories: Category[];
   scopes?: any[];
   location?: Location;
-  images: Image[];
-  links: Link[];
-}
-interface Link {
-  link: string;
-}
-interface Image {
-  image_url: string;
+  images: string[];
+  links: string[];
 }
 interface Location {
   id: number;
@@ -43,8 +37,8 @@ class Event implements EventDTO {
   categories: Category[];
   scopes?: any[];
   location?: Location;
-  images: Image[];
-  links: Link[];
+  images: string[];
+  links: string[];
 
   constructor(event: EventDTO) {
     this.id = event.id;
