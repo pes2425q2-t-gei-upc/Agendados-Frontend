@@ -49,7 +49,15 @@ const mockEvents = [
     startDate: new Date('2023-10-17T08:00:00'),
     endDate: new Date('2023-10-17T10:00:00'),
     price: 15,
-    categories: ['Wellness', 'Sport'],
+    categories: [
+      'Wellness',
+      'Sport',
+      'Health',
+      'Fitness',
+      'Yoga',
+      'Meditation',
+      'Mindfulness',
+    ],
     location: 'Community Center',
   },
 ];
