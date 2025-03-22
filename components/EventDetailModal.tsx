@@ -171,6 +171,15 @@ const EventDetailModal = ({
     setCurrentImageIndex(currentIndex);
   };
 
+  // Handle image carousel scrolling
+  const handleImageScroll = (event) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const currentIndex = Math.round(
+      contentOffsetX / Dimensions.get('window').width
+    );
+    setCurrentImageIndex(currentIndex);
+  };
+
   if (!event) {
     return null;
   }
@@ -208,21 +217,41 @@ const EventDetailModal = ({
 
             {/* Image carousel */}
             {event.images && event.images.length > 0 ? (
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                style={styles.imageCarousel}
-              >
-                {event.images.map((image, index) => (
-                  <Image
-                    key={index}
-                    source={{ uri: image }}
-                    style={styles.eventImage}
-                    resizeMode='cover'
-                  />
-                ))}
-              </ScrollView>
+              <View style={{ position: 'relative' }}>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.imageCarousel}
+                  onScroll={handleImageScroll}
+                  scrollEventThrottle={16}
+                >
+                  {event.images.map((image, index) => (
+                    <Image
+                      key={index}
+                      source={{ uri: image }}
+                      style={styles.eventImage}
+                      resizeMode='cover'
+                    />
+                  ))}
+                </ScrollView>
+
+                {/* Carousel position indicator */}
+                {event.images.length > 1 && (
+                  <View style={styles.carouselDotsContainer}>
+                    {event.images.map((_, index) => (
+                      <View
+                        key={index}
+                        style={[
+                          styles.carouselIndicatorDot,
+                          currentImageIndex === index &&
+                            styles.carouselIndicatorActiveDot,
+                        ]}
+                      />
+                    ))}
+                  </View>
+                )}
+              </View>
             ) : (
               <View style={styles.imagePlaceholder}>
                 <MaterialIcons name='image' size={80} color={colors.border} />

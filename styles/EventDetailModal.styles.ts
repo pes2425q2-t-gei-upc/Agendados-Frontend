@@ -56,6 +56,7 @@ export const styles = StyleSheet.create({
     marginHorizontal: 4,
     width: 10,
   },
+  carouselIndicatorContainer: {},
   carouselIndicatorDot: {
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 4,
@@ -98,7 +99,7 @@ export const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 15,
     lineHeight: 22,
-    textAlign: 'left',
+    textAlign: 'justify',
   },
   dragHandle: {
     alignItems: 'center',
