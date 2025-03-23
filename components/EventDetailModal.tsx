@@ -50,6 +50,7 @@ const EventDetailModal = ({
 }: EventDetailModalProps) => {
   const panY = useRef(new Animated.Value(screenHeight)).current;
   const [modalVisible, setModalVisible] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     if (visible) {
@@ -181,6 +182,15 @@ const EventDetailModal = ({
     }
   };
 
+  // Handle image carousel scrolling
+  const handleImageScroll = (event) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const currentIndex = Math.round(
+      contentOffsetX / Dimensions.get('window').width
+    );
+    setCurrentImageIndex(currentIndex);
+  };
+
   if (!event) {
     return null;
   }
@@ -192,39 +202,40 @@ const EventDetailModal = ({
       transparent={true}
       onRequestClose={handleClose}
     >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={handleClose}
-      >
-        <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-          <Animated.View
-            style={[styles.modalContainer, { transform: [{ translateY }] }]}
+      <View style={{ flex: 1, flexDirection: 'column-reverse' }}>
+        {/* Background overlay */}
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={handleClose}
+        />
+        {/* Modal content */}
+        <Animated.View
+          style={[styles.modalContainer, { transform: [{ translateY }] }]}
+        >
+          <View style={styles.dragHandle} {...panResponder.panHandlers}>
+            <View style={styles.dragHandleBar} />
+          </View>
+
+          <ScrollView
+            style={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
           >
-            <View style={styles.dragHandle} {...panResponder.panHandlers}>
-              <View style={styles.dragHandleBar} />
+            {/* Header with title */}
+            <View style={styles.header}>
+              <Text style={styles.title}>{event.title}</Text>
             </View>
 
-            <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-              <MaterialIcons name='close' size={24} color={colors.text} />
-            </TouchableOpacity>
-
-            <ScrollView
-              style={styles.scrollContainer}
-              showsVerticalScrollIndicator={false}
-            >
-              {/* Header with title */}
-              <View style={styles.header}>
-                <Text style={styles.title}>{event.title}</Text>
-              </View>
-
-              {/* Image carousel */}
-              {event.images && event.images.length > 0 ? (
+            {/* Image carousel */}
+            {event.images && event.images.length > 0 ? (
+              <View style={{ position: 'relative' }}>
                 <ScrollView
                   horizontal
                   pagingEnabled
                   showsHorizontalScrollIndicator={false}
                   style={styles.imageCarousel}
+                  onScroll={handleImageScroll}
+                  scrollEventThrottle={16}
                 >
                   {event.images.map((image, index) => (
                     <Image
@@ -235,116 +246,125 @@ const EventDetailModal = ({
                     />
                   ))}
                 </ScrollView>
-              ) : (
-                <View style={styles.imagePlaceholder}>
-                  <MaterialIcons name='image' size={80} color={colors.border} />
-                </View>
-              )}
 
-              {/* Categories */}
-              {event.categories && event.categories.length > 0 && (
-                <View style={styles.categoriesContainer}>
-                  {event.categories.map((category, index) => (
-                    <View key={index} style={styles.categoryTag}>
-                      <Text style={styles.categoryText}>{category}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {/* Date and time */}
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <MaterialIcons
-                    name='event'
-                    size={22}
-                    color={colors.primary}
-                  />
-                  <Text style={styles.sectionTitle}>Date & Time</Text>
-                </View>
-                <View style={styles.sectionContent}>{formatDateRange()}</View>
-              </View>
-
-              {/* Location */}
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <MaterialIcons
-                    name='location-on'
-                    size={22}
-                    color={colors.primary}
-                  />
-                  <Text style={styles.sectionTitle}>Location</Text>
-                </View>
-                <View style={styles.sectionContent}>
-                  <Text style={styles.locationName}>{event.location}</Text>
-                  {event.address && (
-                    <Text style={styles.locationAddress}>{event.address}</Text>
-                  )}
-                  {(event.latitude ?? event.address) && (
-                    <TouchableOpacity
-                      style={styles.mapButton}
-                      onPress={openMap}
-                    >
-                      <Text style={styles.mapButtonText}>View on map</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-
-              {/* Organizer */}
-              {event.organizer && (
-                <View style={styles.section}>
-                  <View style={styles.sectionHeader}>
-                    <MaterialIcons
-                      name='people'
-                      size={22}
-                      color={colors.primary}
-                    />
-                    <Text style={styles.sectionTitle}>Organizer</Text>
+                {/* Carousel position indicator */}
+                {event.images.length > 1 && (
+                  <View style={styles.carouselDotsContainer}>
+                    {event.images.map((_, index) => (
+                      <View
+                        key={index}
+                        style={[
+                          styles.carouselIndicatorDot,
+                          currentImageIndex === index &&
+                            styles.carouselIndicatorActiveDot,
+                        ]}
+                      />
+                    ))}
                   </View>
-                  <View style={styles.sectionContent}>
-                    <Text style={styles.organizerText}>{event.organizer}</Text>
-                  </View>
-                </View>
-              )}
-
-              {/* Description */}
-              {event.description && (
-                <View style={styles.section}>
-                  <View style={styles.sectionHeader}>
-                    <MaterialIcons
-                      name='description'
-                      size={22}
-                      color={colors.primary}
-                    />
-                    <Text style={styles.sectionTitle}>Description</Text>
-                  </View>
-                  <View style={styles.sectionContent}>
-                    <Text style={styles.description}>{event.description}</Text>
-                  </View>
-                </View>
-              )}
-
-              {/* Spacer at the bottom */}
-              <View style={styles.bottomSpacer} />
-            </ScrollView>
-
-            {/* Buy tickets button */}
-            {event.ticketUrl && (
-              <View style={styles.buttonContainer}>
-                {event.price !== undefined && (
-                  <Text style={styles.priceText}>
-                    Price starting from ${event.price}
-                  </Text>
                 )}
-                <TouchableOpacity style={styles.buyButton} onPress={buyTickets}>
-                  <Text style={styles.buyButtonText}>Buy Tickets</Text>
-                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <MaterialIcons name='image' size={80} color={colors.border} />
               </View>
             )}
-          </Animated.View>
-        </TouchableWithoutFeedback>
-      </TouchableOpacity>
+
+            {/* Categories */}
+            {event.categories && event.categories.length > 0 && (
+              <View style={styles.categoriesContainer}>
+                {event.categories.map((category, index) => (
+                  <View key={index} style={styles.categoryTag}>
+                    <Text style={styles.categoryText}>{category}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Date and time */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <MaterialIcons name='event' size={22} color={colors.primary} />
+                <Text style={styles.sectionTitle}>Date & Time</Text>
+              </View>
+              <View style={styles.sectionContent}>{formatDateRange()}</View>
+            </View>
+
+            {/* Location */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <MaterialIcons
+                  name='location-on'
+                  size={22}
+                  color={colors.primary}
+                />
+                <Text style={styles.sectionTitle}>Location</Text>
+              </View>
+              <View style={styles.sectionContent}>
+                <Text style={styles.locationName}>{event.location}</Text>
+                {event.address && (
+                  <Text style={styles.locationAddress}>{event.address}</Text>
+                )}
+                {(event.latitude ?? event.address) && (
+                  <TouchableOpacity style={styles.mapButton} onPress={openMap}>
+                    <Text style={styles.mapButtonText}>View on map</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            {/* Organizer */}
+            {event.organizer && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons
+                    name='people'
+                    size={22}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.sectionTitle}>Organizer</Text>
+                </View>
+                <View style={styles.sectionContent}>
+                  <Text style={styles.organizerText}>{event.organizer}</Text>
+                </View>
+              </View>
+            )}
+
+            {/* Description */}
+            {event.description && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons
+                    name='description'
+                    size={22}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.sectionTitle}>Description</Text>
+                </View>
+                <View style={styles.sectionContent}>
+                  <Text style={styles.description}>{event.description}</Text>
+                </View>
+              </View>
+            )}
+
+            {/* Spacer at the bottom */}
+            <View style={styles.bottomSpacer} />
+          </ScrollView>
+
+          {/* Buy tickets button */}
+          {event.ticketUrl && (
+            <View style={styles.buttonContainer}>
+              {event.price !== undefined && (
+                <Text style={styles.priceText}>
+                  Price starting from ${event.price}
+                </Text>
+              )}
+              <TouchableOpacity style={styles.buyButton} onPress={buyTickets}>
+                <Text style={styles.buyButtonText}>Buy Tickets</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </Animated.View>
+      </View>
     </Modal>
   );
 };
