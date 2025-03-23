@@ -26,7 +26,7 @@ interface Category {
   name: string;
 }
 
-class CustomEvent implements EventDTO {
+class Event implements EventDTO {
   id: number;
   title: string;
   description?: string;
@@ -56,4 +56,4 @@ class CustomEvent implements EventDTO {
   }
 }
 
-export { CustomEvent, EventDTO, Location, Category };
+export { Event, EventDTO, Location, Category };

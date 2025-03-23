@@ -13,38 +13,77 @@ export class MockDataService {
    * Inicializa datos mock para backend falso
    */
   private initializeMockData(): void {
-    // Se añaden las coordenadas y se actualiza la localización para situar los eventos en Barcelona
+    // Actualizamos los datos para que coincidan con la estructura de la API:
     this.mockEvents = [
       {
-        id: '1',
+        id: 1,
         title: 'Concert in the Park',
-        location: 'Parc de la Ciutadella, Barcelona',
-        data: new Date(2023, 7, 15, 18, 0),
-        coverImage: require('@assets/images/FotoJazz.jpg'),
-        categoria: 'Music',
-        coordinate: { latitude: 41.3887, longitude: 2.187 },
+        location: {
+          id: 1,
+          region: { id: 1, name: 'Cataluña' },
+          town: { id: 2, name: 'Barcelona' },
+          latitude: 41.3887,
+          longitude: 2.187,
+          address: 'Parc de la Ciutadella, Barcelona',
+          space: 'Parc de la Ciutadella',
+        },
+        date_ini: new Date(2023, 7, 15, 18, 0).toISOString(),
+        date_end: new Date(2023, 7, 15, 21, 0).toISOString(), // Ejemplo de fecha fin
+        categories: [{ id: 1, name: 'Music' }],
+        scopes: [],
+        images: [],
+        links: [],
+        description: '',
+        info_tickets: '',
+        schedule: '',
       },
       {
-        id: '2',
+        id: 2,
         title: 'Tech Conference',
-        location: 'Fira de Barcelona, Barcelona',
-        data: new Date(2023, 8, 10, 9, 0),
-        coverImage: require('@assets/images/FotoJazz.jpg'),
-        categoria: 'Technology',
-        coordinate: { latitude: 41.378, longitude: 2.149 },
+        location: {
+          id: 2,
+          region: { id: 1, name: 'Cataluña' },
+          town: { id: 2, name: 'Barcelona' },
+          latitude: 41.378,
+          longitude: 2.149,
+          address: 'Fira de Barcelona, Barcelona',
+          space: 'Fira de Barcelona',
+        },
+        date_ini: new Date(2023, 8, 10, 9, 0).toISOString(),
+        date_end: new Date(2023, 8, 10, 17, 0).toISOString(),
+        categories: [{ id: 2, name: 'Technology' }],
+        scopes: [],
+        images: [],
+        links: [],
+        description: '',
+        info_tickets: '',
+        schedule: '',
       },
       {
-        id: '3',
+        id: 3,
         title: 'Food Festival',
-        location: 'Mercat de la Boqueria, Barcelona',
-        data: new Date(2023, 9, 5, 11, 0),
-        coverImage: require('@assets/images/FotoConcierto.jpg'),
-        categoria: 'Food',
-        coordinate: { latitude: 41.382, longitude: 2.1734 },
+        location: {
+          id: 3,
+          region: { id: 1, name: 'Cataluña' },
+          town: { id: 2, name: 'Barcelona' },
+          latitude: 41.382,
+          longitude: 2.1734,
+          address: 'Mercat de la Boqueria, Barcelona',
+          space: 'Mercat de la Boqueria',
+        },
+        date_ini: new Date(2023, 9, 5, 11, 0).toISOString(),
+        date_end: new Date(2023, 9, 5, 20, 0).toISOString(),
+        categories: [{ id: 3, name: 'Food' }],
+        scopes: [],
+        images: [],
+        links: [],
+        description: '',
+        info_tickets: '',
+        schedule: '',
       },
     ];
 
-    // Se inicializan eventos detallados propagando la propiedad "coordinate"
+    // Inicializamos eventos detallados propagando la propiedad "location"
     this.mockDetailedEvents = [
       {
         ...this.mockEvents[0],
@@ -91,14 +130,13 @@ export class MockDataService {
   async getEvents(): Promise<Event[]> {
     // Simula un retardo en la red
     await new Promise((resolve) => setTimeout(resolve, 300));
-
     return this.mockEvents.map((eventDto) => new Event(eventDto));
   }
 
   /**
    * Obtiene información detallada de un evento específico
    */
-  async getEventDetails(eventId: string): Promise<DetailedEvent> {
+  async getEventDetails(eventId: number): Promise<DetailedEvent> {
     const detailedEvent = this.mockDetailedEvents.find((e) => e.id === eventId);
     await new Promise((resolve) => setTimeout(resolve, 300));
     if (!detailedEvent) {
