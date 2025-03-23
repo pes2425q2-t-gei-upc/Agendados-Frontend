@@ -41,7 +41,6 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
       console.error('Error al cargar eventos:', err);
     } finally {
       setLoading(false);
-      console.log('Loading completado:', false);
     }
   };
 
