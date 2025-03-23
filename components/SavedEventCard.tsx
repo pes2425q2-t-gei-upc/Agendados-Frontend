@@ -194,7 +194,61 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
       </Swipeable>
 
       <EventDetailModal
-        event={detailedEvent}
+        event={{
+          id: 5,
+          title: 'Visites guiades al Teatre de Tàrraco',
+          description:
+            "Com pertocava a una ciutat de la seva importància, Tàrraco disposava d’un teatre on s’hi representaven espectacles escènics que, sovint, acompanyaven les principals cerimònies religioses. Si s’observen les restes de la cavea, l’orchestra i la scaena, costa poc d’imaginar-se els romans de Tàrraco gaudint d’aquests espectacles. A la visita comentada coneixereu el Teatre de Tàrraco i el seu entorn, i podreu recórrer la recreació de la càvea, realitzada amb una estructura lineal de ferro que, per una banda evoca la potent graderia que tindria el Teatre en època romana i fa comprensible al visitant l’envergadura del monument, recuperant la geometria original, alhora que dialoga amb les restes. Redescobreix el Teatre de Tàrraco amb una visita guiada on t'endinsaràs també en el dinamisme del seu barri portuari.",
+          date_ini: '2025-03-09T00:00:00Z',
+          date_end: '2025-03-30T00:00:00Z',
+          info_tickets:
+            'Gratuït, amb reserva prèvia a https://www.mnat.cat/activitats/',
+          schedule: 'Els diumenge 9, 16, 23 i 30 de març A les 11 h',
+          categories: [
+            {
+              id: 3,
+              name: 'Rutes I Visites',
+            },
+          ],
+          scopes: [],
+          location: {
+            id: 5,
+            region: {
+              id: 3,
+              name: 'Tarragones',
+            },
+            town: {
+              id: 3,
+              name: 'Tarragona',
+            },
+            latitude: 41.11286130000001,
+            longitude: 1.2493629,
+            address: 'C. Sant Magí, 1',
+            space: 'Teatre de Tàrraco',
+          },
+          images: [
+            {
+              image_url:
+                'https://agenda.cultura.gencat.cat/content/dam/agenda/ca/activitats/2025/03/03/011/annexos/Teatre%20de%20t%C3%A0rraco.jpg',
+            },
+            {
+              image_url:
+                'https://agenda.cultura.gencat.cat/content/dam/agenda/ca/activitats/2025/03/03/011/annexos/Teatre%20rom%C3%A0%20Tarragona.jpg',
+            },
+            {
+              image_url:
+                'https://agenda.cultura.gencat.cat/content/dam/agenda/ca/activitats/2025/03/03/011/annexos/Teatre%20rom%C3%A0.jpg',
+            },
+          ],
+          links: [
+            {
+              link: 'https://www.mnat.cat/activitats/1297/visita-guiada-al-teatre-de-tarraco/',
+            },
+            {
+              link: 'https://agenda.cultura.gencat.cat/content/agenda/ca.html',
+            },
+          ],
+        }}
         visible={showDetails}
         onClose={() => setShowDetails(false)}
       />
