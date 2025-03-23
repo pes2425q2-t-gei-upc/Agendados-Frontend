@@ -162,15 +162,6 @@ const EventDetailModal = ({
   };
 
   // Handle image carousel scrolling
-  const handleImageScroll = (event) => {
-    const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const currentIndex = Math.round(
-      contentOffsetX / Dimensions.get('window').width
-    );
-    setCurrentImageIndex(currentIndex);
-  };
-
-  // Handle image carousel scrolling
   const handleImageScroll = (event: {
     nativeEvent: { contentOffset: { x: any } };
   }) => {
@@ -230,7 +221,7 @@ const EventDetailModal = ({
                   {event.images.map((image, index) => (
                     <Image
                       key={index}
-                      source={{ uri: image }}
+                      source={{ uri: image.image_url }}
                       style={styles.eventImage}
                       resizeMode='cover'
                     />
@@ -264,7 +255,7 @@ const EventDetailModal = ({
               <View style={styles.categoriesContainer}>
                 {event.categories.map((category, index) => (
                   <View key={index} style={styles.categoryTag}>
-                    <Text style={styles.categoryText}>{category}</Text>
+                    <Text style={styles.categoryText}>{category.name}</Text>
                   </View>
                 ))}
               </View>
@@ -279,42 +270,58 @@ const EventDetailModal = ({
               <View style={styles.sectionContent}>{formatDateRange()}</View>
             </View>
 
-            {/* Location */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <MaterialIcons
-                  name='location-on'
-                  size={22}
-                  color={colors.primary}
-                />
-                <Text style={styles.sectionTitle}>Location</Text>
-              </View>
-              <View style={styles.sectionContent}>
-                <Text style={styles.locationName}>{event.location}</Text>
-                {event.address && (
-                  <Text style={styles.locationAddress}>{event.address}</Text>
-                )}
-                {(event.latitude ?? event.address) && (
-                  <TouchableOpacity style={styles.mapButton} onPress={openMap}>
-                    <Text style={styles.mapButtonText}>View on map</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-
-            {/* Organizer */}
-            {event.organizer && (
+            {/* Schedule */}
+            {event.schedule && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <MaterialIcons
-                    name='people'
+                    name='schedule'
                     size={22}
                     color={colors.primary}
                   />
-                  <Text style={styles.sectionTitle}>Organizer</Text>
+                  <Text style={styles.sectionTitle}>Schedule</Text>
+                </View>
+                <Text style={[styles.dateTimeText, { marginTop: 8 }]}>
+                  {event.schedule}
+                </Text>
+              </View>
+            )}
+
+            {/* Location */}
+            {event.location && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons
+                    name='location-on'
+                    size={22}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.sectionTitle}>Location</Text>
                 </View>
                 <View style={styles.sectionContent}>
-                  <Text style={styles.organizerText}>{event.organizer}</Text>
+                  {event.location.space && (
+                    <Text style={styles.locationName}>
+                      {event.location.space}
+                    </Text>
+                  )}
+                  {event.location.address && (
+                    <Text style={styles.locationAddress}>
+                      {event.location.address}
+                    </Text>
+                  )}
+                  {event.location.town && (
+                    <Text style={styles.locationAddress}>
+                      {event.location.town.name}, {event.location.region.name}
+                    </Text>
+                  )}
+                  {(event.location.latitude || event.location.address) && (
+                    <TouchableOpacity
+                      style={styles.mapButton}
+                      onPress={openMap}
+                    >
+                      <Text style={styles.mapButtonText}>View on map</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             )}
@@ -336,20 +343,71 @@ const EventDetailModal = ({
               </View>
             )}
 
+            {/* Ticket Information */}
+            {event.info_tickets && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons
+                    name='confirmation-number'
+                    size={22}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.sectionTitle}>Ticket Information</Text>
+                </View>
+                <View style={styles.sectionContent}>
+                  <Text style={styles.description}>{event.info_tickets}</Text>
+                </View>
+              </View>
+            )}
+
+            {/* Links */}
+            {event.links && event.links.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons name='link' size={22} color={colors.primary} />
+                  <Text style={styles.sectionTitle}>Related Links</Text>
+                </View>
+                <View style={styles.sectionContent}>
+                  {event.links.map((link, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.linkButton}
+                      onPress={() => openLink(link.link)}
+                    >
+                      <Text
+                        style={styles.linkText}
+                        numberOfLines={1}
+                        ellipsizeMode='tail'
+                      >
+                        {link.link.replace(/^https?:\/\//, '').split('/')[0]}
+                      </Text>
+                      <MaterialIcons
+                        name='open-in-new'
+                        size={16}
+                        color={colors.primary}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
             {/* Spacer at the bottom */}
             <View style={styles.bottomSpacer} />
           </ScrollView>
 
-          {/* Buy tickets button */}
-          {event.ticketUrl && (
+          {/* Tickets action button */}
+          {event.info_tickets && (
             <View style={styles.buttonContainer}>
-              {event.price !== undefined && (
-                <Text style={styles.priceText}>
-                  Price starting from ${event.price}
-                </Text>
-              )}
-              <TouchableOpacity style={styles.buyButton} onPress={buyTickets}>
-                <Text style={styles.buyButtonText}>Buy Tickets</Text>
+              <TouchableOpacity
+                style={styles.buyButton}
+                onPress={() =>
+                  event.links && event.links.length > 0
+                    ? openLink(event.links[0].link)
+                    : null
+                }
+              >
+                <Text style={styles.buyButtonText}>More Information</Text>
               </TouchableOpacity>
             </View>
           )}

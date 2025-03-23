@@ -56,7 +56,6 @@ export const styles = StyleSheet.create({
     marginHorizontal: 4,
     width: 10,
   },
-  carouselIndicatorContainer: {},
   carouselIndicatorDot: {
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 4,
@@ -81,9 +80,9 @@ export const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   categoryText: {
-    color: colors.darkBackground,
-    fontSize: 13,
-    fontWeight: '500',
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   container: {
     backgroundColor: colors.background,
@@ -99,7 +98,7 @@ export const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 15,
     lineHeight: 22,
-    textAlign: 'justify',
+    textAlign: 'left',
   },
   dragHandle: {
     alignItems: 'center',
