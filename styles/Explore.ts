@@ -1,6 +1,47 @@
+/* eslint-disable react-native/sort-styles */
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+  // Ejemplo de estilos para el carrusel (ajusta según tu línea gráfica)
+  // Añade estos estilos a tu archivo styles/Explore.js
+  clusteringIndicator: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: '#4285F4',
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    position: 'absolute',
+    right: 10,
+    top: 10,
+  },
+  searchButton: {
+    marginLeft: 5,
+    padding: 10,
+  },
+  clusteringText: {
+    color: '#4285F4',
+    fontWeight: 'bold',
+  },
+  markerCount: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 5,
+    elevation: 2,
+    padding: 5,
+    position: 'absolute',
+    right: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    top: 100,
+  },
+  markerCountText: {
+    color: '#333',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  // eslint-disable-next-line react-native/sort-styles
   applyButton: {
     alignItems: 'center',
     backgroundColor: '#4285F4',
@@ -14,6 +55,32 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  carouselContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  carouselItem: {
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    height: 80,
+    justifyContent: 'center',
+    marginHorizontal: 10,
+    width: 120,
+  },
+  carouselItemActive: {
+    backgroundColor: '#4285F4',
+  },
+  carouselText: {
+    color: '#666',
+    fontWeight: '500',
+    marginTop: 5,
+  },
+
+  carouselTextActive: {
+    color: '#fff',
+  },
+
   clearButton: {
     alignItems: 'center',
     backgroundColor: '#f5f5f5',

@@ -1,11 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, Platform } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Platform,
+} from 'react-native';
+
+import { DatePickerModal } from 'app/(tabs)/exploreComponents/DatePickerModal';
 
 import { styles } from '../../../styles/Explore';
 
-import { DatePickerModal } from './DatePickerModal';
+import { CategoryCarousel, FilterItem } from './CategoryCarousel';
+import { PopulationSelector, PopulationItem } from './PopulationSelector';
 
 interface FilterModalProps {
   visible: boolean;
@@ -14,20 +24,24 @@ interface FilterModalProps {
   endDate: Date | null;
   openDatePicker: (mode: 'start' | 'end') => void;
   datePickerDate: Date;
-  onDateChange: (event: any, date?: Date) => void;
+  onDateChange: (event: unknown, date?: Date) => void;
   handleDatePickerConfirm: () => void;
   closeDatePicker: () => void;
   showStartDatePicker: boolean;
   showEndDatePicker: boolean;
   filterCategories: {
     title: string;
-    items: { id: string; label: string; icon: string }[];
+    items: FilterItem[];
   }[];
-  activeFilters: Set<string>;
-  handleFilterPress: (filterId: string) => void;
-  populationList: { id: string; label: string }[];
+  selectedCategories: Set<string>;
+  onCategoryPress: (filterId: string) => void;
+  populationList: PopulationItem[];
   selectedPopulation: string | null;
   setPopulationDropdownVisible: (visible: boolean) => void;
+  populationDropdownVisible: boolean;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  onSelectPopulation: (populationId: string) => void;
   clearFilters: () => void;
   formatDate: (date: Date | null) => string;
 }
@@ -45,11 +59,15 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   showStartDatePicker,
   showEndDatePicker,
   filterCategories,
-  activeFilters,
-  handleFilterPress,
+  selectedCategories,
+  onCategoryPress,
   populationList,
   selectedPopulation,
   setPopulationDropdownVisible,
+  populationDropdownVisible,
+  searchQuery,
+  setSearchQuery,
+  onSelectPopulation,
   clearFilters,
   formatDate,
 }) => {
@@ -60,88 +78,77 @@ export const FilterModal: React.FC<FilterModalProps> = ({
       visible={visible}
       onRequestClose={toggleFilterModal}
     >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Personalització de cerca</Text>
-            <TouchableOpacity onPress={toggleFilterModal}>
-              <Ionicons name='close' size={24} color='#333' />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.sectionTitle}>Rang de dates</Text>
-          <View style={styles.dateRangeContainer}>
-            <TouchableOpacity
-              style={[styles.datePickerButton, { marginRight: 10 }]}
-              onPress={() => openDatePicker('start')}
-            >
-              <Ionicons name='calendar-outline' size={20} color='#666' />
-              <Text style={styles.datePickerButtonText}>
-                {startDate ? formatDate(startDate) : 'Data inici'}
-              </Text>
-            </TouchableOpacity>
-            <Text style={styles.dateRangeSeparator}>-</Text>
-            <TouchableOpacity
-              style={styles.datePickerButton}
-              onPress={() => openDatePicker('end')}
-            >
-              <Ionicons name='calendar-outline' size={20} color='#666' />
-              <Text style={styles.datePickerButtonText}>
-                {endDate ? formatDate(endDate) : 'Data fi'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          {Platform.OS === 'android' &&
-            (showStartDatePicker || showEndDatePicker) && (
-              <DateTimePicker
-                value={datePickerDate}
-                mode='date'
-                display='default'
-                onChange={onDateChange}
-              />
-            )}
-          {Platform.OS === 'ios' && (
-            <DatePickerModal
-              visible={showStartDatePicker || showEndDatePicker}
-              onClose={closeDatePicker}
-              currentMode='start' // Ajusta este valor según sea necesario
-              datePickerDate={datePickerDate}
-              onDateChange={onDateChange}
-              onConfirm={handleDatePickerConfirm}
-            />
-          )}
-          {filterCategories.map((category, index) => (
-            <View key={index}>
-              <Text style={styles.sectionTitle}>{category.title}</Text>
-              <View style={styles.filterGridContainer}>
-                {category.items.map((filter) => (
-                  <TouchableOpacity
-                    key={filter.id}
-                    style={[
-                      styles.filterGridItem,
-                      activeFilters.has(filter.id) && styles.filterButtonActive,
-                    ]}
-                    onPress={() => handleFilterPress(filter.id)}
-                  >
-                    <Ionicons
-                      name={filter.icon as any}
-                      size={24}
-                      color={activeFilters.has(filter.id) ? '#fff' : '#666'}
-                    />
-                    <Text
-                      style={[
-                        styles.filterGridText,
-                        activeFilters.has(filter.id) && styles.filterTextActive,
-                      ]}
-                    >
-                      {filter.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+      {/* El overlay: al pulsar en cualquier parte se cierra el modal */}
+      <TouchableOpacity
+        activeOpacity={1}
+        style={styles.modalContainer}
+        onPress={toggleFilterModal}
+      >
+        {/* Contenedor del contenido: evitar propagación para que no se cierre al tocar dentro */}
+        <TouchableWithoutFeedback onPress={() => {}}>
+          <View style={styles.modalContent}>
+            {/* Cabecera del modal */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Personalización de búsqueda</Text>
+              <TouchableOpacity onPress={toggleFilterModal}>
+                <Ionicons name='close' size={24} color='#333' />
+              </TouchableOpacity>
             </View>
-          ))}
-          <View>
-            <Text style={styles.sectionTitle}>Població</Text>
+
+            {/* Rango de fechas */}
+            <Text style={styles.sectionTitle}>Rango de fechas</Text>
+            <View style={styles.dateRangeContainer}>
+              <TouchableOpacity
+                style={[styles.datePickerButton, { marginRight: 10 }]}
+                onPress={() => openDatePicker('start')}
+              >
+                <Ionicons name='calendar-outline' size={20} color='#666' />
+                <Text style={styles.datePickerButtonText}>
+                  {startDate ? formatDate(startDate) : 'Fecha inicio'}
+                </Text>
+              </TouchableOpacity>
+              <Text style={styles.dateRangeSeparator}>-</Text>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => openDatePicker('end')}
+              >
+                <Ionicons name='calendar-outline' size={20} color='#666' />
+                <Text style={styles.datePickerButtonText}>
+                  {endDate ? formatDate(endDate) : 'Fecha fin'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {Platform.OS === 'android' &&
+              (showStartDatePicker || showEndDatePicker) && (
+                <DateTimePicker
+                  value={datePickerDate}
+                  mode='date'
+                  display='default'
+                  onChange={onDateChange}
+                />
+              )}
+            {Platform.OS === 'ios' &&
+              (showStartDatePicker || showEndDatePicker) && (
+                <DatePickerModal
+                  visible={showStartDatePicker || showEndDatePicker}
+                  onClose={closeDatePicker}
+                  currentMode={showStartDatePicker ? 'start' : 'end'}
+                  datePickerDate={datePickerDate}
+                  onDateChange={onDateChange}
+                  onConfirm={handleDatePickerConfirm}
+                />
+              )}
+
+            {/* Carrusel de Categorías */}
+            <Text style={styles.sectionTitle}>Categorías</Text>
+            <CategoryCarousel
+              filterCategories={filterCategories}
+              selectedCategories={selectedCategories}
+              onCategoryPress={onCategoryPress}
+            />
+
+            {/* Selector de población */}
+            <Text style={styles.sectionTitle}>Población</Text>
             <TouchableOpacity
               style={styles.populationDropdownButton}
               onPress={() => setPopulationDropdownVisible(true)}
@@ -149,25 +156,43 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               <Text style={styles.populationDropdownButtonText}>
                 {selectedPopulation
                   ? (populationList.find((p) => p.id === selectedPopulation)
-                      ?.label ?? 'Seleccionar població')
-                  : 'Seleccionar població'}
+                      ?.label ?? 'Seleccionar población')
+                  : 'Seleccionar población'}
               </Text>
               <Ionicons name='chevron-down' size={20} color='#666' />
             </TouchableOpacity>
+
+            {/* Acciones de filtros */}
+            <View style={styles.filterActionsContainer}>
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={clearFilters}
+              >
+                <Text style={styles.clearButtonText}>Limpiar filtros</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={toggleFilterModal}
+              >
+                <Text style={styles.applyButtonText}>Aplicar filtros</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <View style={styles.filterActionsContainer}>
-            <TouchableOpacity style={styles.clearButton} onPress={clearFilters}>
-              <Text style={styles.clearButtonText}>Esborrar filtres</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.applyButton}
-              onPress={toggleFilterModal}
-            >
-              <Text style={styles.applyButtonText}>Aplicar filtres</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+        </TouchableWithoutFeedback>
+      </TouchableOpacity>
+      {/* Integración del PopulationSelector */}
+      <PopulationSelector
+        visible={populationDropdownVisible}
+        onClose={() => setPopulationDropdownVisible(false)}
+        selectedPopulation={selectedPopulation}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        populations={populationList}
+        onSelect={(populationId: string) => {
+          onSelectPopulation(populationId);
+          setPopulationDropdownVisible(false);
+        }}
+      />
     </Modal>
   );
 };
