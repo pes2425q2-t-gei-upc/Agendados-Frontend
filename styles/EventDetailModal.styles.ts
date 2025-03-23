@@ -56,7 +56,6 @@ export const styles = StyleSheet.create({
     marginHorizontal: 4,
     width: 10,
   },
-  carouselIndicatorContainer: {},
   carouselIndicatorDot: {
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 4,
@@ -81,9 +80,9 @@ export const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   categoryText: {
-    color: colors.darkBackground,
-    fontSize: 13,
-    fontWeight: '500',
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   container: {
     backgroundColor: colors.background,
@@ -99,7 +98,7 @@ export const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 15,
     lineHeight: 22,
-    textAlign: 'justify',
+    textAlign: 'left',
   },
   dragHandle: {
     alignItems: 'center',
@@ -136,16 +135,30 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.md,
   },
-  locationAddress: {
-    color: colors.textSecondary,
+  linkButton: {
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 4,
+    padding: 12,
+  },
+  linkText: {
+    color: '#0066cc',
+    flex: 1,
     fontSize: 14,
-    marginBottom: spacing.xs,
+    marginRight: 8,
+  },
+  locationAddress: {
+    color: '#666',
+    fontSize: 14,
+    marginBottom: 6,
   },
   locationName: {
-    color: colors.text,
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   mapButton: {
     backgroundColor: colors.secondaryLight,
