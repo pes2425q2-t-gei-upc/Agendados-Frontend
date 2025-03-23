@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Ionicons } from '@expo/vector-icons';
 import type { Ionicons as IoniconsType } from '@expo/vector-icons';
 import React, {
@@ -105,6 +106,169 @@ function getZoomFromLatDelta(latitudeDelta: number): number {
   return Math.log2(360 / latitudeDelta);
 }
 
+// Componentes memoizados
+const SearchBar = memo(
+  ({
+    inputText,
+    setInputText,
+    setSearchQuery,
+    toggleFilterModal,
+  }: {
+    inputText: string;
+    setInputText: (text: string) => void;
+    setSearchQuery: (query: string) => void;
+    toggleFilterModal: () => void;
+  }) => {
+    return (
+      <View style={styles.searchBar}>
+        <Ionicons
+          name='search'
+          size={24}
+          color='#666'
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder='Barcelona, concerts...'
+          value={inputText}
+          onChangeText={setInputText}
+          onSubmitEditing={() => setSearchQuery(inputText)}
+          returnKeyType='search'
+          placeholderTextColor='#999'
+        />
+        <TouchableOpacity
+          onPress={() => setSearchQuery(inputText)}
+          style={styles.searchButton}
+        >
+          <Ionicons name='arrow-forward' size={24} color='#666' />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={toggleFilterModal}
+        >
+          <Ionicons name='options-outline' size={24} color='#666' />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+);
+SearchBar.displayName = 'SearchBar';
+
+const ActiveFilters = memo(
+  ({
+    selectedCategories,
+    selectedPopulation,
+    startDate,
+    endDate,
+    clearFilters,
+    handleCategoryPress,
+    filterCategories,
+    formatDate,
+  }: {
+    selectedCategories: Set<string>;
+    selectedPopulation: string | null;
+    startDate: Date | null;
+    endDate: Date | null;
+    clearFilters: () => void;
+    handleCategoryPress: (id: string) => void;
+    filterCategories: { title: string; items: FilterItem[] }[];
+    formatDate: (date: Date) => string;
+  }) => {
+    return (
+      <FlatList
+        horizontal
+        data={[
+          ...(selectedCategories.size > 0 || selectedPopulation
+            ? [{ type: 'clear' }]
+            : []),
+          ...(startDate || endDate ? [{ type: 'date' }] : []),
+          ...Array.from(selectedCategories).map((id) => ({
+            type: 'category',
+            id,
+            filter: filterCategories
+              .flatMap((cat) => cat.items)
+              .find((f) => f.id === id),
+          })),
+        ]}
+        keyExtractor={(item, index) =>
+          item.type === 'category' && 'id' in item
+            ? `cat-${item.id}`
+            : `${item.type}-${index}`
+        }
+        renderItem={({ item }) => {
+          if (item.type === 'clear') {
+            return (
+              <TouchableOpacity
+                style={styles.clearFilterChip}
+                onPress={clearFilters}
+              >
+                <Ionicons name='close-circle' size={16} color='#fff' />
+                <Text style={styles.clearFilterText}>Esborrar filtres</Text>
+              </TouchableOpacity>
+            );
+          }
+          if (item.type === 'date') {
+            return (
+              <View style={styles.dateRangeChip}>
+                <Ionicons name='calendar' size={16} color='#666' />
+                <Text style={styles.filterText}>
+                  {startDate ? formatDate(startDate) : 'Data inici'} -{' '}
+                  {endDate ? formatDate(endDate) : 'Data fi'}
+                </Text>
+              </View>
+            );
+          }
+          if (item.type === 'category' && 'filter' in item && item.filter) {
+            return (
+              <TouchableOpacity
+                style={[styles.filterChip, styles.filterButtonActive]}
+                onPress={() => handleCategoryPress(item.id)}
+              >
+                <Ionicons name={item.filter.icon} size={16} color='#fff' />
+                <Text style={[styles.filterText, styles.filterTextActive]}>
+                  {item.filter.label}
+                </Text>
+                <Ionicons
+                  name='close-circle'
+                  size={14}
+                  color='#fff'
+                  style={styles.removeFilterIcon}
+                />
+              </TouchableOpacity>
+            );
+          }
+          return null;
+        }}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filtersScrollContainer}
+      />
+    );
+  }
+);
+ActiveFilters.displayName = 'ActiveFilters';
+
+const NearbyEventsList = memo(
+  ({
+    events,
+    renderEventItem,
+  }: {
+    events: EventType[];
+    renderEventItem: ({ item }: { item: EventType }) => React.ReactElement;
+  }) => {
+    return (
+      <FlatList
+        horizontal
+        data={events}
+        renderItem={renderEventItem}
+        keyExtractor={(item) => item.id.toString()}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.nearbyEventsScrollContainer}
+      />
+    );
+  }
+);
+NearbyEventsList.displayName = 'NearbyEventsList';
+
 export default function Explore() {
   const { events, loading, error } = useEvents();
 
@@ -112,6 +276,7 @@ export default function Explore() {
   const isMapReady = useRef(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const detailCache = useRef(new Map());
+  const [inputText, setInputText] = useState('');
 
   // Estados de ubicación
   const [userLocation, setUserLocation] = useState<{
@@ -203,6 +368,21 @@ export default function Explore() {
       return () => clearTimeout(timer);
     }
   }, [maxEventsToProcess, events.length]);
+
+  // Callback handlers
+  const toggleFilterModal = useCallback(
+    () => setFilterModalVisible((prev) => !prev),
+    []
+  );
+
+  const toggleEventsModal = useCallback(
+    () => setEventsModalVisible((prev) => !prev),
+    []
+  );
+
+  const handleMapReady = useCallback(() => {
+    isMapReady.current = true;
+  }, []);
 
   // Actualiza región y clustering de forma controlada
   const handleRegionChangeComplete = useCallback((newRegion: Region) => {
@@ -481,40 +661,9 @@ export default function Explore() {
   });
   MemoizedMarker.displayName = 'MemoizedMarker';
 
-  const toggleFilterModal = useCallback(
-    () => setFilterModalVisible((prev) => !prev),
-    []
-  );
-  const toggleEventsModal = useCallback(
-    () => setEventsModalVisible((prev) => !prev),
-    []
-  );
-
-  const handleMapReady = useCallback(() => {
-    isMapReady.current = true;
-  }, []);
-
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size='large' color='#4285F4' />
-        <Text>Cargando eventos...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text>{error}</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <StatusBar translucent backgroundColor='transparent' />
-
+  // MapView memoizado para evitar rerenders innecesarios
+  const memoizedMapView = useMemo(
+    () => (
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -544,6 +693,38 @@ export default function Explore() {
           <MemoizedMarker key={marker.id} marker={marker} />
         ))}
       </MapView>
+    ),
+    [
+      visibleMarkers,
+      clusteringEnabled,
+      locationPermission,
+      handleRegionChangeComplete,
+      handleMapReady,
+    ]
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size='large' color='#4285F4' />
+        <Text>Cargando eventos...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text>{error}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <StatusBar translucent backgroundColor='transparent' />
+
+      {memoizedMapView}
 
       {/* Botón para centrar en la ubicación del usuario */}
       <TouchableOpacity
@@ -560,116 +741,32 @@ export default function Explore() {
         <Ionicons name='locate' size={24} color='#4285F4' />
       </TouchableOpacity>
 
-      {/* Indicador de modo clustering */}
-      <View style={styles.clusteringIndicator}>
-        <Text style={styles.clusteringText}>
-          {clusteringEnabled ? 'Agrupados' : 'Individuales'}
-        </Text>
-      </View>
-
-      {/* Barra de búsqueda y botón de filtro */}
+      {/* Barra de búsqueda y filtros */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons
-            name='search'
-            size={24}
-            color='#666'
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder='Barcelona, concerts...'
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor='#999'
-          />
-          <TouchableOpacity
-            style={styles.filterButton}
-            onPress={toggleFilterModal}
-          >
-            <Ionicons name='options-outline' size={24} color='#666' />
-          </TouchableOpacity>
-        </View>
+        <SearchBar
+          inputText={inputText}
+          setInputText={setInputText}
+          setSearchQuery={setSearchQuery}
+          toggleFilterModal={toggleFilterModal}
+        />
 
-        {/* Chips con filtros activos */}
-        <FlatList
-          horizontal
-          data={[
-            ...(selectedCategories.size > 0 || selectedPopulation
-              ? [{ type: 'clear' }]
-              : []),
-            ...(startDate || endDate ? [{ type: 'date' }] : []),
-            ...Array.from(selectedCategories).map((id) => ({
-              type: 'category',
-              id,
-              filter: filterCategories
-                .flatMap((cat) => cat.items)
-                .find((f) => f.id === id),
-            })),
-          ]}
-          keyExtractor={(item, index) =>
-            item.type === 'category' && 'id' in item
-              ? `cat-${item.id}`
-              : `${item.type}-${index}`
-          }
-          renderItem={({ item }) => {
-            if (item.type === 'clear') {
-              return (
-                <TouchableOpacity
-                  style={styles.clearFilterChip}
-                  onPress={clearFilters}
-                >
-                  <Ionicons name='close-circle' size={16} color='#fff' />
-                  <Text style={styles.clearFilterText}>Esborrar filtres</Text>
-                </TouchableOpacity>
-              );
-            }
-            if (item.type === 'date') {
-              return (
-                <View style={styles.dateRangeChip}>
-                  <Ionicons name='calendar' size={16} color='#666' />
-                  <Text style={styles.filterText}>
-                    {startDate ? formatDate(startDate) : 'Data inici'} -{' '}
-                    {endDate ? formatDate(endDate) : 'Data fi'}
-                  </Text>
-                </View>
-              );
-            }
-            if (item.type === 'category' && 'filter' in item && item.filter) {
-              return (
-                <TouchableOpacity
-                  style={[styles.filterChip, styles.filterButtonActive]}
-                  onPress={() => handleCategoryPress(item.id)}
-                >
-                  <Ionicons name={item.filter.icon} size={16} color='#fff' />
-                  <Text style={[styles.filterText, styles.filterTextActive]}>
-                    {item.filter.label}
-                  </Text>
-                  <Ionicons
-                    name='close-circle'
-                    size={14}
-                    color='#fff'
-                    style={styles.removeFilterIcon}
-                  />
-                </TouchableOpacity>
-              );
-            }
-            return null;
-          }}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersScrollContainer}
+        <ActiveFilters
+          selectedCategories={selectedCategories}
+          selectedPopulation={selectedPopulation}
+          startDate={startDate}
+          endDate={endDate}
+          clearFilters={clearFilters}
+          handleCategoryPress={handleCategoryPress}
+          filterCategories={filterCategories}
+          formatDate={formatDate}
         />
       </View>
 
       {/* Lista horizontal de eventos cercanos */}
       <View style={styles.nearbyEventsContainer}>
-        <FlatList
-          horizontal
-          data={getNearbyEvents}
-          renderItem={renderEventItem}
-          keyExtractor={(item) => item.id.toString()}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.nearbyEventsScrollContainer}
+        <NearbyEventsList
+          events={getNearbyEvents}
+          renderEventItem={renderEventItem}
         />
       </View>
 
@@ -678,7 +775,7 @@ export default function Explore() {
         <Text style={styles.eventsButtonText}>Tots els esdeveniments</Text>
       </TouchableOpacity>
 
-      {/* Modal de filtros */}
+      {/* Modales */}
       <FilterModal
         visible={filterModalVisible}
         onSelectPopulation={handlePopulationSelect}
@@ -715,7 +812,6 @@ export default function Explore() {
         setSearchQuery={setSearchQuery}
       />
 
-      {/* Selector de población desplegable */}
       <PopulationSelector
         visible={populationDropdownVisible}
         onClose={() => setPopulationDropdownVisible(false)}
@@ -726,14 +822,12 @@ export default function Explore() {
         onSelect={handlePopulationSelect}
       />
 
-      {/* Modal con la lista completa de eventos filtrados */}
       <EventsModal
         visible={eventsModalVisible}
         toggleEventsModal={toggleEventsModal}
         filteredMarkers={filteredMarkers}
       />
 
-      {/* Modal de detalle de evento */}
       {selectedEventDetail && (
         <EventDetailModal
           event={selectedEventDetail}

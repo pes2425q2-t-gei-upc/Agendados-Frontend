@@ -1,3 +1,4 @@
+/* eslint-disable react-native/sort-styles */
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
@@ -13,6 +14,10 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     right: 10,
     top: 10,
+  },
+  searchButton: {
+    marginLeft: 5,
+    padding: 10,
   },
   clusteringText: {
     color: '#4285F4',
