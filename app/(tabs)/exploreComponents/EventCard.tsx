@@ -17,9 +17,18 @@ export type MarkerData = {
   categoryId: number | null;
   location: string;
 };
-
 interface EventCardProps {
-  event: MarkerData;
+  event: {
+    id: string | number;
+    title: string;
+    description?: string;
+    category?: string;
+    location?: string;
+    image?: string;
+    date?: string;
+    time?: string;
+    [key: string]: any;
+  };
   onPress: () => void;
 }
 

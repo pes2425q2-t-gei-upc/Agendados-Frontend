@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 
 import { initializeLanguage } from 'localization/i18n';
 
-import { EventsProvider } from '../context/eventsContext'; // Ajusta la ruta
+import { EventsProvider } from './context/eventsContext';
 
 export default function RootLayout() {
   useEffect(() => {

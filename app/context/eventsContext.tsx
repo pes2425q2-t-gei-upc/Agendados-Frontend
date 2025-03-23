@@ -1,3 +1,5 @@
+// context/EventsContext.tsx
+
 import React, {
   createContext,
   useContext,
@@ -6,14 +8,14 @@ import React, {
   ReactNode,
 } from 'react';
 
-import { MarkerData } from '../app/(tabs)/exploreComponents/EventCard'; // Ajusta la ruta si es necesario
-import { getEvents } from '../app/Services/EventsService'; // Ajusta la ruta a tu servicio
+import { MarkerData } from '../(tabs)/exploreComponents/EventCard';
+import { getEvents } from '../Services/EventsService';
 
 interface EventsContextType {
   events: MarkerData[];
   loading: boolean;
   error: string | null;
-  refetch: () => void; // opcional, por si quieres volver a cargar datos
+  refetch: () => void;
 }
 
 const EventsContext = createContext<EventsContextType>({
@@ -23,28 +25,26 @@ const EventsContext = createContext<EventsContextType>({
   refetch: () => {},
 });
 
-// Este provider es el que envolverá tu app para pre-cargar los datos
 export const EventsProvider = ({ children }: { children: ReactNode }) => {
   const [events, setEvents] = useState<MarkerData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Función para cargar los eventos
   const fetchEvents = async () => {
     try {
       setLoading(true);
       const data = await getEvents();
       setEvents(data);
       setError(null);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setError("No s'han pogut carregar els esdeveniments.");
+      console.error('Error al cargar eventos:', err);
     } finally {
       setLoading(false);
+      console.log('Loading completado:', false);
     }
   };
 
-  // Se llama al montar el provider
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -60,7 +60,4 @@ export const EventsProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Hook para usar el contexto en otros componentes
-export const useEvents = () => {
-  return useContext(EventsContext);
-};
+export const useEvents = () => useContext(EventsContext);

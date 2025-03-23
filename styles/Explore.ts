@@ -2,6 +2,41 @@ import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   // Ejemplo de estilos para el carrusel (ajusta según tu línea gráfica)
+  // Añade estos estilos a tu archivo styles/Explore.js
+  clusteringIndicator: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: '#4285F4',
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    position: 'absolute',
+    right: 10,
+    top: 10,
+  },
+  clusteringText: {
+    color: '#4285F4',
+    fontWeight: 'bold',
+  },
+  markerCount: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 5,
+    elevation: 2,
+    padding: 5,
+    position: 'absolute',
+    right: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    top: 100,
+  },
+  markerCountText: {
+    color: '#333',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  // eslint-disable-next-line react-native/sort-styles
   applyButton: {
     alignItems: 'center',
     backgroundColor: '#4285F4',
