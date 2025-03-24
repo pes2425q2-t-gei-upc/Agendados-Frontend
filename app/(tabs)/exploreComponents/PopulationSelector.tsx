@@ -22,6 +22,8 @@ interface PopulationSelectorProps {
   selectedPopulation: string | null;
   populations: PopulationItem[];
   onSelect: (populationId: string) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
 }
 
 export const PopulationSelector: React.FC<PopulationSelectorProps> = ({
