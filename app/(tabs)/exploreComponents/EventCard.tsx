@@ -35,7 +35,9 @@ interface EventCardProps {
 export const EventCard: React.FC<EventCardProps> = ({ event, onPress }) => (
   <TouchableOpacity style={styles.eventCard} onPress={onPress}>
     <Image
-      source={{ uri: event.images?.[0]?.image_url }}
+      source={
+        typeof event.image === 'string' ? { uri: event.image } : event.image
+      }
       style={styles.eventImage}
       resizeMode='cover'
     />

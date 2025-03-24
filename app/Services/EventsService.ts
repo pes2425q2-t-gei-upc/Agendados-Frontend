@@ -33,7 +33,7 @@ export const getEvents = async (): Promise<MarkerData[]> => {
               : event.description,
           image:
             event.images && event.images.length > 0
-              ? event.images[0]
+              ? event.images[0].image_url
               : require('@assets/images/ReyLeon.jpg'),
           date: eventDate.toLocaleDateString('ca-ES', {
             day: '2-digit',
