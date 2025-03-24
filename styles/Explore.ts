@@ -265,9 +265,9 @@ export const styles = StyleSheet.create({
     marginTop: 5,
   },
   eventImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
+    width: '100%', // Cambia el ancho a 100%
+    height: 100, // Mantiene la altura original
+    borderRadius: 8, // Conserva el radio de los bordes
   },
   eventModalCard: {
     backgroundColor: 'white',
