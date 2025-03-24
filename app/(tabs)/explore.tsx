@@ -403,6 +403,9 @@ export default function Explore() {
   }, []);
 
   // Filtro de eventos principal
+  // Modifica esta parte de la función filteredMarkers en Explore.js
+
+  // Filtro de eventos principal
   const filteredMarkers = useMemo(() => {
     let eventsToProcess = events.slice(0, maxEventsToProcess);
 
@@ -422,7 +425,18 @@ export default function Explore() {
       searchQuery.trim() !== ''
     ) {
       eventsToProcess = eventsToProcess.filter((marker) => {
-        if (selectedPopulation && marker.location !== selectedPopulation) {
+        // FIX: Obtener el nombre de la población seleccionada
+        const selectedPopulationName = selectedPopulation
+          ? populationList.find((pop) => pop.id === selectedPopulation)
+              ?.label || null
+          : null;
+
+        // FIX: Comparar usando el nombre de la población en lugar del ID
+        if (
+          selectedPopulation &&
+          selectedPopulationName &&
+          marker.location !== selectedPopulationName
+        ) {
           return false;
         }
 
@@ -472,6 +486,7 @@ export default function Explore() {
     selectedPopulation,
     searchQuery,
     maxEventsToProcess,
+    populationList, // FIX: Añadir populationList a las dependencias
   ]);
 
   // Selección de fechas

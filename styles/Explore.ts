@@ -444,8 +444,10 @@ export const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   noResultsContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingVertical: 30,
   },
   noResultsText: {
     color: '#666',
@@ -468,10 +470,14 @@ export const styles = StyleSheet.create({
   },
   populationDropdownContainer: {
     backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '85%',
-    padding: 25,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    height: '70%',
+    maxHeight: '80%',
   },
   populationDropdownHeader: {
     alignItems: 'center',
@@ -488,7 +494,8 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   populationList: {
-    maxHeight: 450,
+    flex: 1, // Ocupará el espacio restante después del encabezado y la barra de búsqueda
+    marginTop: 10,
   },
   populationListItem: {
     alignItems: 'center',
