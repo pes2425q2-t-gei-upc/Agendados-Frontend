@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   TouchableOpacity,
@@ -20,8 +20,6 @@ interface PopulationSelectorProps {
   visible: boolean;
   onClose: () => void;
   selectedPopulation: string | null;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
   populations: PopulationItem[];
   onSelect: (populationId: string) => void;
 }
@@ -30,15 +28,16 @@ export const PopulationSelector: React.FC<PopulationSelectorProps> = ({
   visible,
   onClose,
   selectedPopulation,
-  searchQuery,
-  setSearchQuery,
   populations,
   onSelect,
 }) => {
-  const filteredPopulations = !(searchQuery || '').trim()
+  // Estado local para la búsqueda de poblaciones
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+
+  const filteredPopulations = !localSearchQuery.trim()
     ? populations
     : populations.filter((item) =>
-        item.label.toLowerCase().includes((searchQuery || '').toLowerCase())
+        item.label.toLowerCase().includes(localSearchQuery.toLowerCase())
       );
 
   return (
@@ -72,14 +71,14 @@ export const PopulationSelector: React.FC<PopulationSelectorProps> = ({
             <TextInput
               style={styles.searchPopulationInput}
               placeholder='Cerca població...'
-              value={searchQuery}
-              onChangeText={setSearchQuery}
+              value={localSearchQuery}
+              onChangeText={setLocalSearchQuery}
               autoCapitalize='none'
               autoCorrect={false}
             />
-            {searchQuery && (
+            {localSearchQuery && (
               <TouchableOpacity
-                onPress={() => setSearchQuery('')}
+                onPress={() => setLocalSearchQuery('')}
                 style={styles.clearSearchButton}
               >
                 <Ionicons name='close-circle' size={16} color='#666' />
