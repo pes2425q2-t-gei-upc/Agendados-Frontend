@@ -427,8 +427,8 @@ export default function Explore() {
       eventsToProcess = eventsToProcess.filter((marker) => {
         // FIX: Obtener el nombre de la población seleccionada
         const selectedPopulationName = selectedPopulation
-          ? populationList.find((pop) => pop.id === selectedPopulation)
-              ?.label || null
+          ? (populationList.find((pop) => pop.id === selectedPopulation)
+              ?.label ?? null)
           : null;
 
         // FIX: Comparar usando el nombre de la población en lugar del ID
@@ -841,6 +841,10 @@ export default function Explore() {
         visible={eventsModalVisible}
         toggleEventsModal={toggleEventsModal}
         filteredMarkers={filteredMarkers}
+        onEventPress={(id) => {
+          openDetailModal(id);
+          toggleEventsModal();
+        }}
       />
 
       {selectedEventDetail && (
