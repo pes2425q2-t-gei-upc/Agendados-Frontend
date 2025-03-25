@@ -1,412 +1,232 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import * as Location from 'expo-location';
-import React, { useState, useEffect, useRef } from 'react';
+import type { Ionicons as IoniconsType } from '@expo/vector-icons';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+  memo,
+} from 'react';
 import {
   View,
-  StyleSheet,
   StatusBar,
   TextInput,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   Text,
-  Modal,
-  Image,
   Alert,
   Platform,
+  ActivityIndicator,
+  InteractionManager,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView from 'react-native-map-clustering';
+import { Marker } from 'react-native-maps';
+import type { Region } from 'react-native-maps';
 
+import { getEventDetails } from '@services/EventsService';
+
+import EventDetailModal from '../../components/EventDetailModal';
 import { styles } from '../../styles/Explore';
+import { useEvents } from '../context/eventsContext';
+import { getTowns } from '../Services/LocationService';
 
-type IconName = React.ComponentProps<typeof Ionicons>['name'];
+import { EventCard } from './exploreComponents/EventCard';
+import { EventsModal } from './exploreComponents/EventsModal';
+import { FilterModal } from './exploreComponents/FilterModal';
+import { PopulationSelector } from './exploreComponents/PopulationSelector';
+
+type MapViewType = MapView & {
+  animateToRegion(region: Region, duration: number): void;
+};
+
+type EventType = {
+  id: string | number;
+  title: string;
+  description?: string;
+  category?: string;
+  categoryId?: string | number | null;
+  location?: string;
+  coordinate?: { latitude: number; longitude: number };
+  fullDate?: Date;
+  [key: string]: any;
+};
 
 type FilterItem = {
   id: string;
   label: string;
-  icon: IconName;
+  icon: keyof typeof IoniconsType.glyphMap;
 };
 
-type LocationCoords = {
-  latitude: number;
-  longitude: number;
+const filterCategories: { title: string; items: FilterItem[] }[] = [
+  {
+    title: 'Categoria',
+    items: [
+      { id: '1', label: 'Concerts', icon: 'musical-notes-outline' },
+      { id: '2', label: 'Exposicions', icon: 'image-outline' },
+      { id: '3', label: 'Rutes I Visites', icon: 'map-outline' },
+      { id: '4', label: 'Festivals I Mostres', icon: 'sparkles-outline' },
+      { id: '5', label: 'Cicles', icon: 'repeat-outline' },
+      { id: '6', label: 'Teatre', icon: 'film-outline' },
+      { id: '7', label: 'Conferencies', icon: 'mic-outline' },
+      { id: '8', label: 'Infantil', icon: 'happy-outline' },
+      { id: '9', label: 'Commemoracions', icon: 'flag-outline' },
+      { id: '10', label: 'Setmana Santa', icon: 'flower-outline' },
+      { id: '11', label: 'Sardanes', icon: 'people-circle-outline' },
+      { id: '12', label: 'Dansa', icon: 'body-outline' },
+      { id: '13', label: 'Cursos', icon: 'school-outline' },
+      { id: '14', label: 'Festes', icon: 'beer-outline' },
+      { id: '15', label: 'Fires I Mercats', icon: 'basket-outline' },
+      { id: '16', label: 'Gegants', icon: 'accessibility-outline' },
+      { id: '17', label: 'Circ', icon: 'color-wand-outline' },
+      { id: '18', label: 'Cultura Digital', icon: 'code-outline' },
+      { id: '19', label: 'Activitats Virtuals', icon: 'globe-outline' },
+    ],
+  },
+];
+
+// Región inicial (Barcelona en este ejemplo)
+const INITIAL_REGION = {
+  latitude: 41.3851,
+  longitude: 2.1734,
+  latitudeDelta: 0.05,
+  longitudeDelta: 0.05,
 };
 
-function parseMarkerDate(dateString: string): Date {
-  // Tus markers tienen formato "15 May".
-  // Asignamos un año fijo, por ejemplo, 2023
-  return new Date(`${dateString} 2023`);
+// Para carga progresiva de eventos
+const INITIAL_BATCH = 100;
+const BATCH_SIZE = 100;
+
+// Umbral de zoom para controlar el clustering
+const ZOOM_THRESHOLD = 14;
+
+// Calcula el "zoom level" a partir del delta de latitud
+function getZoomFromLatDelta(latitudeDelta: number): number {
+  return Math.log2(360 / latitudeDelta);
 }
 
-export default function Explore() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
-  const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [eventsModalVisible, setEventsModalVisible] = useState(false);
-
-  // Estados para el rango de fechas
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-
-  // Estados para DateTimePicker
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-  const [currentMode, setCurrentMode] = useState<'start' | 'end'>('start');
-  const [datePickerDate, setDatePickerDate] = useState(new Date());
-
-  // Ubicación
-  const [userLocation, setUserLocation] = useState<LocationCoords | null>(null);
-  const [locationPermission, setLocationPermission] = useState<boolean>(false);
-  const mapRef = useRef<MapView | null>(null);
-
-  // Estado población
-  const [populationDropdownVisible, setPopulationDropdownVisible] =
-    useState(false);
-  const [selectedPopulation, setSelectedPopulation] = useState<string | null>(
-    null
-  );
-
-  // Pides permiso ubicación al montar
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      setLocationPermission(status === 'granted');
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permiso de ubicación denegado',
-          'No podrás ver tu ubicación actual en el mapa sin este permiso.',
-          [{ text: 'OK' }]
-        );
-      } else {
-        getUserLocation();
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const getUserLocation = async () => {
-    if (!locationPermission) {
-      // ...
-      return;
-    }
-
-    try {
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-      const { latitude, longitude } = location.coords;
-      const userCoords = { latitude, longitude };
-      setUserLocation(userCoords);
-
-      mapRef.current?.animateToRegion(
-        {
-          ...userCoords,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        },
-        1000
-      );
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
-      // ...
-    }
-  };
-
-  // Marcadores de ejemplo
-  const markers = [
-    {
-      id: 1,
-      coordinate: { latitude: 41.3851, longitude: 2.1734 },
-      title: 'Esdeveniment 1',
-      description: 'esports - centre - gratuït',
-      image: 'https://picsum.photos/200/200?random=1',
-      date: '15 May', // Sin año => parseMarkerDate("15 May") => 15 May 2023
-      time: '18:30',
-      category: 'esports',
-      location: 'centre',
-    },
-    {
-      id: 2,
-      coordinate: { latitude: 41.3891, longitude: 2.1654 },
-      title: 'Esdeveniment 2',
-      description: 'cultura - eixample - pagament',
-      image: 'https://picsum.photos/200/200?random=2',
-      date: '20 May',
-      time: '19:00',
-      category: 'cultura',
-      location: 'eixample',
-    },
-    // ...
-  ];
-
-  // Categorías
-  const filterCategories = [
-    {
-      title: 'Categoria',
-      items: [
-        { id: 'cultura', label: 'Cultura', icon: 'color-palette' },
-        { id: 'esports', label: 'Esports', icon: 'football' },
-        { id: 'música', label: 'Música', icon: 'musical-notes' },
-        { id: 'art', label: 'Art', icon: 'brush' },
-      ] as FilterItem[],
-    },
-  ];
-
-  // Lista de poblaciones
-  const populationList = [
-    { id: 'barcelona', label: 'Barcelona' },
-    { id: 'girona', label: 'Girona' },
-    { id: 'lleida', label: 'Lleida' },
-    { id: 'tarragona', label: 'Tarragona' },
-    // ...
-  ];
-
-  // Flat list de filtros
-  const allFilters: FilterItem[] = filterCategories.flatMap(
-    (category) => category.items
-  );
-
-  // Manejo de toggles
-  const handleFilterPress = (filterId: string) => {
-    setActiveFilters((prev) => {
-      const newFilters = new Set(prev);
-      if (newFilters.has(filterId)) {
-        newFilters.delete(filterId);
-      } else {
-        newFilters.add(filterId);
-      }
-      return newFilters;
-    });
-  };
-
-  const toggleFilterModal = () => {
-    setFilterModalVisible(!filterModalVisible);
-  };
-
-  const toggleEventsModal = () => {
-    setEventsModalVisible(!eventsModalVisible);
-  };
-
-  // Funciones mejoradas para el DateTimePicker
-  const openDatePicker = (mode: 'start' | 'end') => {
-    setCurrentMode(mode);
-    setDatePickerDate(
-      mode === 'start' ? (startDate ?? new Date()) : (endDate ?? new Date())
-    );
-
-    if (Platform.OS === 'ios') {
-      // En iOS usamos el modal
-      setShowStartDatePicker(mode === 'start');
-      setShowEndDatePicker(mode === 'end');
-    } else {
-      // En Android mostramos el selector nativo
-      if (mode === 'start') {
-        setShowStartDatePicker(true);
-      } else {
-        setShowEndDatePicker(true);
-      }
-    }
-  };
-
-  const onDateChange = (event: unknown, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowStartDatePicker(false);
-      setShowEndDatePicker(false);
-    }
-
-    if (selectedDate) {
-      if (currentMode === 'start') {
-        setStartDate(selectedDate);
-      } else {
-        setEndDate(selectedDate);
-      }
-    }
-  };
-
-  const formatDate = (date: Date | null) => {
-    if (!date) {
-      return currentMode === 'start' ? 'Data inici' : 'Data fi';
-    }
-    return date.toLocaleDateString('ca-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  const getFilteredPopulations = () => {
-    if (!populationSearchQuery.trim()) {
-      return populationList;
-    }
-    return populationList.filter((item) =>
-      item.label.toLowerCase().includes(populationSearchQuery.toLowerCase())
-    );
-  };
-
-  // Función para seleccionar población
-  const handlePopulationSelect = (populationId: string) => {
-    setSelectedPopulation(populationId);
-    setPopulationDropdownVisible(false);
-    setActiveFilters((prev) => {
-      const newFilters = new Set(prev);
-      populationList.forEach((pop) => {
-        if (newFilters.has(pop.id)) {
-          newFilters.delete(pop.id);
-        }
-      });
-      newFilters.add(populationId);
-      return newFilters;
-    });
-  };
-
-  const togglePopulationDropdown = () => {
-    setPopulationDropdownVisible(!populationDropdownVisible);
-  };
-
-  const clearFilters = () => {
-    setActiveFilters(new Set());
-    setStartDate(null);
-    setEndDate(null);
-    setSelectedPopulation(null);
-  };
-  const [populationSearchQuery, setPopulationSearchQuery] = useState('');
-
-  // Filtrar marcadores por fecha + categorías
-  const filteredMarkers = markers.filter((marker) => {
-    const markerDate = parseMarkerDate(marker.date);
-
-    if (startDate && markerDate < startDate) {
-      return false;
-    }
-
-    if (endDate && markerDate > endDate) {
-      return false;
-    }
-
-    if (activeFilters.size > 0 && !activeFilters.has(marker.category)) {
-      return false;
-    }
-
-    return true;
-  });
-
-  // Eventos cercanos
-  const getNearbyEvents = () => {
-    if (!userLocation) {
-      return filteredMarkers;
-    }
-    return filteredMarkers.sort((a, b) => {
-      const distA = Math.sqrt(
-        Math.pow(a.coordinate.latitude - userLocation.latitude, 2) +
-          Math.pow(a.coordinate.longitude - userLocation.longitude, 2)
-      );
-      const distB = Math.sqrt(
-        Math.pow(b.coordinate.latitude - userLocation.latitude, 2) +
-          Math.pow(b.coordinate.longitude - userLocation.longitude, 2)
-      );
-      return distA - distB;
-    });
-  };
-
-  return (
-    <View style={styles.container}>
-      <StatusBar translucent backgroundColor='transparent' />
-
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        showsUserLocation={locationPermission}
-        showsMyLocationButton={false}
-        initialRegion={{
-          latitude: 41.3851,
-          longitude: 2.1734,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-      >
-        {filteredMarkers.map((marker) => (
-          <Marker
-            key={marker.id}
-            coordinate={marker.coordinate}
-            title={marker.title}
-            description={marker.description}
-          />
-        ))}
-      </MapView>
-
-      {/* Botón: Mi ubicación */}
-      <TouchableOpacity
-        style={styles.myLocationButton}
-        onPress={getUserLocation}
-      >
-        <Ionicons name='locate' size={24} color='#4285F4' />
-      </TouchableOpacity>
-
-      {/* Barra de búsqueda */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons
-            name='search'
-            size={24}
-            color='#666'
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder='Cerca esdeveniments...'
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor='#999'
-          />
-          <TouchableOpacity
-            style={styles.filterButton}
-            onPress={toggleFilterModal}
-          >
-            <Ionicons name='options-outline' size={24} color='#666' />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersScrollContainer}
+// Componentes memoizados
+const SearchBar = memo(
+  ({
+    inputText,
+    setInputText,
+    setSearchQuery,
+    toggleFilterModal,
+  }: {
+    inputText: string;
+    setInputText: (text: string) => void;
+    setSearchQuery: (query: string) => void;
+    toggleFilterModal: () => void;
+  }) => {
+    return (
+      <View style={styles.searchBar}>
+        <Ionicons
+          name='search'
+          size={24}
+          color='#666'
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder='Barcelona, concerts...'
+          value={inputText}
+          onChangeText={setInputText}
+          onSubmitEditing={() => setSearchQuery(inputText)}
+          returnKeyType='search'
+          placeholderTextColor='#999'
+        />
+        <TouchableOpacity
+          onPress={() => setSearchQuery(inputText)}
+          style={styles.searchButton}
         >
-          {activeFilters.size > 0 && (
-            <TouchableOpacity
-              style={styles.clearFilterChip}
-              onPress={clearFilters}
-            >
-              <Ionicons name='close-circle' size={16} color='#fff' />
-              <Text style={styles.clearFilterText}>Esborrar filtres</Text>
-            </TouchableOpacity>
-          )}
+          <Ionicons name='arrow-forward' size={24} color='#666' />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={toggleFilterModal}
+        >
+          <Ionicons name='options-outline' size={24} color='#666' />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+);
+SearchBar.displayName = 'SearchBar';
 
-          {/* Rango de fechas seleccionado */}
-          {(startDate ?? endDate) && (
-            <View style={styles.dateRangeChip}>
-              <Ionicons name='calendar' size={16} color='#666' />
-              <Text style={styles.filterText}>
-                {formatDate(startDate)} - {formatDate(endDate)}
-              </Text>
-            </View>
-          )}
-
-          {/* Mostrar chips de filtros activos */}
-          {Array.from(activeFilters).map((filterId) => {
-            const filter = allFilters.find((f) => f.id === filterId);
-            if (!filter) {
-              return null;
-            }
-
+const ActiveFilters = memo(
+  ({
+    selectedCategories,
+    selectedPopulation,
+    startDate,
+    endDate,
+    clearFilters,
+    handleCategoryPress,
+    filterCategories,
+    formatDate,
+  }: {
+    selectedCategories: Set<string>;
+    selectedPopulation: string | null;
+    startDate: Date | null;
+    endDate: Date | null;
+    clearFilters: () => void;
+    handleCategoryPress: (id: string) => void;
+    filterCategories: { title: string; items: FilterItem[] }[];
+    formatDate: (date: Date) => string;
+  }) => {
+    return (
+      <FlatList
+        horizontal
+        data={[
+          ...(selectedCategories.size > 0 || selectedPopulation
+            ? [{ type: 'clear' }]
+            : []),
+          ...(startDate || endDate ? [{ type: 'date' }] : []),
+          ...Array.from(selectedCategories).map((id) => ({
+            type: 'category',
+            id,
+            filter: filterCategories
+              .flatMap((cat) => cat.items)
+              .find((f) => f.id === id),
+          })),
+        ]}
+        keyExtractor={(item, index) =>
+          item.type === 'category' && 'id' in item
+            ? `cat-${item.id}`
+            : `${item.type}-${index}`
+        }
+        renderItem={({ item }) => {
+          if (item.type === 'clear') {
             return (
               <TouchableOpacity
-                key={filter.id}
-                style={[styles.filterChip, styles.filterButtonActive]}
-                onPress={() => handleFilterPress(filter.id)}
+                style={styles.clearFilterChip}
+                onPress={clearFilters}
               >
-                <Ionicons name={filter.icon} size={16} color='#fff' />
+                <Ionicons name='close-circle' size={16} color='#fff' />
+                <Text style={styles.clearFilterText}>Esborrar filtres</Text>
+              </TouchableOpacity>
+            );
+          }
+          if (item.type === 'date') {
+            return (
+              <View style={styles.dateRangeChip}>
+                <Ionicons name='calendar' size={16} color='#666' />
+                <Text style={styles.filterText}>
+                  {startDate ? formatDate(startDate) : 'Data inici'} -{' '}
+                  {endDate ? formatDate(endDate) : 'Data fi'}
+                </Text>
+              </View>
+            );
+          }
+          if (item.type === 'category' && 'filter' in item && item.filter) {
+            return (
+              <TouchableOpacity
+                style={[styles.filterChip, styles.filterButtonActive]}
+                onPress={() => handleCategoryPress(item.id)}
+              >
+                <Ionicons name={item.filter.icon} size={16} color='#fff' />
                 <Text style={[styles.filterText, styles.filterTextActive]}>
-                  {filter.label}
+                  {item.filter.label}
                 </Text>
                 <Ionicons
                   name='close-circle'
@@ -416,462 +236,623 @@ export default function Explore() {
                 />
               </TouchableOpacity>
             );
-          })}
-        </ScrollView>
+          }
+          return null;
+        }}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filtersScrollContainer}
+      />
+    );
+  }
+);
+ActiveFilters.displayName = 'ActiveFilters';
+
+const NearbyEventsList = memo(
+  ({
+    events,
+    renderEventItem,
+  }: {
+    events: EventType[];
+    renderEventItem: ({ item }: { item: EventType }) => React.ReactElement;
+  }) => {
+    return (
+      <FlatList
+        horizontal
+        data={events}
+        renderItem={renderEventItem}
+        keyExtractor={(item) => item.id.toString()}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.nearbyEventsScrollContainer}
+      />
+    );
+  }
+);
+NearbyEventsList.displayName = 'NearbyEventsList';
+
+export default function Explore() {
+  const { events, loading, error } = useEvents();
+
+  const mapRef = useRef<MapViewType>(null);
+  const isMapReady = useRef(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const detailCache = useRef(new Map());
+  const [inputText, setInputText] = useState('');
+
+  // Estados de ubicación
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [locationPermission, setLocationPermission] = useState(false);
+
+  // Estados de región y clustering
+  const [region, setRegion] = useState(INITIAL_REGION);
+  const [clusteringEnabled, setClusteringEnabled] = useState(true);
+  const previousClusteringState = useRef(true);
+
+  // Estados de búsqueda y filtros
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectedPopulation, setSelectedPopulation] = useState<string | null>(
+    null
+  );
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+
+  // Estados para la lista de poblaciones y max de eventos a procesar
+  const [populationList, setPopulationList] = useState<any[]>([]);
+  const [maxEventsToProcess, setMaxEventsToProcess] = useState(INITIAL_BATCH);
+
+  // Estados para los modales
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [eventsModalVisible, setEventsModalVisible] = useState(false);
+  const [populationDropdownVisible, setPopulationDropdownVisible] =
+    useState(false);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [currentMode, setCurrentMode] = useState<'start' | 'end'>('start');
+  const [datePickerDate, setDatePickerDate] = useState(new Date());
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+
+  // Estado para el detalle de un evento concreto
+  const [selectedEventDetail, setSelectedEventDetail] = useState(null);
+
+  // Cargar lista de poblaciones (simulada en este ejemplo)
+  useEffect(() => {
+    let isMounted = true;
+    const fetchTowns = async () => {
+      try {
+        const towns = await getTowns();
+        if (isMounted) {
+          setPopulationList(towns);
+        }
+      } catch (err) {
+        console.error('Error loading towns:', err);
+      }
+    };
+    fetchTowns();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Ubicación de usuario (ficticia)
+  useEffect(() => {
+    const fakeLocation = { latitude: 41.3851, longitude: 2.1734 };
+    setUserLocation(fakeLocation);
+    setLocationPermission(true);
+
+    // Anima la cámara hacia la ubicación inicial tras asegurar que el mapa está listo
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
+        if (mapRef.current && isMapReady.current) {
+          mapRef.current.animateToRegion(
+            { ...fakeLocation, latitudeDelta: 0.05, longitudeDelta: 0.05 },
+            1000
+          );
+        }
+      }, 500);
+    });
+  }, []);
+
+  // Carga progresiva de eventos
+  useEffect(() => {
+    if (maxEventsToProcess < events.length) {
+      const timer = setTimeout(() => {
+        setMaxEventsToProcess((prev) =>
+          Math.min(prev + BATCH_SIZE, events.length)
+        );
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [maxEventsToProcess, events.length]);
+
+  // Callback handlers
+  const toggleFilterModal = useCallback(
+    () => setFilterModalVisible((prev) => !prev),
+    []
+  );
+
+  const toggleEventsModal = useCallback(
+    () => setEventsModalVisible((prev) => !prev),
+    []
+  );
+
+  const handleMapReady = useCallback(() => {
+    isMapReady.current = true;
+  }, []);
+
+  // Actualiza región y clustering de forma controlada
+  const handleRegionChangeComplete = useCallback((newRegion: Region) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(() => {
+      setRegion(newRegion);
+      const approximateZoom = getZoomFromLatDelta(newRegion.latitudeDelta);
+      const shouldEnableClustering = approximateZoom < ZOOM_THRESHOLD;
+
+      if (shouldEnableClustering !== previousClusteringState.current) {
+        previousClusteringState.current = shouldEnableClustering;
+        setClusteringEnabled(shouldEnableClustering);
+      }
+    }, 200);
+  }, []);
+
+  // Filtro de eventos principal
+  // Modifica esta parte de la función filteredMarkers en Explore.js
+
+  // Filtro de eventos principal
+  const filteredMarkers = useMemo(() => {
+    let eventsToProcess = events.slice(0, maxEventsToProcess);
+
+    // Coordenadas válidas
+    eventsToProcess = eventsToProcess.filter(
+      (marker) =>
+        marker.coordinate?.latitude &&
+        marker.coordinate?.longitude &&
+        marker.coordinate.latitude !== 0 &&
+        marker.coordinate.longitude !== 0
+    );
+
+    // Filtrar por población, categorías y texto
+    if (
+      selectedPopulation ||
+      selectedCategories.size > 0 ||
+      searchQuery.trim() !== ''
+    ) {
+      eventsToProcess = eventsToProcess.filter((marker) => {
+        // FIX: Obtener el nombre de la población seleccionada
+        const selectedPopulationName = selectedPopulation
+          ? populationList.find((pop) => pop.id === selectedPopulation)
+              ?.label || null
+          : null;
+
+        // FIX: Comparar usando el nombre de la población en lugar del ID
+        if (
+          selectedPopulation &&
+          selectedPopulationName &&
+          marker.location !== selectedPopulationName
+        ) {
+          return false;
+        }
+
+        if (
+          selectedCategories.size > 0 &&
+          marker.categoryId != null &&
+          !selectedCategories.has(marker.categoryId.toString())
+        ) {
+          return false;
+        }
+
+        if (searchQuery.trim() !== '') {
+          const text = searchQuery.toLowerCase();
+          const title = (marker.title || '').toLowerCase();
+          const category = (marker.category || '').toLowerCase();
+          const location = (marker.location || '').toLowerCase();
+          if (
+            !title.includes(text) &&
+            !category.includes(text) &&
+            !location.includes(text)
+          ) {
+            return false;
+          }
+        }
+        return true;
+      });
+    }
+
+    // Filtrar por rango de fechas
+    if (startDate || endDate) {
+      eventsToProcess = eventsToProcess.filter((marker) => {
+        if (startDate && marker.fullDate && marker.fullDate < startDate) {
+          return false;
+        }
+        if (endDate && marker.fullDate && marker.fullDate > endDate) {
+          return false;
+        }
+        return true;
+      });
+    }
+    return eventsToProcess;
+  }, [
+    events,
+    startDate,
+    endDate,
+    selectedCategories,
+    selectedPopulation,
+    searchQuery,
+    maxEventsToProcess,
+    populationList, // FIX: Añadir populationList a las dependencias
+  ]);
+
+  // Selección de fechas
+  const openDatePicker = useCallback(
+    (mode: 'start' | 'end') => {
+      setCurrentMode(mode);
+      setDatePickerDate(
+        mode === 'start' ? (startDate ?? new Date()) : (endDate ?? new Date())
+      );
+      if (Platform.OS === 'ios') {
+        setShowStartDatePicker(mode === 'start');
+        setShowEndDatePicker(mode === 'end');
+      } else {
+        setShowStartDatePicker(mode === 'start');
+        setShowEndDatePicker(mode === 'end');
+      }
+    },
+    [startDate, endDate]
+  );
+
+  const onDateChange = useCallback(
+    (event: unknown, selectedDate?: Date) => {
+      if (!selectedDate) {
+        setShowStartDatePicker(false);
+        setShowEndDatePicker(false);
+        return;
+      }
+      setDatePickerDate(selectedDate);
+
+      // En Android se confirma en cuanto el usuario selecciona
+      if (Platform.OS === 'android') {
+        if (currentMode === 'start') {
+          setStartDate(selectedDate);
+        } else {
+          setEndDate(selectedDate);
+        }
+        setShowStartDatePicker(false);
+        setShowEndDatePicker(false);
+      }
+    },
+    [currentMode]
+  );
+
+  const handleDatePickerConfirm = useCallback(() => {
+    if (currentMode === 'start') {
+      setStartDate(datePickerDate);
+    } else {
+      setEndDate(datePickerDate);
+    }
+    setShowStartDatePicker(false);
+    setShowEndDatePicker(false);
+  }, [currentMode, datePickerDate]);
+
+  const closeDatePicker = useCallback(() => {
+    setShowStartDatePicker(false);
+    setShowEndDatePicker(false);
+  }, []);
+
+  // Manejo de categorías y población
+  const handleCategoryPress = useCallback((filterId: string) => {
+    setSelectedCategories((prev) => {
+      const newCategories = new Set(prev);
+      if (newCategories.has(filterId)) {
+        newCategories.delete(filterId);
+      } else {
+        newCategories.add(filterId);
+      }
+      return newCategories;
+    });
+  }, []);
+
+  const handlePopulationSelect = useCallback((populationId: string | null) => {
+    setSelectedPopulation(populationId);
+    setPopulationDropdownVisible(false);
+  }, []);
+
+  // Limpiar filtros
+  const clearFilters = useCallback(() => {
+    setSelectedCategories(new Set());
+    setStartDate(null);
+    setEndDate(null);
+    setSelectedPopulation(null);
+    setSearchQuery('');
+  }, []);
+
+  // Eventos cercanos (simple aproximación)
+  const getNearbyEvents = useMemo(() => {
+    const MAX_NEARBY = 10;
+    if (!userLocation) {
+      return filteredMarkers.slice(0, MAX_NEARBY);
+    }
+
+    return [...filteredMarkers.slice(0, 20)]
+      .filter((ev) => ev.coordinate)
+      .sort((a, b) => {
+        if (!a.coordinate || !b.coordinate) {
+          return 0;
+        }
+        const distA =
+          (a.coordinate.latitude - userLocation.latitude) ** 2 +
+          (a.coordinate.longitude - userLocation.longitude) ** 2;
+        const distB =
+          (b.coordinate.latitude - userLocation.latitude) ** 2 +
+          (b.coordinate.longitude - userLocation.longitude) ** 2;
+        return distA - distB;
+      })
+      .slice(0, MAX_NEARBY);
+  }, [filteredMarkers, userLocation]);
+
+  // Cargar detalle de evento (con caché)
+  const openDetailModal = useCallback(async (eventId: string | number) => {
+    try {
+      const cachedDetail = detailCache.current.get(eventId.toString());
+      if (cachedDetail) {
+        setSelectedEventDetail(cachedDetail);
+        setDetailModalVisible(true);
+        return;
+      }
+      const detail = await getEventDetails(eventId);
+      detailCache.current.set(eventId.toString(), detail);
+      setSelectedEventDetail(detail);
+      setDetailModalVisible(true);
+    } catch (err) {
+      console.error('Error al cargar detalles:', err);
+      Alert.alert(
+        'Error',
+        "No s'han pogut carregar els detalls de l'esdeveniment."
+      );
+    }
+  }, []);
+
+  // Render de un item de evento en la lista horizontal
+  const renderEventItem = useCallback(
+    ({ item }: { item: EventType }) => (
+      <EventCard event={item} onPress={() => openDetailModal(item.id)} />
+    ),
+    [openDetailModal]
+  );
+
+  // Formato de fecha (chips de rango)
+  const formatDate = useCallback(
+    (date: Date | null) =>
+      date
+        ? date.toLocaleDateString('ca-ES', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          })
+        : '',
+    []
+  );
+
+  // Marcadores visibles según la región (optimización opcional)
+  const visibleMarkers = useMemo(() => {
+    return filteredMarkers.filter((marker) => {
+      if (!marker.coordinate) {
+        return false;
+      }
+      const { latitude, longitude } = marker.coordinate;
+      return (
+        latitude >= region.latitude - region.latitudeDelta &&
+        latitude <= region.latitude + region.latitudeDelta &&
+        longitude >= region.longitude - region.longitudeDelta &&
+        longitude <= region.longitude + region.longitudeDelta
+      );
+    });
+  }, [filteredMarkers, region]);
+
+  // Marcador memoizado para mejorar rendimiento en la lista de <Marker />
+  const MemoizedMarker = memo(({ marker }: { marker: EventType }) => {
+    if (
+      !marker.coordinate ||
+      typeof marker.coordinate.latitude !== 'number' ||
+      typeof marker.coordinate.longitude !== 'number'
+    ) {
+      return null;
+    }
+    return (
+      <Marker
+        identifier={marker.id.toString()}
+        coordinate={marker.coordinate}
+        title={marker.title}
+        tracksViewChanges={false}
+        onPress={() => openDetailModal(marker.id)}
+      />
+    );
+  });
+  MemoizedMarker.displayName = 'MemoizedMarker';
+
+  // MapView memoizado para evitar rerenders innecesarios
+  const memoizedMapView = useMemo(
+    () => (
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        showsUserLocation={locationPermission}
+        showsMyLocationButton={false}
+        initialRegion={INITIAL_REGION}
+        maxZoom={19}
+        minZoom={10}
+        radius={40}
+        nodeSize={64}
+        clusterColor='#4285F4'
+        clusterTextColor='#fff'
+        removeClippedSubviews
+        animationEnabled
+        clusteringEnabled={clusteringEnabled}
+        spiralEnabled
+        preserveClusterPressBehavior
+        zoomControlEnabled={false}
+        onRegionChangeComplete={handleRegionChangeComplete}
+        onMapReady={handleMapReady}
+        moveOnMarkerPress
+        loadingEnabled
+        loadingIndicatorColor='#4285F4'
+        loadingBackgroundColor='rgba(255, 255, 255, 0.7)'
+      >
+        {visibleMarkers.map((marker) => (
+          <MemoizedMarker key={marker.id} marker={marker} />
+        ))}
+      </MapView>
+    ),
+    [
+      visibleMarkers,
+      clusteringEnabled,
+      locationPermission,
+      handleRegionChangeComplete,
+      handleMapReady,
+    ]
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size='large' color='#4285F4' />
+        <Text>Cargando eventos...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text>{error}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <StatusBar translucent backgroundColor='transparent' />
+
+      {memoizedMapView}
+
+      {/* Botón para centrar en la ubicación del usuario */}
+      <TouchableOpacity
+        style={styles.myLocationButton}
+        onPress={() => {
+          if (userLocation && mapRef.current && isMapReady.current) {
+            mapRef.current.animateToRegion(
+              { ...userLocation, latitudeDelta: 0.01, longitudeDelta: 0.01 },
+              1000
+            );
+          }
+        }}
+      >
+        <Ionicons name='locate' size={24} color='#4285F4' />
+      </TouchableOpacity>
+
+      {/* Barra de búsqueda y filtros */}
+      <View style={styles.searchContainer}>
+        <SearchBar
+          inputText={inputText}
+          setInputText={setInputText}
+          setSearchQuery={setSearchQuery}
+          toggleFilterModal={toggleFilterModal}
+        />
+
+        <ActiveFilters
+          selectedCategories={selectedCategories}
+          selectedPopulation={selectedPopulation}
+          startDate={startDate}
+          endDate={endDate}
+          clearFilters={clearFilters}
+          handleCategoryPress={handleCategoryPress}
+          filterCategories={filterCategories}
+          formatDate={formatDate}
+        />
       </View>
 
-      {/* Scroll horizontal de eventos cercanos */}
+      {/* Lista horizontal de eventos cercanos */}
       <View style={styles.nearbyEventsContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.nearbyEventsScrollContainer}
-        >
-          {getNearbyEvents().map((event) => (
-            <TouchableOpacity
-              key={event.id}
-              style={styles.eventCard}
-              onPress={() => {
-                // ...
-              }}
-            >
-              <Image
-                source={{ uri: event.image }}
-                style={styles.eventImage}
-                resizeMode='cover'
-              />
-              <View style={styles.eventCardContent}>
-                <Text style={styles.eventCardTitle} numberOfLines={1}>
-                  {event.title}
-                </Text>
-                <Text style={styles.eventCardDescription} numberOfLines={1}>
-                  {event.description}
-                </Text>
-                <View style={styles.eventCardFooter}>
-                  <View style={styles.eventCardTime}>
-                    <Ionicons name='calendar-outline' size={12} color='#666' />
-                    <Text style={styles.eventCardTimeText}>{event.date}</Text>
-                  </View>
-                  <View style={styles.eventCardTime}>
-                    <Ionicons name='time-outline' size={12} color='#666' />
-                    <Text style={styles.eventCardTimeText}>{event.time}</Text>
-                  </View>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <NearbyEventsList
+          events={getNearbyEvents}
+          renderEventItem={renderEventItem}
+        />
       </View>
 
-      {/* Botón para mostrar el modal de eventos */}
+      {/* Botón para ver todos los eventos filtrados */}
       <TouchableOpacity style={styles.eventsButton} onPress={toggleEventsModal}>
         <Text style={styles.eventsButtonText}>Tots els esdeveniments</Text>
       </TouchableOpacity>
 
-      {/* Modal para personalizar filtros */}
-      <Modal
-        animationType='slide'
-        transparent={true}
+      {/* Modales */}
+      <FilterModal
         visible={filterModalVisible}
-        onRequestClose={toggleFilterModal}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Personalització de cerca</Text>
-              <TouchableOpacity onPress={toggleFilterModal}>
-                <Ionicons name='close' size={24} color='#333' />
-              </TouchableOpacity>
-            </View>
+        onSelectPopulation={handlePopulationSelect}
+        toggleFilterModal={toggleFilterModal}
+        startDate={startDate}
+        endDate={endDate}
+        openDatePicker={openDatePicker}
+        datePickerDate={datePickerDate}
+        onDateChange={onDateChange}
+        handleDatePickerConfirm={handleDatePickerConfirm}
+        closeDatePicker={closeDatePicker}
+        showStartDatePicker={showStartDatePicker}
+        showEndDatePicker={showEndDatePicker}
+        filterCategories={filterCategories}
+        selectedCategories={selectedCategories}
+        onCategoryPress={handleCategoryPress}
+        selectedPopulation={selectedPopulation}
+        populationList={populationList}
+        setPopulationDropdownVisible={setPopulationDropdownVisible}
+        clearFilters={clearFilters}
+        formatDate={(date) =>
+          date
+            ? date.toLocaleDateString('ca-ES', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              })
+            : currentMode === 'start'
+              ? 'Data inici'
+              : 'Data fi'
+        }
+        populationDropdownVisible={populationDropdownVisible}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
 
-            {/* Rango de fechas - Mejorado */}
-            <Text style={styles.sectionTitle}>Rang de dates</Text>
-            <View style={styles.dateRangeContainer}>
-              <TouchableOpacity
-                style={[styles.datePickerButton, { marginRight: 10 }]}
-                onPress={() => openDatePicker('start')}
-              >
-                <Ionicons name='calendar-outline' size={20} color='#666' />
-                <Text style={styles.datePickerButtonText}>
-                  {startDate ? formatDate(startDate) : 'Data inici'}
-                </Text>
-              </TouchableOpacity>
+      <PopulationSelector
+        visible={populationDropdownVisible}
+        onClose={() => setPopulationDropdownVisible(false)}
+        selectedPopulation={selectedPopulation}
+        searchQuery=''
+        setSearchQuery={() => {}}
+        populations={populationList}
+        onSelect={handlePopulationSelect}
+      />
 
-              <Text style={styles.dateRangeSeparator}>-</Text>
-
-              <TouchableOpacity
-                style={styles.datePickerButton}
-                onPress={() => openDatePicker('end')}
-              >
-                <Ionicons name='calendar-outline' size={20} color='#666' />
-                <Text style={styles.datePickerButtonText}>
-                  {endDate ? formatDate(endDate) : 'Data fi'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* DateTimePicker para Android (aparece como un popup) */}
-            {Platform.OS === 'android' &&
-              (showStartDatePicker || showEndDatePicker) && (
-                <DateTimePicker
-                  value={datePickerDate}
-                  mode='date'
-                  display='default'
-                  onChange={onDateChange}
-                />
-              )}
-
-            {/* Modal para DateTimePicker en iOS */}
-            {Platform.OS === 'ios' && (
-              <Modal
-                transparent={true}
-                animationType='slide'
-                visible={showStartDatePicker || showEndDatePicker}
-                onRequestClose={() => {
-                  setShowStartDatePicker(false);
-                  setShowEndDatePicker(false);
-                }}
-              >
-                <TouchableOpacity
-                  style={datePickerStyles.modalOverlay}
-                  activeOpacity={1}
-                  onPress={() => {
-                    setShowStartDatePicker(false);
-                    setShowEndDatePicker(false);
-                  }}
-                >
-                  <View style={datePickerStyles.datePickerContainer}>
-                    <View style={datePickerStyles.datePickerHeader}>
-                      <Text style={datePickerStyles.datePickerTitle}>
-                        {currentMode === 'start'
-                          ? 'Seleccionar data inici'
-                          : 'Seleccionar data fi'}
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setShowStartDatePicker(false);
-                          setShowEndDatePicker(false);
-                        }}
-                      >
-                        <Ionicons name='close' size={24} color='#333' />
-                      </TouchableOpacity>
-                    </View>
-
-                    <DateTimePicker
-                      value={datePickerDate}
-                      mode='date'
-                      display='spinner'
-                      onChange={onDateChange}
-                      style={datePickerStyles.iosDatePicker}
-                    />
-
-                    <View style={datePickerStyles.datePickerActions}>
-                      <TouchableOpacity
-                        style={datePickerStyles.cancelButton}
-                        onPress={() => {
-                          setShowStartDatePicker(false);
-                          setShowEndDatePicker(false);
-                        }}
-                      >
-                        <Text style={datePickerStyles.cancelButtonText}>
-                          Cancel·lar
-                        </Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={datePickerStyles.confirmButton}
-                        onPress={() => {
-                          if (currentMode === 'start') {
-                            setStartDate(datePickerDate);
-                          } else {
-                            setEndDate(datePickerDate);
-                          }
-                          setShowStartDatePicker(false);
-                          setShowEndDatePicker(false);
-                        }}
-                      >
-                        <Text style={datePickerStyles.confirmButtonText}>
-                          Confirmar
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </Modal>
-            )}
-
-            {/* Secciones de categoría */}
-            {filterCategories.map((category, index) => (
-              <View key={index}>
-                <Text style={styles.sectionTitle}>{category.title}</Text>
-                <View style={styles.filterGridContainer}>
-                  {category.items.map((filter) => (
-                    <TouchableOpacity
-                      key={filter.id}
-                      style={[
-                        styles.filterGridItem,
-                        activeFilters.has(filter.id) &&
-                          styles.filterButtonActive,
-                      ]}
-                      onPress={() => handleFilterPress(filter.id)}
-                    >
-                      <Ionicons
-                        name={filter.icon}
-                        size={24}
-                        color={activeFilters.has(filter.id) ? '#fff' : '#666'}
-                      />
-                      <Text
-                        style={[
-                          styles.filterGridText,
-                          activeFilters.has(filter.id) &&
-                            styles.filterTextActive,
-                        ]}
-                      >
-                        {filter.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            ))}
-
-            {/* Población */}
-            <View>
-              <Text style={styles.sectionTitle}>Població</Text>
-              <TouchableOpacity
-                style={styles.populationDropdownButton}
-                onPress={togglePopulationDropdown}
-              >
-                <Text style={styles.populationDropdownButtonText}>
-                  {selectedPopulation
-                    ? (populationList.find((p) => p.id === selectedPopulation)
-                        ?.label ?? 'Seleccionar població')
-                    : 'Seleccionar població'}
-                </Text>
-                <Ionicons name='chevron-down' size={20} color='#666' />
-              </TouchableOpacity>
-
-              {/* Modal de dropdown poblaciones con búsqueda predictiva */}
-              <Modal
-                transparent={true}
-                animationType='slide'
-                visible={populationDropdownVisible}
-                onRequestClose={() => setPopulationDropdownVisible(false)}
-              >
-                <TouchableOpacity
-                  style={styles.dropdownOverlay}
-                  activeOpacity={1}
-                  onPress={() => setPopulationDropdownVisible(false)}
-                >
-                  <View style={styles.populationDropdownContainer}>
-                    <View style={styles.populationDropdownHeader}>
-                      <Text style={styles.populationDropdownTitle}>
-                        Seleccionar població
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => setPopulationDropdownVisible(false)}
-                      >
-                        <Ionicons name='close' size={24} color='#333' />
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Buscador predictivo */}
-                    <View style={styles.searchPopulationContainer}>
-                      <Ionicons
-                        name='search'
-                        size={20}
-                        color='#666'
-                        style={styles.searchPopulationIcon}
-                      />
-                      <TextInput
-                        style={styles.searchPopulationInput}
-                        placeholder='Cerca població...'
-                        value={populationSearchQuery}
-                        onChangeText={setPopulationSearchQuery}
-                        autoCapitalize='none'
-                        autoCorrect={false}
-                      />
-                      {populationSearchQuery ? (
-                        <TouchableOpacity
-                          onPress={() => setPopulationSearchQuery('')}
-                          style={styles.clearSearchButton}
-                        >
-                          <Ionicons
-                            name='close-circle'
-                            size={16}
-                            color='#666'
-                          />
-                        </TouchableOpacity>
-                      ) : null}
-                    </View>
-
-                    <ScrollView style={styles.populationList}>
-                      {getFilteredPopulations().map((population) => (
-                        <TouchableOpacity
-                          key={population.id}
-                          style={[
-                            styles.populationListItem,
-                            selectedPopulation === population.id &&
-                              styles.populationListItemSelected,
-                          ]}
-                          onPress={() => handlePopulationSelect(population.id)}
-                        >
-                          <Text
-                            style={[
-                              styles.populationListItemText,
-                              selectedPopulation === population.id &&
-                                styles.populationListItemTextSelected,
-                            ]}
-                          >
-                            {population.label}
-                          </Text>
-                          {selectedPopulation === population.id && (
-                            <Ionicons name='checkmark' size={20} color='#fff' />
-                          )}
-                        </TouchableOpacity>
-                      ))}
-                      {getFilteredPopulations().length === 0 && (
-                        <View style={styles.noResultsContainer}>
-                          <Text style={styles.noResultsText}>
-                            No s&apos;han trobat resultats
-                          </Text>
-                        </View>
-                      )}
-                    </ScrollView>
-                  </View>
-                </TouchableOpacity>
-              </Modal>
-            </View>
-
-            <View style={styles.filterActionsContainer}>
-              <TouchableOpacity
-                style={styles.clearButton}
-                onPress={clearFilters}
-              >
-                <Text style={styles.clearButtonText}>Esborrar filtres</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.applyButton}
-                onPress={toggleFilterModal}
-              >
-                <Text style={styles.applyButtonText}>Aplicar filtres</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal de eventos */}
-      <Modal
-        animationType='slide'
-        transparent={true}
+      <EventsModal
         visible={eventsModalVisible}
-        onRequestClose={toggleEventsModal}
-      >
-        <View style={styles.eventsModalContainer}>
-          <View style={styles.eventsModalContent}>
-            <View style={styles.eventsModalHeader}>
-              <Text style={styles.eventsModalTitle}>Esdeveniments</Text>
-              <TouchableOpacity onPress={toggleEventsModal}>
-                <Ionicons name='close' size={24} color='#333' />
-              </TouchableOpacity>
-            </View>
-            <ScrollView>
-              {filteredMarkers.map((event) => (
-                <TouchableOpacity key={event.id} style={styles.eventModalCard}>
-                  <Image
-                    source={{ uri: event.image }}
-                    style={styles.eventImage}
-                    resizeMode='cover'
-                  />
-                  <View style={styles.eventCardContent}>
-                    <Text style={styles.eventCardTitle} numberOfLines={1}>
-                      {event.title}
-                    </Text>
-                    <Text style={styles.eventCardDescription} numberOfLines={1}>
-                      {event.description}
-                    </Text>
-                    <View style={styles.eventCardFooter}>
-                      <View style={styles.eventCardTime}>
-                        <Ionicons
-                          name='calendar-outline'
-                          size={12}
-                          color='#666'
-                        />
-                        <Text style={styles.eventCardTimeText}>
-                          {event.date}
-                        </Text>
-                      </View>
-                      <View style={styles.eventCardTime}>
-                        <Ionicons name='time-outline' size={12} color='#666' />
-                        <Text style={styles.eventCardTimeText}>
-                          {event.time}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+        toggleEventsModal={toggleEventsModal}
+        filteredMarkers={filteredMarkers}
+      />
+
+      {selectedEventDetail && (
+        <EventDetailModal
+          event={selectedEventDetail}
+          visible={detailModalVisible}
+          onClose={() => {
+            setDetailModalVisible(false);
+            setSelectedEventDetail(null);
+          }}
+        />
+      )}
     </View>
   );
 }
-
-// Estilos adicionales para el DatePicker
-const datePickerStyles = StyleSheet.create({
-  cancelButton: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  cancelButtonText: {
-    color: '#666',
-    fontSize: 16,
-  },
-  confirmButton: {
-    backgroundColor: '#4285F4',
-    borderRadius: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  confirmButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  datePickerActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-    marginTop: 20,
-  },
-  datePickerContainer: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-  },
-  datePickerHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  datePickerTitle: {
-    color: '#333',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  iosDatePicker: {
-    height: 200,
-  },
-  modalOverlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-});

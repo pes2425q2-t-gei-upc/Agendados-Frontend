@@ -1,5 +1,4 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
@@ -7,7 +6,6 @@ import {
   Modal,
   ScrollView,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   Image,
   Linking,
   Dimensions,
@@ -15,34 +13,16 @@ import {
   Animated,
 } from 'react-native';
 
+import { Event, EventDTO } from '@models/Event';
 import { styles } from '@styles/EventDetailModal.styles';
 import { colors } from '@styles/globalStyles';
 
-// Extended event interface with additional details
-interface DetailedEvent {
-  id: string;
-  title: string;
-  description: string;
-  startDate: Date;
-  endDate: Date;
-  price: number;
-  categories: string[];
-  location: string;
-  address: string;
-  organizer: string;
-  ticketUrl?: string;
-  images: string[];
-  latitude?: number;
-  longitude?: number;
-}
-
 interface EventDetailModalProps {
-  event: Partial<DetailedEvent>;
+  event: Event;
   visible: boolean;
   onClose: () => void;
 }
 
-const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
 const EventDetailModal = ({
@@ -50,14 +30,13 @@ const EventDetailModal = ({
   visible,
   onClose,
 }: EventDetailModalProps) => {
-  const router = useRouter();
   const panY = useRef(new Animated.Value(screenHeight)).current;
   const [modalVisible, setModalVisible] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     if (visible) {
       setModalVisible(true);
-      // Start the slide-up animation when modal becomes visible
       Animated.timing(panY, {
         toValue: 0,
         duration: 300,
@@ -113,12 +92,12 @@ const EventDetailModal = ({
 
   // Format date range
   const formatDateRange = () => {
-    if (!event.startDate || !event.endDate) {
+    if (!event.date_ini || !event.date_end) {
       return '';
     }
 
-    const startDate = new Date(event.startDate);
-    const endDate = new Date(event.endDate);
+    const startDate = new Date(event.date_ini);
+    const endDate = new Date(event.date_end);
 
     const dateOptions: Intl.DateTimeFormatOptions = {
       weekday: 'long',
@@ -132,21 +111,21 @@ const EventDetailModal = ({
       minute: '2-digit',
     };
 
-    // For multi-day events
+    // Per a esdeveniments de diversos dies
     if (startDate.toDateString() !== endDate.toDateString()) {
       return (
         <>
           <Text style={styles.dateTimeText}>
-            From: {startDate.toLocaleDateString(undefined, dateOptions)}
+            Des de: {startDate.toLocaleDateString('ca-ES', dateOptions)}
           </Text>
           <Text style={styles.dateTimeText}>
-            {startDate.toLocaleTimeString(undefined, timeOptions)}
+            {startDate.toLocaleTimeString('ca-ES', timeOptions)}
           </Text>
           <Text style={styles.dateTimeText}>
-            To: {endDate.toLocaleDateString(undefined, dateOptions)}
+            Fins a: {endDate.toLocaleDateString('ca-ES', dateOptions)}
           </Text>
           <Text style={styles.dateTimeText}>
-            {endDate.toLocaleTimeString(undefined, timeOptions)}
+            {endDate.toLocaleTimeString('ca-ES', timeOptions)}
           </Text>
         </>
       );
@@ -168,20 +147,29 @@ const EventDetailModal = ({
 
   // Open map with location
   const openMap = () => {
-    if (event.latitude && event.longitude) {
-      const url = `https://maps.google.com/?q=${event.latitude},${event.longitude}`;
+    if (event.location?.latitude && event.location.longitude) {
+      const url = `https://maps.google.com/?q=${event.location.latitude},${event.location.longitude}`;
       Linking.openURL(url);
-    } else if (event.address) {
-      const url = `https://maps.google.com/?q=${encodeURIComponent(event.address)}`;
+    } else if (event.location?.address) {
+      const url = `https://maps.google.com/?q=${encodeURIComponent(event.location.address)}`;
       Linking.openURL(url);
     }
   };
 
-  // Open ticket purchase page
-  const buyTickets = () => {
-    if (event.ticketUrl) {
-      Linking.openURL(event.ticketUrl);
-    }
+  // Open external links
+  const openLink = (url: string) => {
+    Linking.openURL(url);
+  };
+
+  // Handle image carousel scrolling
+  const handleImageScroll = (event: {
+    nativeEvent: { contentOffset: { x: any } };
+  }) => {
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const currentIndex = Math.round(
+      contentOffsetX / Dimensions.get('window').width
+    );
+    setCurrentImageIndex(currentIndex);
   };
 
   if (!event) {
@@ -195,80 +183,112 @@ const EventDetailModal = ({
       transparent={true}
       onRequestClose={handleClose}
     >
-      <TouchableOpacity
-        style={styles.modalOverlay}
-        activeOpacity={1}
-        onPress={handleClose}
-      >
-        <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
-          <Animated.View
-            style={[styles.modalContainer, { transform: [{ translateY }] }]}
+      <View style={{ flex: 1, flexDirection: 'column-reverse' }}>
+        {/* Background overlay */}
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={handleClose}
+        />
+        {/* Modal content */}
+        <Animated.View
+          style={[styles.modalContainer, { transform: [{ translateY }] }]}
+        >
+          <View style={styles.dragHandle} {...panResponder.panHandlers}>
+            <View style={styles.dragHandleBar} />
+          </View>
+
+          <ScrollView
+            style={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
           >
-            <View style={styles.dragHandle} {...panResponder.panHandlers}>
-              <View style={styles.dragHandleBar} />
+            {/* Header with title */}
+            <View style={styles.header}>
+              <Text style={styles.title}>{event.title}</Text>
             </View>
 
-            <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-              <MaterialIcons name='close' size={24} color={colors.text} />
-            </TouchableOpacity>
-
-            <ScrollView
-              style={styles.scrollContainer}
-              showsVerticalScrollIndicator={false}
-            >
-              {/* Header with title */}
-              <View style={styles.header}>
-                <Text style={styles.title}>{event.title}</Text>
-              </View>
-
-              {/* Image carousel */}
-              {event.images && event.images.length > 0 ? (
+            {/* Image carousel */}
+            {event.images && event.images.length > 0 ? (
+              <View style={{ position: 'relative' }}>
                 <ScrollView
                   horizontal
                   pagingEnabled
                   showsHorizontalScrollIndicator={false}
                   style={styles.imageCarousel}
+                  onScroll={handleImageScroll}
+                  scrollEventThrottle={16}
                 >
                   {event.images.map((image, index) => (
                     <Image
                       key={index}
-                      source={{ uri: image }}
+                      source={{ uri: image.image_url }}
                       style={styles.eventImage}
                       resizeMode='cover'
                     />
                   ))}
                 </ScrollView>
-              ) : (
-                <View style={styles.imagePlaceholder}>
-                  <MaterialIcons name='image' size={80} color={colors.border} />
-                </View>
-              )}
 
-              {/* Categories */}
-              {event.categories && event.categories.length > 0 && (
-                <View style={styles.categoriesContainer}>
-                  {event.categories.map((category, index) => (
-                    <View key={index} style={styles.categoryTag}>
-                      <Text style={styles.categoryText}>{category}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+                {/* Carousel position indicator */}
+                {event.images.length > 1 && (
+                  <View style={styles.carouselDotsContainer}>
+                    {event.images.map((_, index) => (
+                      <View
+                        key={index}
+                        style={[
+                          styles.carouselIndicatorDot,
+                          currentImageIndex === index &&
+                            styles.carouselIndicatorActiveDot,
+                        ]}
+                      />
+                    ))}
+                  </View>
+                )}
+              </View>
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <MaterialIcons name='image' size={80} color={colors.border} />
+              </View>
+            )}
 
-              {/* Date and time */}
+            {/* Categories */}
+            {event.categories && event.categories.length > 0 && (
+              <View style={styles.categoriesContainer}>
+                {event.categories.map((category, index) => (
+                  <View key={index} style={styles.categoryTag}>
+                    <Text style={styles.categoryText}>{category.name}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Date and time */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <MaterialIcons name='event' size={22} color={colors.primary} />
+                <Text style={styles.sectionTitle}>Date & Time</Text>
+              </View>
+              <View style={styles.sectionContent}>{formatDateRange()}</View>
+            </View>
+
+            {/* Schedule */}
+            {event.schedule && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <MaterialIcons
-                    name='event'
+                    name='schedule'
                     size={22}
                     color={colors.primary}
                   />
-                  <Text style={styles.sectionTitle}>Date & Time</Text>
+                  <Text style={styles.sectionTitle}>Schedule</Text>
                 </View>
-                <View style={styles.sectionContent}>{formatDateRange()}</View>
+                <Text style={[styles.dateTimeText, { marginTop: 8 }]}>
+                  {event.schedule}
+                </Text>
               </View>
+            )}
 
-              {/* Location */}
+            {/* Location */}
+            {event.location && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <MaterialIcons
@@ -279,11 +299,22 @@ const EventDetailModal = ({
                   <Text style={styles.sectionTitle}>Location</Text>
                 </View>
                 <View style={styles.sectionContent}>
-                  <Text style={styles.locationName}>{event.location}</Text>
-                  {event.address && (
-                    <Text style={styles.locationAddress}>{event.address}</Text>
+                  {event.location.space && (
+                    <Text style={styles.locationName}>
+                      {event.location.space}
+                    </Text>
                   )}
-                  {(event.latitude || event.address) && (
+                  {event.location.address && (
+                    <Text style={styles.locationAddress}>
+                      {event.location.address}
+                    </Text>
+                  )}
+                  {event.location.town && (
+                    <Text style={styles.locationAddress}>
+                      {event.location.town.name}, {event.location.region.name}
+                    </Text>
+                  )}
+                  {(event.location.latitude || event.location.address) && (
                     <TouchableOpacity
                       style={styles.mapButton}
                       onPress={openMap}
@@ -293,61 +324,95 @@ const EventDetailModal = ({
                   )}
                 </View>
               </View>
+            )}
 
-              {/* Organizer */}
-              {event.organizer && (
-                <View style={styles.section}>
-                  <View style={styles.sectionHeader}>
-                    <MaterialIcons
-                      name='people'
-                      size={22}
-                      color={colors.primary}
-                    />
-                    <Text style={styles.sectionTitle}>Organizer</Text>
-                  </View>
-                  <View style={styles.sectionContent}>
-                    <Text style={styles.organizerText}>{event.organizer}</Text>
-                  </View>
+            {/* Description */}
+            {event.description && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons
+                    name='description'
+                    size={22}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.sectionTitle}>Description</Text>
                 </View>
-              )}
-
-              {/* Description */}
-              {event.description && (
-                <View style={styles.section}>
-                  <View style={styles.sectionHeader}>
-                    <MaterialIcons
-                      name='description'
-                      size={22}
-                      color={colors.primary}
-                    />
-                    <Text style={styles.sectionTitle}>Description</Text>
-                  </View>
-                  <View style={styles.sectionContent}>
-                    <Text style={styles.description}>{event.description}</Text>
-                  </View>
+                <View style={styles.sectionContent}>
+                  <Text style={styles.description}>{event.description}</Text>
                 </View>
-              )}
-
-              {/* Spacer at the bottom */}
-              <View style={styles.bottomSpacer} />
-            </ScrollView>
-
-            {/* Buy tickets button */}
-            {event.ticketUrl && (
-              <View style={styles.buttonContainer}>
-                {event.price !== undefined && (
-                  <Text style={styles.priceText}>
-                    Price starting from ${event.price}
-                  </Text>
-                )}
-                <TouchableOpacity style={styles.buyButton} onPress={buyTickets}>
-                  <Text style={styles.buyButtonText}>Buy Tickets</Text>
-                </TouchableOpacity>
               </View>
             )}
-          </Animated.View>
-        </TouchableWithoutFeedback>
-      </TouchableOpacity>
+
+            {/* Ticket Information */}
+            {event.info_tickets && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons
+                    name='confirmation-number'
+                    size={22}
+                    color={colors.primary}
+                  />
+                  <Text style={styles.sectionTitle}>Ticket Information</Text>
+                </View>
+                <View style={styles.sectionContent}>
+                  <Text style={styles.description}>{event.info_tickets}</Text>
+                </View>
+              </View>
+            )}
+
+            {/* Links */}
+            {event.links && event.links.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons name='link' size={22} color={colors.primary} />
+                  <Text style={styles.sectionTitle}>Related Links</Text>
+                </View>
+                <View style={styles.sectionContent}>
+                  {event.links.map((link, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.linkButton}
+                      onPress={() => openLink(link.link)}
+                    >
+                      <Text
+                        style={styles.linkText}
+                        numberOfLines={1}
+                        ellipsizeMode='tail'
+                      >
+                        {link.link.replace(/^https?:\/\//, '').split('/')[0]}
+                      </Text>
+                      <MaterialIcons
+                        name='open-in-new'
+                        size={16}
+                        color={colors.primary}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Spacer at the bottom */}
+            <View style={styles.bottomSpacer} />
+          </ScrollView>
+
+          {/* Tickets action button */}
+          {event.info_tickets && (
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.buyButton}
+                onPress={() =>
+                  event.links && event.links.length > 0
+                    ? openLink(event.links[0].link)
+                    : null
+                }
+              >
+                <Text style={styles.buyButtonText}>More Information</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </Animated.View>
+      </View>
     </Modal>
   );
 };

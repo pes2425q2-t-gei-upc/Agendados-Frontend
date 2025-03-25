@@ -8,6 +8,7 @@ const screenHeight = Dimensions.get('window').height;
 export const styles = StyleSheet.create({
   bottomSpacer: {
     height: 80,
+    marginTop: 20,
   },
   buttonContainer: {
     alignItems: 'center',
@@ -26,6 +27,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderRadius: 10,
     justifyContent: 'center',
+    marginBottom: 10,
     padding: spacing.md,
     width: '90%',
   },
@@ -34,12 +36,40 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+
+  carouselDotsContainer: {
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.38)',
+    borderRadius: 20,
+    bottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    position: 'absolute',
+  },
+  carouselIndicatorActiveDot: {
+    backgroundColor: colors.primary,
+    borderRadius: 5,
+    height: 10,
+    marginHorizontal: 4,
+    width: 10,
+  },
+  carouselIndicatorDot: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 4,
+    height: 8,
+    marginHorizontal: 4,
+    width: 8,
+  },
   categoriesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginBottom: spacing.md,
     marginHorizontal: spacing.md,
     marginTop: spacing.sm,
+    overflow: 'hidden',
   },
   categoryTag: {
     backgroundColor: colors.primaryLight,
@@ -50,16 +80,9 @@ export const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   categoryText: {
-    color: colors.darkBackground,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  closeButton: {
-    padding: spacing.md,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    zIndex: 1,
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   container: {
     backgroundColor: colors.background,
@@ -75,6 +98,7 @@ export const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 15,
     lineHeight: 22,
+    textAlign: 'left',
   },
   dragHandle: {
     alignItems: 'center',
@@ -111,16 +135,30 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.md,
   },
-  locationAddress: {
-    color: colors.textSecondary,
+  linkButton: {
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 4,
+    padding: 12,
+  },
+  linkText: {
+    color: '#0066cc',
+    flex: 1,
     fontSize: 14,
-    marginBottom: spacing.xs,
+    marginRight: 8,
+  },
+  locationAddress: {
+    color: '#666',
+    fontSize: 14,
+    marginBottom: 6,
   },
   locationName: {
-    color: colors.text,
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   mapButton: {
     backgroundColor: colors.secondaryLight,
@@ -142,11 +180,14 @@ export const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     height: screenHeight * 0.9,
     overflow: 'hidden',
+    width: screenWidth,
   },
   modalOverlay: {
     backgroundColor: 'rgba(0,0,0,0.5)',
-    flex: 1,
-    justifyContent: 'flex-end',
+    height: screenHeight,
+    minHeight: screenHeight * 0.1,
+    position: 'absolute',
+    width: screenWidth,
   },
   organizerText: {
     color: colors.text,
@@ -162,8 +203,9 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    marginBottom: spacing.lg,
-    marginHorizontal: spacing.md,
+    marginBottom: 20,
+    marginLeft: 20,
+    marginRight: 20,
   },
   sectionContent: {
     marginTop: spacing.xs,
@@ -179,6 +221,7 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: spacing.xs,
   },
+
   title: {
     color: colors.text,
     flex: 1,

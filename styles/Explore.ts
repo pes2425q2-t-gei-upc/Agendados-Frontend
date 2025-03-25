@@ -1,6 +1,47 @@
+/* eslint-disable react-native/sort-styles */
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+  // Ejemplo de estilos para el carrusel (ajusta según tu línea gráfica)
+  // Añade estos estilos a tu archivo styles/Explore.js
+  clusteringIndicator: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: '#4285F4',
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    position: 'absolute',
+    right: 10,
+    top: 10,
+  },
+  searchButton: {
+    marginLeft: 5,
+    padding: 10,
+  },
+  clusteringText: {
+    color: '#4285F4',
+    fontWeight: 'bold',
+  },
+  markerCount: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 5,
+    elevation: 2,
+    padding: 5,
+    position: 'absolute',
+    right: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    top: 100,
+  },
+  markerCountText: {
+    color: '#333',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  // eslint-disable-next-line react-native/sort-styles
   applyButton: {
     alignItems: 'center',
     backgroundColor: '#4285F4',
@@ -14,6 +55,32 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  carouselContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  carouselItem: {
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    height: 80,
+    justifyContent: 'center',
+    marginHorizontal: 10,
+    width: 120,
+  },
+  carouselItemActive: {
+    backgroundColor: '#4285F4',
+  },
+  carouselText: {
+    color: '#666',
+    fontWeight: '500',
+    marginTop: 5,
+  },
+
+  carouselTextActive: {
+    color: '#fff',
+  },
+
   clearButton: {
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
@@ -49,8 +116,33 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
     marginLeft: 6,
   },
+  clearSearchButton: {
+    padding: 4,
+  },
   container: {
     flex: 1,
+  },
+  dateOption: {
+    borderBottomColor: '#eee',
+    borderBottomWidth: 1,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+  },
+  dateOptionSeparator: {
+    backgroundColor: '#f5f5f5',
+    color: '#666',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginVertical: 5,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+  },
+  dateOptionText: {
+    color: '#333',
+    fontSize: 16,
+  },
+  dateOptionsList: {
+    maxHeight: 400,
   },
   datePickerButton: {
     alignItems: 'center',
@@ -123,6 +215,11 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginHorizontal: 10,
   },
+  dropdownOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   eventCard: {
     backgroundColor: 'white',
     borderRadius: 12,
@@ -168,8 +265,22 @@ export const styles = StyleSheet.create({
     marginTop: 5,
   },
   eventImage: {
-    height: 100,
-    width: '100%',
+    width: '100%', // Cambia el ancho a 100%
+    height: 100, // Mantiene la altura original
+    borderRadius: 8, // Conserva el radio de los bordes
+  },
+  eventModalCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    elevation: 3,
+    marginBottom: 10,
+    marginRight: 15,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    width: 220,
   },
   eventTitle: {
     color: '#333',
@@ -288,8 +399,8 @@ export const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '80%',
-    padding: 20,
+    maxHeight: '85%',
+    padding: 25,
   },
   modalHeader: {
     alignItems: 'center',
@@ -332,11 +443,15 @@ export const styles = StyleSheet.create({
   nearbyEventsScrollContainer: {
     paddingBottom: 10,
   },
-  // eslint-disable-next-line react-native/sort-styles
-  dropdownOverlay: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
+  noResultsContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 30,
+  },
+  noResultsText: {
+    color: '#666',
+    fontSize: 16,
   },
   populationDropdownButton: {
     alignItems: 'center',
@@ -355,10 +470,14 @@ export const styles = StyleSheet.create({
   },
   populationDropdownContainer: {
     backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '80%', // ahora ocupa el 80% de la pantalla
-    padding: 20,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    height: '70%',
+    maxHeight: '80%',
   },
   populationDropdownHeader: {
     alignItems: 'center',
@@ -375,7 +494,8 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   populationList: {
-    maxHeight: 400,
+    flex: 1, // Ocupará el espacio restante después del encabezado y la barra de búsqueda
+    marginTop: 10,
   },
   populationListItem: {
     alignItems: 'center',
@@ -430,52 +550,6 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     height: 40,
   },
-  sectionTitle: {
-    color: '#333',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 15,
-    marginTop: 5,
-  },
-  // Estilos para el selector de fechas simplificado
-  simpleDatePickerContainer: {
-    marginVertical: 10,
-  },
-  dateOptionsList: {
-    maxHeight: 350,
-  },
-  dateOption: {
-    borderBottomColor: '#eee',
-    borderBottomWidth: 1,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-  },
-  dateOptionText: {
-    color: '#333',
-    fontSize: 16,
-  },
-  dateOptionSeparator: {
-    backgroundColor: '#f5f5f5',
-    color: '#666',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginVertical: 5,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-  },
-  eventModalCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    elevation: 3,
-    marginBottom: 10, // Space between cards in the modal
-    marginRight: 15,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    width: 220,
-  },
   searchPopulationContainer: {
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
@@ -493,16 +567,14 @@ export const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
   },
-  clearSearchButton: {
-    padding: 4,
-  },
-  noResultsContainer: {
-    alignItems: 'center',
-    padding: 20,
-  },
-  noResultsText: {
-    color: '#666',
+  sectionTitle: {
+    color: '#333',
     fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 15,
+    marginTop: 5,
   },
-  /* eslint-enable sort-keys */
+  simpleDatePickerContainer: {
+    marginVertical: 10,
+  },
 });
