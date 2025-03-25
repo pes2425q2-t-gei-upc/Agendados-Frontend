@@ -16,6 +16,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   runOnJS,
+  withTiming,
   useDerivedValue,
   useAnimatedGestureHandler,
   interpolate,
@@ -116,7 +117,7 @@ export default function main() {
       }
 
       //Depenent de cap a on fas el swipe, que s'envagi pel costat del swipe (- o + hiddenTranslateX)
-      translateX.value = withSpring(
+      translateX.value = withTiming(
         event.velocityX > 0 ? hiddenTranslateX : -hiddenTranslateX,
         {},
         () => runOnJS(setCurrentIndex)(currentIndex + 1)
