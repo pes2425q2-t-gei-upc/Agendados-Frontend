@@ -1,5 +1,8 @@
 {
   "expo": {
+    "extra":{
+      "Token":"3a9ecd5d877376903ceee38fefaccc3ae332a896"
+    },
     "name": "Agendados-Front",
     "slug": "Agendados-Front",
     "version": "1.0.0",
