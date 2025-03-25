@@ -6,7 +6,6 @@ import {
   Modal,
   ScrollView,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   Image,
   Linking,
   Dimensions,
@@ -14,7 +13,7 @@ import {
   Animated,
 } from 'react-native';
 
-import { Event, EventDTO } from '@models/Event';
+import { Event } from '@models/Event';
 import { styles } from '@styles/EventDetailModal.styles';
 import { colors } from '@styles/globalStyles';
 
