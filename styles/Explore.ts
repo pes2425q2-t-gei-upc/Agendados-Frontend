@@ -63,7 +63,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f0f0f0',
     borderRadius: 10,
-    height: 80,
+    height: 70,
     justifyContent: 'center',
     marginHorizontal: 10,
     width: 120,
@@ -294,7 +294,7 @@ export const styles = StyleSheet.create({
     bottom: 10,
     elevation: 4,
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 15,
     position: 'absolute',
   },
   eventsButtonText: {
