@@ -71,14 +71,14 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     height: 135, // Reduced from 140px to match new card height
     justifyContent: 'center',
-    width: 110, // Restored to original 110px
+    width: 120, // Restored to original 110px
     margin: 10,
   },
   iconTextContainer: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 4,
-    marginBottom: 6, // Reduced from 8px
+    marginBottom: 8, // Reduced from 8px
     marginTop: 2,
     width: '100%',
   },
@@ -93,7 +93,6 @@ export const styles = StyleSheet.create({
   },
   shareButton: {
     alignSelf: 'flex-end',
-    padding: 8,
   },
   tagText: {
     color: colors.primaryDark,
