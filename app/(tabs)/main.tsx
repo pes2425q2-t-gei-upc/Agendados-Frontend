@@ -5,8 +5,8 @@ import {
   Pressable,
   useWindowDimensions,
   Image,
+  ActivityIndicator,
 } from 'react-native';
-//import { Pressable } from 'react-native-gesture-handler';
 import {
   GestureHandlerRootView,
   PanGestureHandler,
@@ -27,36 +27,9 @@ import Dislike from '@assets/images/RedColor.png';
 import Card from '@components/cardEvent';
 import { styles } from '@styles/mainPageStyles';
 
-const eventos = [
-  {
-    name: 'Concierto de Jazz',
-    image: require('@assets/images/FotoJazz.jpg'),
-    place: 'UPC',
-    cat: 'Conciertos',
-    date: '22/01/2026',
-  },
-  {
-    name: 'Festival Arena Sound',
-    image: require('@assets/images/FotoConcierto.jpg'),
-    place: 'Playa Barceloneta',
-    cat: 'Festivales',
-    date: '02/12/2028',
-  },
-  {
-    name: 'Teatro Rey Leon',
-    image: require('@assets/images/ReyLeon.jpg'),
-    place: 'Sala Apolo',
-    cat: 'Teatros',
-    date: '26/8/2025',
-  },
-  {
-    name: 'Museo de Arte Contemporaneo',
-    image: require('@assets/images/MuseoContemporaneo.jpg'),
-    place: 'Museo Historia de Catalunya',
-    cat: 'Museos',
-    date: '16/4/2025',
-  },
-];
+import { MarkerData } from '../(tabs)/exploreComponents/EventCard';
+import { useEvents } from '../context/eventsContext';
+import { getEventRecomendations } from '../Services/EventsService'; // Importa la función de recomendaciones
 
 const SWIPE_VELOCITY = 800;
 
@@ -64,11 +37,15 @@ export default function main() {
   const { width: screenWidth } = useWindowDimensions();
   const hiddenTranslateX = 2 * screenWidth;
 
+  const [events, setEvents] = useState<MarkerData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(currentIndex + 1);
 
-  const currentProfile = eventos[currentIndex];
-  const nextProfile = eventos[nextIndex];
+  const currentProfile = events[currentIndex];
+  const nextProfile = events[nextIndex];
 
   const translateX = useSharedValue(0);
   const rotate = useDerivedValue(
@@ -130,6 +107,24 @@ export default function main() {
     setNextIndex(currentIndex + 1);
   }, [currentIndex, translateX]);
 
+  const fetchEvents = async () => {
+    try {
+      setLoading(true);
+      const data = await getEventRecomendations();
+      setEvents(data);
+      setError(null);
+    } catch (err) {
+      setError("No s'han pogut carregar els esdeveniments recomanats.");
+      console.error('Error al cargar eventos recomendados:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
   const likeStyle = useAnimatedStyle(() => ({
     opacity: interpolate(translateX.value, [0, hiddenTranslateX / 4], [0, 0.5]),
   }));
@@ -142,13 +137,55 @@ export default function main() {
     ),
   }));
 
+  // Show loading indicator while events are loading
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.pageContainer,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <ActivityIndicator size='large' color='#0000ff' />
+      </View>
+    );
+  }
+
+  // Show error message if there's an error
+  if (error || !events.length) {
+    return (
+      <View
+        style={[
+          styles.pageContainer,
+          { justifyContent: 'center', alignItems: 'center' },
+        ]}
+      >
+        <Text style={{ fontSize: 18, textAlign: 'center', margin: 20 }}>
+          {error || 'No hi ha esdeveniments disponibles'}
+        </Text>
+        <Pressable
+          style={{
+            backgroundColor: '#3498db',
+            padding: 10,
+            borderRadius: 5,
+          }}
+          onPress={refetch}
+        >
+          <Text style={{ color: 'white' }}>Tornar a intentar</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.pageContainer}>
         <View style={styles.nextCardContainer}>
-          <Animated.View style={[styles.animatedCard, nextCardStyle]}>
-            <Card event1={nextProfile} />
-          </Animated.View>
+          {nextProfile && (
+            <Animated.View style={[styles.animatedCard, nextCardStyle]}>
+              <Card event1={nextProfile} />
+            </Animated.View>
+          )}
         </View>
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View style={[styles.animatedCard, cardStyle]}>
