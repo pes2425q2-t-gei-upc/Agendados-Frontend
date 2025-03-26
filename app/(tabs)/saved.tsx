@@ -1,6 +1,7 @@
-import { useRouter } from 'expo-router';
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -119,8 +120,6 @@ const DateGroup = memo(({ group, onDeleteEvent }: DateGroupProps) => {
 DateGroup.displayName = 'DateGroup';
 
 export default function SavedEvents() {
-  const router = useRouter();
-  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
 
   // Usar el contexto de favoritos

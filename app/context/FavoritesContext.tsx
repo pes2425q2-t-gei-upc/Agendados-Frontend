@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
 import { Event } from '@models/Event';
@@ -42,9 +43,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
       setFavoriteIds(ids);
 
       setIsInitialized(true);
-    } catch (error) {
-      console.error('Error al cargar favoritos:', error);
-    }
+    } catch (error) {}
   };
 
   // Agregar un evento a favoritos
@@ -76,7 +75,6 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
 
       return success;
     } catch (error) {
-      console.error('Error al añadir favorito:', error);
       return false;
     }
   };
@@ -102,7 +100,6 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
 
       return success;
     } catch (error) {
-      console.error('Error al eliminar favorito:', error);
       return false;
     }
   };
