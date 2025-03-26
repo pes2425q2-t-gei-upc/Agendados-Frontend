@@ -3,7 +3,7 @@ export const login = async (
   password: string
 ): Promise<any> => {
   try {
-    const response = await fetch('http://localhost:8000/api/users/login', {
+    const response = await fetch('http://192.168.1.43:8000/api/users/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ export const register = (
   email: string,
   password: string
 ): Promise<Response> => {
-  return fetch('http://localhost:8000/api/users/signup', {
+  return fetch('http://192.168.1.43:8000/api/users/signup', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

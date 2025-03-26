@@ -6,7 +6,7 @@ import { MarkerData } from '../(tabs)/exploreComponents/EventCard'; // Ajusta la
 
 export const getEvents = async (): Promise<MarkerData[]> => {
   try {
-    const response = await fetch('http://localhost:8000/api/events');
+    const response = await fetch('http://192.168.1.43:8000/api/events');
     if (!response.ok) {
       throw new Error('Error al cargar los eventos');
     }
@@ -69,7 +69,9 @@ export const getEventDetails = async (
   eventId: string | number
 ): Promise<any> => {
   try {
-    const response = await fetch(`http://localhost:8000/api/events/${eventId}`);
+    const response = await fetch(
+      `http://192.168.1.43:8000/api/events/${eventId}`
+    );
     if (!response.ok) {
       throw new Error('Error al cargar los detalles del evento');
     }
@@ -89,10 +91,10 @@ export const getEventRecomendations = async (): Promise<any> => {
     }
 
     const response = await fetch(
-      `http://localhost:8000/api/events/recommended`,
+      'http://192.168.1.43:8000/api/events/recommended',
       {
         headers: {
-          Authorization: `Token ${token}`,
+          Authorization: `token ${token}`,
           'Content-Type': 'application/json',
         },
       }

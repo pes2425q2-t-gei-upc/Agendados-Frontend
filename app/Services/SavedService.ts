@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import { Event, EventDTO } from '@models/Event';
 
 export class SavedService {
-  private static baseUrl: string = 'http://localhost:8000/api';
+  private static baseUrl: string = 'http://192.168.1.43:8000/api';
 
   /**
    * Gets the authentication token from Expo Constants
@@ -27,7 +27,7 @@ export class SavedService {
       const response = await fetch(`${this.baseUrl}/events/favorites`, {
         method: 'GET',
         headers: {
-          Authorization: `Token ${this.getAuthToken()}`,
+          Authorization: `token ${this.getAuthToken()}`,
           accept: 'application/json',
         },
       });
@@ -54,7 +54,7 @@ export class SavedService {
         {
           method: 'POST',
           headers: {
-            Authorization: `Token ${this.getAuthToken()}`,
+            Authorization: `token ${this.getAuthToken()}`,
             'Content-Type': 'application/json',
           },
         }
@@ -83,7 +83,7 @@ export class SavedService {
         {
           method: 'DELETE',
           headers: {
-            Authorization: `Token ${this.getAuthToken()}`,
+            Authorization: `token ${this.getAuthToken()}`,
             'Content-Type': 'application/json',
           },
         }
@@ -112,7 +112,7 @@ export class SavedService {
         {
           method: 'GET',
           headers: {
-            Authorization: `Token ${this.getAuthToken()}`,
+            Authorization: `token ${this.getAuthToken()}`,
             accept: 'application/json',
           },
         }

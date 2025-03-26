@@ -3,7 +3,9 @@ export type PopulationItem = { id: string; label: string };
 
 export const getTowns = async (): Promise<PopulationItem[]> => {
   try {
-    const response = await fetch('http://localhost:8000/api/locations/towns');
+    const response = await fetch(
+      'http://192.168.1.43:8000/api/locations/towns'
+    );
     if (!response.ok) {
       throw new Error('Error al obtener las poblaciones');
     }

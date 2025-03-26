@@ -169,7 +169,7 @@ export default function main() {
             padding: 10,
             borderRadius: 5,
           }}
-          onPress={refetch}
+          onPress={fetchEvents}
         >
           <Text style={{ color: 'white' }}>Tornar a intentar</Text>
         </Pressable>
