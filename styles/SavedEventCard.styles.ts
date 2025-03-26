@@ -27,6 +27,7 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 5,
+    width: '100%',
   },
   categoryTag: {
     backgroundColor: 'rgba(255, 169, 169, 0.37)',
@@ -42,6 +43,8 @@ export const styles = StyleSheet.create({
     marginBottom: 5,
     marginLeft: 10,
     marginTop: 5,
+    overflow: 'hidden',
+    width: '60%', // Limit width to ensure text doesn't overflow
   },
   deleteActionContainer: {
     alignItems: 'center',
@@ -75,9 +78,11 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 4,
     marginBottom: 4,
+    width: '100%',
   },
   locationText: {
     color: colors.textSecondary,
+    flex: 1,
     fontSize: 14,
     marginBottom: 3,
     marginTop: 3,
@@ -85,14 +90,17 @@ export const styles = StyleSheet.create({
   tagText: {
     color: colors.primaryDark,
     fontSize: 12,
+    maxWidth: '100%',
   },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginTop: 5,
+    width: '100%',
   },
   timeRange: {
     color: colors.textSecondary,
+    flex: 1,
     fontSize: 14,
     marginBottom: 1,
   },

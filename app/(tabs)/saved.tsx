@@ -1,10 +1,19 @@
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  FlatList,
+} from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import SavedEventCard from '@components/SavedEventCard';
+import { Event } from '@models/Event';
+import { SavedService } from '@services/SavedService';
 import {
   colors,
   globalStyles,
@@ -12,71 +21,61 @@ import {
   spacing,
 } from '@styles/globalStyles';
 
-// Mock data structure - replace with actual data from your API
-const mockEvents = [
-  {
-    id: '1',
-    title: 'Tech Conference',
-    startDate: new Date('2023-10-15T10:00:00'),
-    endDate: new Date('2023-10-15T16:00:00'),
-    price: 50,
-    categories: ['Technology', 'Networking'],
-    location: 'Convention Center',
-    imageUrl: '',
-  },
-  {
-    id: '2',
-    title: 'Art Exhibition',
-    startDate: new Date('2023-10-15T14:00:00'),
-    endDate: new Date('2023-10-15T20:00:00'),
-    price: 25,
-    categories: ['Art', 'Culture'],
-    location: 'Downtown Gallery',
-    imageUrl: '',
-  },
-  {
-    id: '3',
-    title: 'Music Festival',
-    startDate: new Date('2023-10-16T12:00:00'),
-    endDate: new Date('2023-10-18T23:00:00'),
-    price: 120,
-    categories: ['Music', 'Entertainment'],
-    location: 'City Park',
-  },
-  {
-    id: '4',
-    title: 'Yoga Workshop',
-    startDate: new Date('2023-10-17T08:00:00'),
-    endDate: new Date('2023-10-17T10:00:00'),
-    price: 15,
-    categories: [
-      'Wellness',
-      'Sport',
-      'Health',
-      'Fitness',
-      'Yoga',
-      'Meditation',
-      'Mindfulness',
-    ],
-    location: 'Community Center',
-  },
-];
-
 // Helper function to group events by date
-const groupEventsByDate = (events: any) => {
-  const grouped: any = {};
+const groupEventsByDate = (events: Event[]) => {
+  const grouped: Record<string, Event[]> = {};
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  events.forEach((event: any) => {
-    const dateKey = event.startDate.toDateString();
-    if (!grouped[dateKey]) {
-      grouped[dateKey] = [];
+  const getDatesInRange = (startDate: Date, endDate: Date) => {
+    const dates: Date[] = [];
+    let currentDate = new Date(startDate);
+    currentDate.setHours(0, 0, 0, 0);
+    const endDateOnly = new Date(endDate);
+    endDateOnly.setHours(0, 0, 0, 0);
+
+    if (endDateOnly < today) {
+      return dates;
     }
-    grouped[dateKey].push(event);
+    if (currentDate < today) {
+      currentDate = new Date(today);
+    }
+
+    while (currentDate <= endDateOnly) {
+      dates.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return dates;
+  };
+
+  const relevantEvents = events.filter((event) => {
+    const endDate = event.date_end
+      ? new Date(event.date_end)
+      : new Date(event.date_ini);
+    endDate.setHours(0, 0, 0, 0);
+    return endDate >= today;
   });
 
-  // Convert to array sorted by date
+  relevantEvents.forEach((event: Event) => {
+    const startDate = new Date(event.date_ini);
+    const endDate = event.date_end
+      ? new Date(event.date_end)
+      : new Date(event.date_ini);
+    const eventDates = getDatesInRange(startDate, endDate);
+
+    eventDates.forEach((date) => {
+      const dateKey = date.toDateString();
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      if (!grouped[dateKey].find((e) => e.id === event.id)) {
+        grouped[dateKey].push(event);
+      }
+    });
+  });
+
   return Object.keys(grouped)
-    .sort((a, b) => new Date(a) - new Date(b))
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
     .map((date) => ({
       date,
       events: grouped[date],
@@ -84,13 +83,17 @@ const groupEventsByDate = (events: any) => {
 };
 
 // Date Group Component
-const DateGroup = ({ group, onDeleteEvent }) => {
+interface DateGroupProps {
+  group: { date: string; events: Event[] };
+  onDeleteEvent: (id: number) => void;
+}
+
+const DateGroup = memo(({ group, onDeleteEvent }: DateGroupProps) => {
   const date = new Date(group.date);
   const today = new Date();
 
-  // Format the date - highlight if today
   const isToday = date.toDateString() === today.toDateString();
-  const formattedDate = date.toLocaleDateString('en-US', {
+  const formattedDate = date.toLocaleDateString('ca-ES', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -101,9 +104,8 @@ const DateGroup = ({ group, onDeleteEvent }) => {
       <Text style={[styles.dateText, isToday && styles.todayText]}>
         {isToday ? `Today - ${formattedDate}` : formattedDate}
       </Text>
-
       <View style={styles.eventsContainer}>
-        {group.events.map((event) => (
+        {group.events.map((event: Event) => (
           <SavedEventCard
             key={event.id}
             event={event}
@@ -113,44 +115,73 @@ const DateGroup = ({ group, onDeleteEvent }) => {
       </View>
     </View>
   );
-};
+});
+
+DateGroup.displayName = 'DateGroup';
 
 export default function SavedEvents() {
   const router = useRouter();
   const { t } = useTranslation();
-  const [events, setEvents] = useState(mockEvents);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Group events by date
-  const groupedEvents = groupEventsByDate(events);
+  const loadSavedEvents = useCallback(async () => {
+    setLoading(true);
+    try {
+      const savedEvents = await SavedService.getFavorites();
+      setEvents(Array.isArray(savedEvents) ? savedEvents : []);
+    } catch (error) {
+      console.error('Error loading saved events:', error);
+      setEvents([]); // Fallback to empty array on error
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Handle event deletion
-  const handleDeleteEvent = (id: string) => {
+  const handleDeleteEvent = useCallback((id: number) => {
+    // Optimistic UI update
     setEvents((prevEvents) => prevEvents.filter((event) => event.id !== id));
-  };
+    // Fire-and-forget API call
+    SavedService.removeFavorite(id).catch((error) => {
+      console.error('Error removing event:', error);
+      //TODO: revert UI if critical
+    });
+  }, []);
+
+  const groupedEvents = useMemo(() => groupEventsByDate(events), [events]);
+
+  useEffect(() => {
+    loadSavedEvents();
+  }, [loadSavedEvents]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={globalStyles.container}>
         <Text style={typography.title}>Saved Events</Text>
-
-        <ScrollView
-          style={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {groupedEvents.map((group, index) => (
-            <DateGroup
-              key={index}
-              group={group}
-              onDeleteEvent={handleDeleteEvent}
-            />
-          ))}
-
-          {groupedEvents.length === 0 && (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No saved events</Text>
-            </View>
-          )}
-        </ScrollView>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size='large' color={colors.primary} />
+          </View>
+        ) : (
+          <FlatList
+            data={groupedEvents}
+            renderItem={({ item }) => (
+              <DateGroup group={item} onDeleteEvent={handleDeleteEvent} />
+            )}
+            keyExtractor={(item, index) => `${item.date}-${index}`} // Unique key using date and index
+            style={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            removeClippedSubviews={true}
+            initialNumToRender={10}
+            ListEmptyComponent={
+              groupedEvents.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>No saved events</Text>
+                </View>
+              ) : null
+            }
+          />
+        )}
       </View>
     </GestureHandlerRootView>
   );
@@ -177,7 +208,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   eventsContainer: {
-    paddingLeft: 10, // This shifts cards to the right
+    paddingLeft: 10,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   scrollContainer: {
     flex: 1,
