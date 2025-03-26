@@ -10,6 +10,7 @@ import React, {
   useCallback,
   memo,
 } from 'react';
+import { useTranslation } from 'react-i18next'; // Add this import
 import {
   View,
   StatusBar,
@@ -63,32 +64,7 @@ type FilterItem = {
   icon: keyof typeof IoniconsType.glyphMap;
 };
 
-const filterCategories: { title: string; items: FilterItem[] }[] = [
-  {
-    title: 'Categoria',
-    items: [
-      { id: '1', label: 'Concerts', icon: 'musical-notes-outline' },
-      { id: '2', label: 'Exposicions', icon: 'image-outline' },
-      { id: '3', label: 'Rutes I Visites', icon: 'map-outline' },
-      { id: '4', label: 'Festivals I Mostres', icon: 'sparkles-outline' },
-      { id: '5', label: 'Cicles', icon: 'repeat-outline' },
-      { id: '6', label: 'Teatre', icon: 'film-outline' },
-      { id: '7', label: 'Conferencies', icon: 'mic-outline' },
-      { id: '8', label: 'Infantil', icon: 'happy-outline' },
-      { id: '9', label: 'Commemoracions', icon: 'flag-outline' },
-      { id: '10', label: 'Setmana Santa', icon: 'flower-outline' },
-      { id: '11', label: 'Sardanes', icon: 'people-circle-outline' },
-      { id: '12', label: 'Dansa', icon: 'body-outline' },
-      { id: '13', label: 'Cursos', icon: 'school-outline' },
-      { id: '14', label: 'Festes', icon: 'beer-outline' },
-      { id: '15', label: 'Fires I Mercats', icon: 'basket-outline' },
-      { id: '16', label: 'Gegants', icon: 'accessibility-outline' },
-      { id: '17', label: 'Circ', icon: 'color-wand-outline' },
-      { id: '18', label: 'Cultura Digital', icon: 'code-outline' },
-      { id: '19', label: 'Activitats Virtuals', icon: 'globe-outline' },
-    ],
-  },
-];
+// Dentro del componente Explore
 
 // Región inicial (Barcelona en este ejemplo)
 const INITIAL_REGION = {
@@ -117,11 +93,13 @@ const SearchBar = memo(
     setInputText,
     setSearchQuery,
     toggleFilterModal,
+    t, // Add translation function as prop
   }: {
     inputText: string;
     setInputText: (text: string) => void;
     setSearchQuery: (query: string) => void;
     toggleFilterModal: () => void;
+    t: (key: string) => string; // Add type for translation function
   }) => {
     return (
       <View style={styles.searchBar}>
@@ -133,7 +111,7 @@ const SearchBar = memo(
         />
         <TextInput
           style={styles.searchInput}
-          placeholder='Barcelona, concerts...'
+          placeholder={t('explore.search.placeholder')}
           value={inputText}
           onChangeText={setInputText}
           onSubmitEditing={() => setSearchQuery(inputText)}
@@ -168,6 +146,7 @@ const ActiveFilters = memo(
     handleCategoryPress,
     filterCategories,
     formatDate,
+    t, // Add translation function as prop
   }: {
     selectedCategories: Set<string>;
     selectedPopulation: string | null;
@@ -177,6 +156,7 @@ const ActiveFilters = memo(
     handleCategoryPress: (id: string) => void;
     filterCategories: { title: string; items: FilterItem[] }[];
     formatDate: (date: Date) => string;
+    t: (key: string) => string; // Add type for translation function
   }) => {
     return (
       <FlatList
@@ -207,7 +187,9 @@ const ActiveFilters = memo(
                 onPress={clearFilters}
               >
                 <Ionicons name='close-circle' size={16} color='#fff' />
-                <Text style={styles.clearFilterText}>Esborrar filtres</Text>
+                <Text style={styles.clearFilterText}>
+                  {t('explore.search.clearFilters')}
+                </Text>
               </TouchableOpacity>
             );
           }
@@ -216,8 +198,11 @@ const ActiveFilters = memo(
               <View style={styles.dateRangeChip}>
                 <Ionicons name='calendar' size={16} color='#666' />
                 <Text style={styles.filterText}>
-                  {startDate ? formatDate(startDate) : 'Data inici'} -{' '}
-                  {endDate ? formatDate(endDate) : 'Data fi'}
+                  {startDate
+                    ? formatDate(startDate)
+                    : t('explore.filters.startDate')}{' '}
+                  -{' '}
+                  {endDate ? formatDate(endDate) : t('explore.filters.endDate')}
                 </Text>
               </View>
             );
@@ -253,7 +238,15 @@ ActiveFilters.displayName = 'ActiveFilters';
 
 // Componente para el control de visibilidad del carrusel
 const CarouselToggle = memo(
-  ({ onToggle, isVisible }: { onToggle: () => void; isVisible: boolean }) => {
+  ({
+    onToggle,
+    isVisible,
+    t,
+  }: {
+    onToggle: () => void;
+    isVisible: boolean;
+    t: (key: string) => string;
+  }) => {
     // Animación para rotación del icono
     const rotateAnim = useRef(new Animated.Value(isVisible ? 0 : 1)).current;
 
@@ -281,7 +274,9 @@ const CarouselToggle = memo(
       >
         <View style={carouselStyles.toggleContainer}>
           <Text style={carouselStyles.toggleText}>
-            {isVisible ? 'Ocultar esdeveniments' : 'Esdeveniments Propers'}
+            {isVisible
+              ? t('explore.events.hideEvents') || 'Ocultar esdeveniments'
+              : t('explore.events.nearbyEvents') || 'Esdeveniments Propers'}
           </Text>
           <Animated.View style={{ transform: [{ rotate }] }}>
             <Ionicons name='chevron-up' size={24} color='#4285F4' />
@@ -371,6 +366,8 @@ const AnimatedNearbyEventsList = memo(
 AnimatedNearbyEventsList.displayName = 'AnimatedNearbyEventsList';
 
 export default function Explore() {
+  // Add translation hook
+  const { t } = useTranslation();
   const { events, loading, error } = useEvents();
 
   const mapRef = useRef<MapViewType>(null);
@@ -422,6 +419,60 @@ export default function Explore() {
 
   // Estado para controlar la visibilidad del carrusel
   const [carouselVisible, setCarouselVisible] = useState(true);
+  const filterCategories: { title: string; items: FilterItem[] }[] = [
+    {
+      title: t('filters.category'),
+      items: [
+        {
+          id: '1',
+          label: t('categories.concerts'),
+          icon: 'musical-notes-outline',
+        },
+        { id: '2', label: t('categories.exhibitions'), icon: 'image-outline' },
+        { id: '3', label: t('categories.routes'), icon: 'map-outline' },
+        { id: '4', label: t('categories.festivals'), icon: 'sparkles-outline' },
+        { id: '5', label: t('categories.cycles'), icon: 'repeat-outline' },
+        { id: '6', label: t('categories.theater'), icon: 'film-outline' },
+        { id: '7', label: t('categories.conferences'), icon: 'mic-outline' },
+        { id: '8', label: t('categories.children'), icon: 'happy-outline' },
+        {
+          id: '9',
+          label: t('categories.commemorations'),
+          icon: 'flag-outline',
+        },
+        { id: '10', label: t('categories.holyWeek'), icon: 'flower-outline' },
+        {
+          id: '11',
+          label: t('categories.sardanas'),
+          icon: 'people-circle-outline',
+        },
+        { id: '12', label: t('categories.dance'), icon: 'body-outline' },
+        { id: '13', label: t('categories.courses'), icon: 'school-outline' },
+        { id: '14', label: t('categories.parties'), icon: 'beer-outline' },
+        {
+          id: '15',
+          label: t('categories.fairsMarkets'),
+          icon: 'basket-outline',
+        },
+        {
+          id: '16',
+          label: t('categories.giants'),
+          icon: 'accessibility-outline',
+        },
+        { id: '17', label: t('categories.circus'), icon: 'color-wand-outline' },
+        {
+          id: '18',
+          label: t('categories.digitalCulture'),
+          icon: 'code-outline',
+        },
+        {
+          id: '19',
+          label: t('categories.virtualActivities'),
+          icon: 'globe-outline',
+        },
+      ],
+    },
+  ];
 
   const calculateCarouselPosition = () => {
     // Comprueba si hay algún filtro activo
@@ -881,6 +932,7 @@ export default function Explore() {
           setInputText={setInputText}
           setSearchQuery={setSearchQuery}
           toggleFilterModal={toggleFilterModal}
+          t={t}
         />
 
         <ActiveFilters
@@ -892,6 +944,7 @@ export default function Explore() {
           handleCategoryPress={handleCategoryPress}
           filterCategories={filterCategories}
           formatDate={formatDate}
+          t={t}
         />
       </View>
 
@@ -905,7 +958,11 @@ export default function Explore() {
           alignItems: 'center',
         }}
       >
-        <CarouselToggle isVisible={carouselVisible} onToggle={toggleCarousel} />
+        <CarouselToggle
+          isVisible={carouselVisible}
+          onToggle={toggleCarousel}
+          t={t}
+        />
       </View>
 
       {/* Lista horizontal de eventos cercanos (ahora con animación) */}
@@ -918,7 +975,9 @@ export default function Explore() {
 
       {/* Botón para ver todos los eventos filtrados */}
       <TouchableOpacity style={styles.eventsButton} onPress={toggleEventsModal}>
-        <Text style={styles.eventsButtonText}>Tots els esdeveniments</Text>
+        <Text style={styles.eventsButtonText}>
+          {t('explore.events.allEvents')}
+        </Text>
       </TouchableOpacity>
 
       {/* Modales */}
@@ -950,8 +1009,8 @@ export default function Explore() {
                 year: 'numeric',
               })
             : currentMode === 'start'
-              ? 'Data inici'
-              : 'Data fi'
+              ? t('explore.filters.startDate')
+              : t('explore.filters.endDate')
         }
         populationDropdownVisible={populationDropdownVisible}
         searchQuery={searchQuery}

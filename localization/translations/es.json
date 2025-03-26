@@ -1,12 +1,168 @@
 {
-    "welcome": {
-      "title": "¡Bienvenido a Agendados!",
-      "subtitle": "Tu aplicación para encontrar eventos"
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "noResults": "No se han encontrado resultados",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "apply": "Aplicar",
+    "clear": "Limpiar",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "back": "Volver",
+    "edit": "Editar",
+    "search": "Buscar"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "explore": "Explorar",
+    "saved": "Guardados",
+    "profile": "Perfil",
+    "settings": "Configuración"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "register": "Crear Cuenta",
+    "username": "Nombre de usuario",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "loginButton": "Entrar",
+    "registerButton": "Registrar",
+    "switchToRegister": "¿No tienes cuenta? Regístrate",
+    "switchToLogin": "¿Ya tienes cuenta? Inicia sesión",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "completeFields": "Por favor, completa todos los campos",
+    "invalidEmail": "Por favor, introduce un email válido",
+    "passwordLength": "La contraseña debe tener al menos 6 caracteres",
+    "loginError": "Error al iniciar sesión. Inténtalo de nuevo.",
+    "registerError": "Error al registrar usuario. Inténtalo de nuevo."
+  },
+  "explore": {
+    "search": {
+      "placeholder": "Barcelona, conciertos...",
+      "clearFilters": "Esborrar filtres"
     },
-    "language": {
-      "selectLanguage": "Seleccionar idioma:",
-      "spanish": "Español",
-      "english": "Inglés",
-      "catalan": "Catalán"
+    "filters": {
+      "title": "Personalización de búsqueda",
+      "dateRange": "Rango de fechas",
+      "startDate": "Fecha inicio",
+      "endDate": "Fecha fin",
+      "categories": "Categorías",
+      "population": "Población",
+      "selectPopulation": "Seleccionar población",
+      "clearFilters": "Limpiar filtros",
+      "applyFilters": "Aplicar filtros",
+      "noResults": "No se han encontrado resultados"
+    },
+    "datePicker": {
+      "selectStartDate": "Seleccionar fecha inicio",
+      "selectEndDate": "Seleccionar fecha fin",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar"
+    },
+    "events": {
+      "title": "Eventos",
+      "allEvents": "Todos los eventos",
+      "loadingMore": "Cargando más eventos...",
+      "nearbyEvents": "Eventos cercanos",
+      "hideEvents": "Ocultar eventos"
+    },
+    "population": {
+      "title": "Seleccionar población",
+      "search": "Buscar población...",
+      "noResults": "No se han encontrado resultados"
     }
+  },
+  "eventDetails": {
+    "dateAndTime": "Fecha y Hora",
+    "schedule": "Horario",
+    "location": "Ubicación",
+    "description": "Descripción",
+    "ticketInfo": "Información de Entradas",
+    "relatedLinks": "Enlaces Relacionados",
+    "viewOnMap": "Ver en mapa",
+    "moreInfo": "Más información",
+    "from": "Desde",
+    "to": "Hasta"
+  },
+  "saved": {
+    "title": "Eventos guardados",
+    "loadingEvents": "Cargando eventos guardados...",
+    "noSavedEvents": "No tienes eventos guardados",
+    "today": "Hoy"
+  },
+    "days": {
+      "monday": "Lunes",
+      "tuesday": "Martes",
+      "wednesday": "Miércoles",
+      "thursday": "Jueves",
+      "friday": "Viernes",
+      "saturday": "Sábado",
+      "sunday": "Domingo"
+    },
+    "months": {
+      "january": "Enero",
+      "february": "Febrero",
+      "march": "Marzo",
+      "april": "Abril",
+      "may": "Mayo",
+      "june": "Junio",
+      "july": "Julio",
+      "august": "Agosto",
+      "september": "Septiembre",
+      "october": "Octubre",
+      "november": "Noviembre",
+      "december": "Diciembre"
+    },
+    "common": {
+      "of": "de"
+    },
+  "profile": {
+    "welcome": "Bienvenido a tu perfil",
+    "goToSettings": "Ir a Configuración",
+    "logout": "Cerrar sesión",
+    "preferences": "Preferencias",
+    "personalInfo": "Información personal"
+  },
+  "settings": {
+    "title": "Configuración",
+    "language": "Idioma",
+    "spanish": "Español",
+    "catalan": "Catalán",
+    "english": "Inglés",
+    "notifications": "Notificaciones",
+    "theme": "Tema",
+    "privacy": "Privacidad",
+    "about": "Acerca de",
+    "help": "Ayuda"
+  },
+  "home": {
+    "events": {
+      "nearYou": "Cerca de ti",
+      "popular": "Populares",
+      "thisWeek": "Esta semana"
+    }
+  },
+  "categories": {
+    "concerts": "Conciertos",
+    "exhibitions": "Exposiciones",
+    "routes": "Rutas y Visitas",
+    "festivals": "Festivales y Muestras",
+    "cycles": "Ciclos",
+    "theater": "Teatro",
+    "conferences": "Conferencias",
+    "children": "Infantil",
+    "commemorations": "Conmemoraciones",
+    "holyWeek": "Semana Santa",
+    "sardanas": "Sardanas",
+    "dance": "Danza",
+    "courses": "Cursos",
+    "parties": "Fiestas",
+    "fairsMarkets": "Ferias y Mercados",
+    "giants": "Gigantes",
+    "circus": "Circo",
+    "digitalCulture": "Cultura Digital",
+    "virtualActivities": "Actividades Virtuales"
   }
+}

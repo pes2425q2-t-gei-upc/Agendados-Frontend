@@ -2,6 +2,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -17,6 +18,7 @@ import { colors, spacing } from '../styles/globalStyles';
 
 export default function RegisterLoginPage() {
   const router = useRouter();
+  const { t } = useTranslation(); // Inicializar el hook de traducción
   const [showLogin, setShowLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState(''); // Usado solo en registro
@@ -34,7 +36,7 @@ export default function RegisterLoginPage() {
     setErrorMessage('');
 
     if (!username || !password) {
-      setErrorMessage('Por favor, completa todos los campos');
+      setErrorMessage(t('auth.completeFields'));
       return;
     }
 
@@ -59,7 +61,7 @@ export default function RegisterLoginPage() {
       ) {
         setErrorMessage(error.response.data.message);
       } else {
-        setErrorMessage('Error al iniciar sesión. Inténtalo de nuevo.');
+        setErrorMessage(t('auth.loginError'));
       }
       console.error(error);
     } finally {
@@ -71,17 +73,17 @@ export default function RegisterLoginPage() {
     setErrorMessage('');
 
     if (!username || !email || !password) {
-      setErrorMessage('Por favor, completa todos los campos');
+      setErrorMessage(t('auth.completeFields'));
       return;
     }
 
     if (!validateEmail(email)) {
-      setErrorMessage('Por favor, introduce un email válido');
+      setErrorMessage(t('auth.invalidEmail'));
       return;
     }
 
     if (password.length < 6) {
-      setErrorMessage('La contraseña debe tener al menos 6 caracteres');
+      setErrorMessage(t('auth.passwordLength'));
       return;
     }
 
@@ -91,7 +93,7 @@ export default function RegisterLoginPage() {
       console.log(response);
       router.replace('/(tabs)/main');
     } catch (error) {
-      setErrorMessage('Error al registrar usuario. Inténtalo de nuevo.');
+      setErrorMessage(t('auth.registerError'));
       console.error(error);
     } finally {
       setLoading(false);
@@ -108,7 +110,7 @@ export default function RegisterLoginPage() {
     >
       <View style={styles.card}>
         <Text style={styles.title}>
-          {showLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
+          {showLogin ? t('auth.login') : t('auth.register')}
         </Text>
 
         {errorMessage ? (
@@ -119,7 +121,7 @@ export default function RegisterLoginPage() {
           <>
             <TextInput
               style={styles.input}
-              placeholder='Nombre de usuario'
+              placeholder={t('auth.username')}
               placeholderTextColor='#999'
               value={username}
               onChangeText={setUsername}
@@ -128,7 +130,7 @@ export default function RegisterLoginPage() {
             />
             <TextInput
               style={styles.input}
-              placeholder='Contraseña'
+              placeholder={t('auth.password')}
               placeholderTextColor='#999'
               secureTextEntry
               value={password}
@@ -145,7 +147,7 @@ export default function RegisterLoginPage() {
               {loading ? (
                 <ActivityIndicator size='small' color='#fff' />
               ) : (
-                <Text style={styles.buttonText}>Entrar</Text>
+                <Text style={styles.buttonText}>{t('auth.loginButton')}</Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity
@@ -158,7 +160,7 @@ export default function RegisterLoginPage() {
               disabled={loading}
             >
               <Text style={styles.switchText}>
-                ¿No tienes cuenta? Regístrate
+                {t('auth.switchToRegister')}
               </Text>
             </TouchableOpacity>
           </>
@@ -166,7 +168,7 @@ export default function RegisterLoginPage() {
           <>
             <TextInput
               style={styles.input}
-              placeholder='Nombre de usuario'
+              placeholder={t('auth.username')}
               placeholderTextColor='#999'
               value={username}
               onChangeText={setUsername}
@@ -175,7 +177,7 @@ export default function RegisterLoginPage() {
             />
             <TextInput
               style={styles.input}
-              placeholder='Correo electrónico'
+              placeholder={t('auth.email')}
               placeholderTextColor='#999'
               keyboardType='email-address'
               value={email}
@@ -184,7 +186,7 @@ export default function RegisterLoginPage() {
             />
             <TextInput
               style={styles.input}
-              placeholder='Contraseña'
+              placeholder={t('auth.password')}
               placeholderTextColor='#999'
               secureTextEntry
               value={password}
@@ -201,7 +203,9 @@ export default function RegisterLoginPage() {
               {loading ? (
                 <ActivityIndicator size='small' color='#fff' />
               ) : (
-                <Text style={styles.buttonText}>Registrar</Text>
+                <Text style={styles.buttonText}>
+                  {t('auth.registerButton')}
+                </Text>
               )}
             </TouchableOpacity>
             <TouchableOpacity
@@ -213,9 +217,7 @@ export default function RegisterLoginPage() {
               }}
               disabled={loading}
             >
-              <Text style={styles.switchText}>
-                ¿Ya tienes cuenta? Inicia sesión
-              </Text>
+              <Text style={styles.switchText}>{t('auth.switchToLogin')}</Text>
             </TouchableOpacity>
           </>
         )}

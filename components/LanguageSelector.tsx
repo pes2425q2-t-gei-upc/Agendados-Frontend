@@ -2,6 +2,8 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 
+import { colors, spacing } from '@styles/globalStyles';
+
 interface LanguageSelectorProps {
   onLanguageChange: (lang: 'es' | 'en' | 'ca') => void;
 }
@@ -26,7 +28,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         onPress={() => handleChangeLanguage('es')}
       >
         <Text style={i18n.language === 'es' ? styles.selectedText : null}>
-          {t('language.spanish')}
+          {t('settings.spanish')}
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -37,7 +39,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         onPress={() => handleChangeLanguage('en')}
       >
         <Text style={i18n.language === 'en' ? styles.selectedText : null}>
-          {t('language.english')}
+          {t('settings.english')}
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -48,7 +50,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         onPress={() => handleChangeLanguage('ca')}
       >
         <Text style={i18n.language === 'ca' ? styles.selectedText : null}>
-          {t('language.catalan')}
+          {t('settings.catalan')}
         </Text>
       </TouchableOpacity>
     </View>
@@ -61,8 +63,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     borderRadius: 20,
     minWidth: 100,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   langButtonContainer: {
     flexDirection: 'row',
@@ -71,10 +73,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   selectedLang: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
   },
   selectedText: {
-    color: 'white',
+    color: colors.lightText,
   },
 });
 

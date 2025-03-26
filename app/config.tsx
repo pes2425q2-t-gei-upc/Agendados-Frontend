@@ -15,10 +15,10 @@ export default function Config() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('settings')}</Text>
+      <Text style={styles.title}>{t('settings.title')}</Text>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('language')}</Text>
+        <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
 
         <View style={styles.languageOptions}>
           <TouchableOpacity
@@ -33,7 +33,7 @@ export default function Config() {
                 language === 'es' ? styles.selectedText : styles.languageText
               }
             >
-              {t('spanish')}
+              {t('settings.spanish')}
             </Text>
           </TouchableOpacity>
 
@@ -49,7 +49,7 @@ export default function Config() {
                 language === 'ca' ? styles.selectedText : styles.languageText
               }
             >
-              {t('catalan')}
+              {t('settings.catalan')}
             </Text>
           </TouchableOpacity>
 
@@ -65,7 +65,7 @@ export default function Config() {
                 language === 'en' ? styles.selectedText : styles.languageText
               }
             >
-              {t('english')}
+              {t('settings.english')}
             </Text>
           </TouchableOpacity>
         </View>

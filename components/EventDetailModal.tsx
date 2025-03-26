@@ -1,5 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useRef, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -36,6 +37,8 @@ const EventDetailModal = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const { t, i18n } = useTranslation(); // Add translation hook
+  const locale = i18n.language;
 
   // Usar el contexto de favoritos
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
@@ -149,16 +152,18 @@ const EventDetailModal = ({
       return (
         <>
           <Text style={styles.dateTimeText}>
-            Des de: {startDate.toLocaleDateString('ca-ES', dateOptions)}
+            {t('eventDetails.from')}:{' '}
+            {startDate.toLocaleDateString(locale, dateOptions)}
           </Text>
           <Text style={styles.dateTimeText}>
-            {startDate.toLocaleTimeString('ca-ES', timeOptions)}
+            {startDate.toLocaleTimeString(locale, timeOptions)}
           </Text>
           <Text style={styles.dateTimeText}>
-            Fins a: {endDate.toLocaleDateString('ca-ES', dateOptions)}
+            {t('eventDetails.to')}:{' '}
+            {endDate.toLocaleDateString(locale, dateOptions)}
           </Text>
           <Text style={styles.dateTimeText}>
-            {endDate.toLocaleTimeString('ca-ES', timeOptions)}
+            {endDate.toLocaleTimeString(locale, timeOptions)}
           </Text>
         </>
       );
@@ -168,11 +173,11 @@ const EventDetailModal = ({
     return (
       <>
         <Text style={styles.dateTimeText}>
-          {startDate.toLocaleDateString(undefined, dateOptions)}
+          {startDate.toLocaleDateString(locale, dateOptions)}
         </Text>
         <Text style={styles.dateTimeText}>
-          {startDate.toLocaleTimeString(undefined, timeOptions)} -{' '}
-          {endDate.toLocaleTimeString(undefined, timeOptions)}
+          {startDate.toLocaleTimeString(locale, timeOptions)} -{' '}
+          {endDate.toLocaleTimeString(locale, timeOptions)}
         </Text>
       </>
     );
@@ -338,7 +343,9 @@ const EventDetailModal = ({
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <MaterialIcons name='event' size={22} color={colors.primary} />
-                <Text style={styles.sectionTitle}>Date & Time</Text>
+                <Text style={styles.sectionTitle}>
+                  {t('eventDetails.dateAndTime')}
+                </Text>
               </View>
               <View style={styles.sectionContent}>{formatDateRange()}</View>
             </View>
@@ -352,7 +359,9 @@ const EventDetailModal = ({
                     size={22}
                     color={colors.primary}
                   />
-                  <Text style={styles.sectionTitle}>Schedule</Text>
+                  <Text style={styles.sectionTitle}>
+                    {t('eventDetails.schedule')}
+                  </Text>
                 </View>
                 <Text style={[styles.dateTimeText, { marginTop: 8 }]}>
                   {event.schedule}
@@ -369,7 +378,9 @@ const EventDetailModal = ({
                     size={22}
                     color={colors.primary}
                   />
-                  <Text style={styles.sectionTitle}>Location</Text>
+                  <Text style={styles.sectionTitle}>
+                    {t('eventDetails.location')}
+                  </Text>
                 </View>
                 <View style={styles.sectionContent}>
                   {event.location.space && (
@@ -392,7 +403,9 @@ const EventDetailModal = ({
                       style={styles.mapButton}
                       onPress={openMap}
                     >
-                      <Text style={styles.mapButtonText}>View on map</Text>
+                      <Text style={styles.mapButtonText}>
+                        {t('eventDetails.viewOnMap')}
+                      </Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -408,7 +421,9 @@ const EventDetailModal = ({
                     size={22}
                     color={colors.primary}
                   />
-                  <Text style={styles.sectionTitle}>Description</Text>
+                  <Text style={styles.sectionTitle}>
+                    {t('eventDetails.description')}
+                  </Text>
                 </View>
                 <View style={styles.sectionContent}>
                   <Text style={styles.description}>{event.description}</Text>
@@ -425,7 +440,9 @@ const EventDetailModal = ({
                     size={22}
                     color={colors.primary}
                   />
-                  <Text style={styles.sectionTitle}>Ticket Information</Text>
+                  <Text style={styles.sectionTitle}>
+                    {t('eventDetails.ticketInfo')}
+                  </Text>
                 </View>
                 <View style={styles.sectionContent}>
                   <Text style={styles.description}>{event.info_tickets}</Text>
@@ -438,7 +455,9 @@ const EventDetailModal = ({
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <MaterialIcons name='link' size={22} color={colors.primary} />
-                  <Text style={styles.sectionTitle}>Related Links</Text>
+                  <Text style={styles.sectionTitle}>
+                    {t('eventDetails.relatedLinks')}
+                  </Text>
                 </View>
                 <View style={styles.sectionContent}>
                   {event.links.map((link, index) => (
@@ -480,7 +499,9 @@ const EventDetailModal = ({
                     : null
                 }
               >
-                <Text style={styles.buyButtonText}>More Information</Text>
+                <Text style={styles.buyButtonText}>
+                  {t('eventDetails.moreInfo')}
+                </Text>
               </TouchableOpacity>
             </View>
           )}
