@@ -25,33 +25,34 @@ interface EventCardProps {
 const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const swipeableRef = useRef<Swipeable>(null);
-  // Track touch start position to detect horizontal swipes
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
   const isSwiping = useRef<boolean>(false);
 
-  // Get the image source - use the first image from the event if available
   const imageSource =
     event.images && event.images.length > 0
       ? { uri: event.images[0].image_url }
-      : require('@assets/images/FotoJazz.jpg'); // Fallback image
+      : require('@assets/images/FotoJazz.jpg');
 
-  // Format time range
   const formatTimeRange = () => {
     const startDate = new Date(event.date_ini);
     const endDate = new Date(event.date_end);
-    const options = { hour: '2-digit', minute: '2-digit' };
+    const timeOptions: Intl.DateTimeFormatOptions = {
+      hour: '2-digit',
+      minute: '2-digit',
+    };
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    };
 
-    // For multi-day events
     if (startDate.toDateString() !== endDate.toDateString()) {
-      return `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+      return `${startDate.toLocaleDateString('es-ES', dateOptions)} - ${endDate.toLocaleDateString('es-ES', dateOptions)}`;
     }
-
-    // For same-day events
-    return `${startDate.toLocaleTimeString([], options)} - ${endDate.toLocaleTimeString([], options)}`;
+    return `${startDate.toLocaleTimeString('es-ES', timeOptions)} - ${endDate.toLocaleTimeString('es-ES', timeOptions)}`;
   };
 
-  // Handle share event
   const handleShare = async () => {
     try {
       const location = event.location
@@ -67,7 +68,6 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
     }
   };
 
-  // Render the delete action when card is swiped left
   const renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>
   ) => {
@@ -82,7 +82,10 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
       >
         <TouchableOpacity
           style={styles.deleteButton}
-          onPress={() => onDelete(event.id)}
+          onPress={() => {
+            onDelete(event.id);
+            swipeableRef.current?.close(); // Reset swipe after delete
+          }}
         >
           <MaterialIcons name='delete' size={24} color={colors.lightText} />
         </TouchableOpacity>
@@ -90,38 +93,31 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
     );
   };
 
-  // Handle touch start to record initial position
   const handleTouchStart = (e: GestureResponderEvent) => {
     touchStartX.current = e.nativeEvent.pageX;
     touchStartY.current = e.nativeEvent.pageY;
     isSwiping.current = false;
   };
 
-  // Handle touch move to detect horizontal swipes
   const handleTouchMove = (e: GestureResponderEvent) => {
     const deltaX = Math.abs(e.nativeEvent.pageX - touchStartX.current);
     const deltaY = Math.abs(e.nativeEvent.pageY - touchStartY.current);
 
-    // If horizontal movement is greater than vertical and beyond a threshold,
-    // mark as swiping to prevent detail modal from opening
     if (deltaX > deltaY && deltaX > 10) {
       isSwiping.current = true;
     }
   };
 
-  // Only open details if not detected as a horizontal swipe
   const handlePress = () => {
     if (!isSwiping.current) {
       setShowDetails(true);
     }
   };
 
-  // Get location text from event.location
   const getLocationText = () => {
     if (!event.location) {
       return 'Location not specified';
     }
-
     let locationText = '';
     if (event.location.space) {
       locationText += event.location.space;
@@ -151,9 +147,14 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
         >
           <View style={styles.card}>
             <View style={styles.eventImageContainer}>
-              <Image source={imageSource} style={styles.eventImage} />
+              <Image
+                source={imageSource}
+                style={styles.eventImage}
+                loading='lazy'
+                progressiveRenderingEnabled={true}
+                defaultSource={require('@assets/images/FotoJazz.jpg')}
+              />
             </View>
-
             <View style={styles.contentContainer}>
               <View>
                 <View style={styles.cardHeader}>
@@ -165,7 +166,6 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
                     {event.title}
                   </Text>
                 </View>
-
                 <View style={styles.iconTextContainer}>
                   <MaterialIcons
                     name='event'
@@ -194,7 +194,6 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
                     {getLocationText()}
                   </Text>
                 </View>
-
                 <View style={styles.tagsContainer}>
                   {event.categories && event.categories.length > 0 && (
                     <View style={styles.categoryTag}>
@@ -213,7 +212,6 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
           </View>
         </TouchableOpacity>
       </Swipeable>
-
       <EventDetailModal
         event={event}
         visible={showDetails}
