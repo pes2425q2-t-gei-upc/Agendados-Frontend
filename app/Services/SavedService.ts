@@ -1,7 +1,8 @@
 import { Event, EventDTO } from '@models/Event';
 
 export class SavedService {
-  private static baseUrl: string = 'http://10.0.2.2:8000/api';
+  //private static baseUrl: string = 'http://10.0.2.2:8000/api';
+  private static baseUrl: string = 'http://localhost:8000/api';
 
   /**
    * Gets the authentication token from localStorage
