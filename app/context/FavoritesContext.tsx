@@ -61,8 +61,7 @@ export const FavoritesProvider: React.FC<{ children: React.ReactNode }> = ({
       if (success) {
         // Actualizar el estado local sin necesidad de recargar todos los favoritos
         setFavorites((prev) => {
-          // Evitar duplicados
-          if (!favoriteIds.has(eventId)) {
+          if (!prev.some((ev) => Number(ev.id) === eventId)) {
             return [...prev, event];
           }
           return prev;

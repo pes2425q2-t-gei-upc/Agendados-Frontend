@@ -163,14 +163,12 @@ const SavedEventCard = ({ event, onRemoved }: EventCardProps) => {
           activeOpacity={0.7}
           onPress={handlePress}
           onPressIn={handleTouchStart}
-          onTouchMove={handleTouchMove}
         >
           <View style={styles.card}>
             <View style={styles.eventImageContainer}>
               <Image
                 source={imageSource}
                 style={styles.eventImage}
-                loading='lazy'
                 progressiveRenderingEnabled={true}
                 defaultSource={require('@assets/images/FotoJazz.jpg')}
               />

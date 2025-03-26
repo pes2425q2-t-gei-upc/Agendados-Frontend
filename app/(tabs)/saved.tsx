@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
   ActivityIndicator,
   FlatList,
@@ -13,13 +12,13 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import SavedEventCard from '@components/SavedEventCard';
 import { Event } from '@models/Event';
-import { SavedService } from '@services/SavedService';
 import {
   colors,
   globalStyles,
   typography,
   spacing,
 } from '@styles/globalStyles';
+import { useFavorites } from 'app/context/FavoritesContext';
 
 // Helper function to group events by date
 const groupEventsByDate = (events: Event[]) => {
@@ -109,7 +108,7 @@ const DateGroup = memo(({ group, onDeleteEvent }: DateGroupProps) => {
           <SavedEventCard
             key={event.id}
             event={event}
-            onDelete={onDeleteEvent}
+            onRemoved={() => onDeleteEvent(event.id)}
           />
         ))}
       </View>
@@ -122,37 +121,41 @@ DateGroup.displayName = 'DateGroup';
 export default function SavedEvents() {
   const router = useRouter();
   const { t } = useTranslation();
-  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadSavedEvents = useCallback(async () => {
-    setLoading(true);
-    try {
-      const savedEvents = await SavedService.getFavorites();
-      setEvents(Array.isArray(savedEvents) ? savedEvents : []);
-    } catch (error) {
-      console.error('Error loading saved events:', error);
-      setEvents([]); // Fallback to empty array on error
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Usar el contexto de favoritos
+  const { favorites, removeFavorite, refreshFavorites } = useFavorites();
 
-  const handleDeleteEvent = useCallback((id: number) => {
-    // Optimistic UI update
-    setEvents((prevEvents) => prevEvents.filter((event) => event.id !== id));
-    // Fire-and-forget API call
-    SavedService.removeFavorite(id).catch((error) => {
-      console.error('Error removing event:', error);
-      //TODO: revert UI if critical
-    });
-  }, []);
+  const handleDeleteEvent = useCallback(
+    (id: number) => {
+      // Llamar directamente al método del contexto para eliminar el favorito
+      removeFavorite(id).catch(() => {
+        // Error handling removed
+      });
+    },
+    [removeFavorite]
+  );
 
-  const groupedEvents = useMemo(() => groupEventsByDate(events), [events]);
+  const groupedEvents = useMemo(
+    () => groupEventsByDate(favorites),
+    [favorites]
+  );
 
+  // Efecto para cargar los favoritos cuando el componente se monta (solo una vez)
   useEffect(() => {
-    loadSavedEvents();
-  }, [loadSavedEvents]);
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        await refreshFavorites();
+      } catch (error) {
+        // Error handling removed
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
