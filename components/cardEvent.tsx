@@ -1,20 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React from 'react';
 import {
   Text,
   ImageBackground,
   View,
-  StyleSheet,
   TouchableOpacity,
+  GestureResponderEvent,
 } from 'react-native';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 
 import { styles } from '@styles/mainPageStyles';
 
-const Card = (props) => {
+const Card = (props: {
+  event1: { name: any; image: any; place: any; cat: any; date: any };
+  onInfoPress: ((event: GestureResponderEvent) => void) | undefined;
+}) => {
   const { name, image, place, cat, date } = props.event1;
-  const router = useRouter();
   return (
     <View style={styles.card}>
       <ImageBackground source={image} style={styles.image}>
@@ -43,7 +44,10 @@ const Card = (props) => {
             <Ionicons name='location-outline' size={18} color='#fff' />
             <Text style={styles.tagText}>{place}</Text>
           </View>
-          <TouchableOpacity style={styles.infoButton}>
+          <TouchableOpacity
+            style={styles.infoButton}
+            onPress={props.onInfoPress}
+          >
             <Ionicons
               name='information-circle-outline'
               size={30}
