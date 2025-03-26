@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
+  Alert,
 } from 'react-native';
 import {
   GestureHandlerRootView,
@@ -23,13 +24,16 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import Card from '@components/cardEvent';
+import EventDetailModal from '@components/EventDetailModal';
 import { Event } from '@models/Event';
-import { getEventRecomendations } from '@services/EventsService';
+import {
+  getEventRecomendations,
+  getEventDetails,
+} from '@services/EventsService';
 import { SavedService } from '@services/SavedService';
 import { colors } from '@styles/globalStyles';
 import { styles } from '@styles/mainPageStyles';
-
-// Fix missing imports
+import { useFavorites } from 'app/context/FavoritesContext';
 
 // Import images for swipe indicators
 const Like = require('@assets/images/GreenColor.jpeg');
@@ -50,17 +54,61 @@ const SWIPE_VELOCITY = 800;
 export default function Main() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [, setOriginalEvents] = useState<Event[]>([]);
+  const [originalEvents, setOriginalEvents] = useState<Event[]>([]);
   const [events, setEvents] = useState<TinderCardEvent[]>([]);
+  const detailCache = useRef(new Map());
+  const { refreshFavorites } = useFavorites();
 
   // Card state
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(1);
 
+  // Event detail modal state
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedEventDetail, setSelectedEventDetail] = useState<Event | null>(
+    null
+  );
+
   // Values for animations
   const { width: screenWidth } = useWindowDimensions();
   const hiddenTranslateX = 2 * screenWidth;
   const translateX = useSharedValue(0);
+
+  // Open event detail modal - similar to how it's done in explore.tsx
+  const openDetailModal = useCallback(
+    async (eventId: number) => {
+      try {
+        const cachedDetail = detailCache.current.get(eventId.toString());
+        if (cachedDetail) {
+          setSelectedEventDetail(cachedDetail);
+          setDetailModalVisible(true);
+          return;
+        }
+
+        // Find the original event data (which contains full Event object)
+        const originalEvent = originalEvents.find(
+          (event) => event.id === eventId
+        );
+
+        if (originalEvent) {
+          // If we have the full event data in our state already
+          setSelectedEventDetail(originalEvent);
+          detailCache.current.set(eventId.toString(), originalEvent);
+        } else {
+          // Fetch from API if not available in state
+          const detail = await getEventDetails(eventId);
+          detailCache.current.set(eventId.toString(), detail);
+          setSelectedEventDetail(detail);
+        }
+
+        setDetailModalVisible(true);
+      } catch (err) {
+        console.error('Error loading event details:', err);
+        Alert.alert('Error', 'Could not load event details.');
+      }
+    },
+    [originalEvents]
+  );
 
   // Fetch recommended events from backend
   const fetchRecommendedEvents = useCallback(async () => {
@@ -100,7 +148,7 @@ export default function Main() {
       setError('Could not load recommended events');
 
       // Fallback to static data if API fails
-      setEvents([
+      const fallbackEvents = [
         {
           id: 1,
           name: 'Concierto de Jazz',
@@ -133,7 +181,22 @@ export default function Main() {
           cat: 'Museos',
           date: '16/4/2025',
         },
-      ]);
+      ];
+
+      setEvents(fallbackEvents);
+
+      // Create fallback original events for compatibility
+      const fallbackOriginalEvents = fallbackEvents.map((event) => ({
+        id: event.id,
+        title: event.name,
+        date_ini: new Date(event.date).toISOString(),
+        date_end: new Date(event.date).toISOString(),
+        categories: [{ id: 1, name: event.cat }],
+        images: [],
+        links: [],
+      }));
+
+      setOriginalEvents(fallbackOriginalEvents as Event[]);
     } finally {
       setLoading(false);
     }
@@ -144,15 +207,20 @@ export default function Main() {
   }, [fetchRecommendedEvents]);
 
   // Handle adding event to favorites when swiping right
-  const handleSwipeRight = useCallback(async (eventId: number) => {
-    try {
-      await SavedService.addFavorite(eventId);
-      console.log(`Added event ${eventId} to favorites`);
-    } catch (err) {
-      console.error('Error adding to favorites:', err);
-      // Optionally show an error toast or message
-    }
-  }, []);
+  const handleSwipeRight = useCallback(
+    async (eventId: number) => {
+      try {
+        await SavedService.addFavorite(eventId);
+        console.log(`Added event ${eventId} to favorites`);
+        // Refrescar la lista de favoritos
+        await refreshFavorites();
+      } catch (err) {
+        console.error('Error adding to favorites:', err);
+        // Opcional: mostrar un mensaje de error o toast
+      }
+    },
+    [refreshFavorites]
+  );
 
   // Derived rotation value based on swipe position
   const rotate = useDerivedValue(
@@ -238,6 +306,14 @@ export default function Main() {
     ),
   }));
 
+  // Handle info button click from card component
+  const handleInfoButtonPress = useCallback(
+    (eventId: number) => {
+      openDetailModal(eventId);
+    },
+    [openDetailModal]
+  );
+
   // Show loading screen
   if (loading) {
     return (
@@ -295,7 +371,10 @@ export default function Main() {
         <View style={styles.nextCardContainer}>
           {nextProfile && (
             <Animated.View style={[styles.animatedCard, nextCardStyle]}>
-              <Card event1={nextProfile} />
+              <Card
+                event1={currentProfile}
+                onInfoPress={() => handleInfoButtonPress(currentProfile.id)}
+              />
             </Animated.View>
           )}
         </View>
@@ -313,9 +392,24 @@ export default function Main() {
               style={[styles.like, { right: 0 }, dislikeStyle]}
               resizeMode='stretch'
             />
-            <Card event1={currentProfile} />
+            <Card
+              event1={currentProfile}
+              onInfoPress={() => handleInfoButtonPress(currentProfile.id)}
+            />
           </Animated.View>
         </PanGestureHandler>
+
+        {/* Event Detail Modal */}
+        {selectedEventDetail && (
+          <EventDetailModal
+            event={selectedEventDetail}
+            visible={detailModalVisible}
+            onClose={() => {
+              setDetailModalVisible(false);
+              setSelectedEventDetail(null);
+            }}
+          />
+        )}
       </View>
     </GestureHandlerRootView>
   );
