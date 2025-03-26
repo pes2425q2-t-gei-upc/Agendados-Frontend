@@ -1,12 +1,168 @@
 {
-    "welcome": {
-      "title": "Benvingut a Agendados!",
-      "subtitle": "La teva aplicació per organitzar tasques"
+  "common": {
+    "loading": "Carregant...",
+    "error": "Error",
+    "noResults": "No s'han trobat resultats",
+    "cancel": "Cancel·lar",
+    "confirm": "Confirmar",
+    "apply": "Aplicar",
+    "clear": "Netejar",
+    "close": "Tancar",
+    "save": "Desar",
+    "delete": "Eliminar",
+    "back": "Tornar",
+    "edit": "Editar",
+    "search": "Cercar"
+  },
+  "navigation": {
+    "home": "Inici",
+    "explore": "Explorar",
+    "saved": "Desats",
+    "profile": "Perfil",
+    "settings": "Configuració"
+  },
+  "auth": {
+    "login": "Iniciar Sessió",
+    "register": "Crear Compte",
+    "username": "Nom d'usuari",
+    "email": "Correu electrònic",
+    "password": "Contrasenya",
+    "loginButton": "Entrar",
+    "registerButton": "Registrar",
+    "switchToRegister": "No tens compte? Registra't",
+    "switchToLogin": "Ja tens compte? Inicia sessió",
+    "forgotPassword": "Has oblidat la teva contrasenya?",
+    "completeFields": "Si us plau, completa tots els camps",
+    "invalidEmail": "Si us plau, introdueix un email vàlid",
+    "passwordLength": "La contrasenya ha de tenir almenys 6 caràcters",
+    "loginError": "Error a l'iniciar sessió. Torna-ho a provar.",
+    "registerError": "Error al registrar usuari. Torna-ho a provar."
+  },
+  "explore": {
+    "search": {
+      "placeholder": "Barcelona, concerts...",
+      "clearFilters": "Esborrar filtres"
     },
-    "language": {
-      "selectLanguage": "Selecciona idioma:",
-      "spanish": "Espanyol",
-      "english": "Anglès",
-      "catalan": "Català"
+    "filters": {
+      "title": "Personalització de cerca",
+      "dateRange": "Rang de dates",
+      "startDate": "Data inici",
+      "endDate": "Data fi",
+      "categories": "Categories",
+      "population": "Població",
+      "selectPopulation": "Seleccionar població",
+      "clearFilters": "Netejar filtres",
+      "applyFilters": "Aplicar filtres",
+      "noResults": "No s'han trobat resultats"
+    },
+    "datePicker": {
+      "selectStartDate": "Seleccionar data inici",
+      "selectEndDate": "Seleccionar data fi",
+      "cancel": "Cancel·lar",
+      "confirm": "Confirmar"
+    },
+    "events": {
+      "title": "Esdeveniments",
+      "allEvents": "Tots els esdeveniments",
+      "loadingMore": "Carregant més esdeveniments...",
+      "nearbyEvents": "Esdeveniments propers",
+      "hideEvents": "Ocultar esdeveniments"
+    },
+    "population": {
+      "title": "Seleccionar població",
+      "search": "Cercar població...",
+      "noResults": "No s'han trobat resultats"
     }
+  },
+  "eventDetails": {
+    "dateAndTime": "Data i Hora",
+    "schedule": "Horari",
+    "location": "Ubicació",
+    "description": "Descripció",
+    "ticketInfo": "Informació d'Entrades",
+    "relatedLinks": "Enllaços Relacionats",
+    "viewOnMap": "Veure al mapa",
+    "moreInfo": "Més informació",
+    "from": "Des de",
+    "to": "Fins a"
+  },
+  "saved": {
+    "title": "Esdeveniments desats",
+    "loadingEvents": "Carregant esdeveniments desats...",
+    "noSavedEvents": "No tens esdeveniments desats",
+    "today": "Avui"
+  },
+  "days": {
+    "monday": "Dilluns",
+    "tuesday": "Dimarts",
+    "wednesday": "Dimecres",
+    "thursday": "Dijous",
+    "friday": "Divendres",
+    "saturday": "Dissabte",
+    "sunday": "Diumenge"
+  },
+  "months": {
+    "january": "Gener",
+    "february": "Febrer",
+    "march": "Març",
+    "april": "Abril",
+    "may": "Maig",
+    "june": "Juny",
+    "july": "Juliol",
+    "august": "Agost",
+    "september": "Setembre",
+    "october": "Octubre",
+    "november": "Novembre",
+    "december": "Desembre"
+  },
+  "common": {
+    "of": "de"
+  },
+  "profile": {
+    "welcome": "Benvingut al teu perfil",
+    "goToSettings": "Anar a Configuració",
+    "logout": "Tancar sessió",
+    "preferences": "Preferències",
+    "personalInfo": "Informació personal"
+  },
+  "settings": {
+    "title": "Configuració",
+    "language": "Idioma",
+    "spanish": "Espanyol",
+    "catalan": "Català",
+    "english": "Anglès",
+    "notifications": "Notificacions",
+    "theme": "Tema",
+    "privacy": "Privacitat",
+    "about": "Sobre",
+    "help": "Ajuda"
+  },
+  "home": {
+    "events": {
+      "nearYou": "A prop teu",
+      "popular": "Populars",
+      "thisWeek": "Aquesta setmana"
+    }
+  },
+  "categories": {
+    "concerts": "Concerts",
+    "exhibitions": "Exposicions",
+    "routes": "Rutes i Visites",
+    "festivals": "Festivals i Mostres",
+    "cycles": "Cicles",
+    "theater": "Teatre",
+    "conferences": "Conferències",
+    "children": "Infantil",
+    "commemorations": "Commemoracions",
+    "holyWeek": "Setmana Santa",
+    "sardanas": "Sardanes",
+    "dance": "Dansa",
+    "courses": "Cursos",
+    "parties": "Festes",
+    "fairsMarkets": "Fires i Mercats",
+    "giants": "Gegants",
+    "circus": "Circ",
+    "digitalCulture": "Cultura Digital",
+    "virtualActivities": "Activitats Virtuals"
   }
+}

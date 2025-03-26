@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Modal,
   View,
@@ -71,6 +72,8 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   clearFilters,
   formatDate,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <Modal
       animationType='slide'
@@ -89,14 +92,18 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           <View style={styles.modalContent}>
             {/* Cabecera del modal */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Personalización de búsqueda</Text>
+              <Text style={styles.modalTitle}>
+                {t('explore.filters.title')}
+              </Text>
               <TouchableOpacity onPress={toggleFilterModal}>
                 <Ionicons name='close' size={24} color='#333' />
               </TouchableOpacity>
             </View>
 
             {/* Rango de fechas */}
-            <Text style={styles.sectionTitle}>Rango de fechas</Text>
+            <Text style={styles.sectionTitle}>
+              {t('explore.filters.dateRange')}
+            </Text>
             <View style={styles.dateRangeContainer}>
               <TouchableOpacity
                 style={[styles.datePickerButton, { marginRight: 10 }]}
@@ -104,7 +111,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               >
                 <Ionicons name='calendar-outline' size={20} color='#666' />
                 <Text style={styles.datePickerButtonText}>
-                  {startDate ? formatDate(startDate) : 'Fecha inicio'}
+                  {startDate
+                    ? formatDate(startDate)
+                    : t('explore.filters.startDate')}
                 </Text>
               </TouchableOpacity>
               <Text style={styles.dateRangeSeparator}>-</Text>
@@ -114,7 +123,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               >
                 <Ionicons name='calendar-outline' size={20} color='#666' />
                 <Text style={styles.datePickerButtonText}>
-                  {endDate ? formatDate(endDate) : 'Fecha fin'}
+                  {endDate ? formatDate(endDate) : t('explore.filters.endDate')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -140,7 +149,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               )}
 
             {/* Carrusel de Categorías */}
-            <Text style={styles.sectionTitle}>Categorías</Text>
+            <Text style={styles.sectionTitle}>
+              {t('explore.filters.categories')}
+            </Text>
             <CategoryCarousel
               filterCategories={filterCategories}
               selectedCategories={selectedCategories}
@@ -148,7 +159,9 @@ export const FilterModal: React.FC<FilterModalProps> = ({
             />
 
             {/* Selector de población */}
-            <Text style={styles.sectionTitle}>Población</Text>
+            <Text style={styles.sectionTitle}>
+              {t('explore.filters.population')}
+            </Text>
             <TouchableOpacity
               style={styles.populationDropdownButton}
               onPress={() => setPopulationDropdownVisible(true)}
@@ -156,8 +169,8 @@ export const FilterModal: React.FC<FilterModalProps> = ({
               <Text style={styles.populationDropdownButtonText}>
                 {selectedPopulation
                   ? (populationList.find((p) => p.id === selectedPopulation)
-                      ?.label ?? 'Seleccionar población')
-                  : 'Seleccionar población'}
+                      ?.label ?? t('explore.filters.selectPopulation'))
+                  : t('explore.filters.selectPopulation')}
               </Text>
               <Ionicons name='chevron-down' size={20} color='#666' />
             </TouchableOpacity>
@@ -168,13 +181,17 @@ export const FilterModal: React.FC<FilterModalProps> = ({
                 style={styles.clearButton}
                 onPress={clearFilters}
               >
-                <Text style={styles.clearButtonText}>Limpiar filtros</Text>
+                <Text style={styles.clearButtonText}>
+                  {t('explore.filters.clearFilters')}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.applyButton}
                 onPress={toggleFilterModal}
               >
-                <Text style={styles.applyButtonText}>Aplicar filtros</Text>
+                <Text style={styles.applyButtonText}>
+                  {t('explore.filters.applyFilters')}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
