@@ -4677,7 +4677,7 @@ expo-keep-awake@~14.0.3:
 
 expo-linear-gradient@^14.0.2:
   version "14.0.2"
-  resolved "https://registry.npmjs.org/expo-linear-gradient/-/expo-linear-gradient-14.0.2.tgz"
+  resolved "https://registry.yarnpkg.com/expo-linear-gradient/-/expo-linear-gradient-14.0.2.tgz#51fb266d1c7a38349077d243e383cc3d69d4356b"
   integrity sha512-nvac1sPUfFFJ4mY25UkvubpUV/olrBH+uQw5k+beqSvQaVQiUfFtYzfRr+6HhYBNb4AEsOtpsCRkpDww3M2iGQ==
 
 expo-linking@~7.0.5:

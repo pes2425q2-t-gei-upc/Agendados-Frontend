@@ -36,7 +36,6 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-
   carouselDotsContainer: {
     alignSelf: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.38)',
@@ -49,6 +48,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
     position: 'absolute',
   },
+
   carouselIndicatorActiveDot: {
     backgroundColor: colors.primary,
     borderRadius: 5,
@@ -116,6 +116,9 @@ export const styles = StyleSheet.create({
   eventImage: {
     height: 250,
     width: screenWidth,
+  },
+  favoriteButton: {
+    padding: 8,
   },
   header: {
     flexDirection: 'row',

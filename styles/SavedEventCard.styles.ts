@@ -1,3 +1,4 @@
+/* eslint-disable react-native/sort-styles */
 import { StyleSheet } from 'react-native';
 
 import { colors, spacing } from '@styles/globalStyles';
@@ -8,7 +9,6 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 4,
     marginVertical: 5,
-    padding: 10, // Remove padding to allow image to touch edges
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -37,14 +37,14 @@ export const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   contentContainer: {
-    flex: 1, // Take remaining space
+    flex: 1,
     flexDirection: 'column',
     justifyContent: 'center',
     marginBottom: 5,
     marginLeft: 10,
     marginTop: 5,
     overflow: 'hidden',
-    width: '60%', // Limit width to ensure text doesn't overflow
+    width: '60%',
   },
   deleteActionContainer: {
     alignItems: 'center',
@@ -68,8 +68,9 @@ export const styles = StyleSheet.create({
     width: '100%',
   },
   eventImageContainer: {
+    padding: 10,
     alignItems: 'center',
-    height: 120,
+    height: 140,
     justifyContent: 'center',
     width: 120,
   },
@@ -87,6 +88,10 @@ export const styles = StyleSheet.create({
     marginBottom: 3,
     marginTop: 3,
   },
+  shareButton: {
+    alignSelf: 'flex-end',
+    paddingRight: 20,
+  },
   tagText: {
     color: colors.primaryDark,
     fontSize: 12,
@@ -100,8 +105,7 @@ export const styles = StyleSheet.create({
   },
   timeRange: {
     color: colors.textSecondary,
-    flex: 1,
     fontSize: 14,
-    marginBottom: 1,
+    marginLeft: 4,
   },
 });

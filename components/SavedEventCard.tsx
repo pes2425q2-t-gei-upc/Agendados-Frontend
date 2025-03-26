@@ -8,26 +8,31 @@ import {
   Share,
   GestureResponderEvent,
   Image,
+  Alert,
 } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 import { Event } from '@models/Event';
 import { colors } from '@styles/globalStyles';
 import { styles } from '@styles/SavedEventCard.styles';
+import { useFavorites } from 'app/context/FavoritesContext';
 
 import EventDetailModal from './EventDetailModal';
 
 interface EventCardProps {
   event: Event;
-  onDelete: (id: number) => void;
+  onRemoved?: () => void;
 }
 
-const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
+const SavedEventCard = ({ event, onRemoved }: EventCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const swipeableRef = useRef<Swipeable>(null);
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
   const isSwiping = useRef<boolean>(false);
+
+  // Usar el contexto de favoritos para manejar la eliminación
+  const { removeFavorite } = useFavorites();
 
   const imageSource =
     event.images && event.images.length > 0
@@ -68,6 +73,27 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!event.id) {
+      return;
+    }
+
+    try {
+      const success = await removeFavorite(Number(event.id));
+      if (success) {
+        // Callback opcional para notificar que este elemento fue eliminado
+        if (onRemoved) {
+          onRemoved();
+        }
+      }
+    } catch (error) {
+      console.error('Error removing event from favorites:', error);
+      Alert.alert('Error', 'Could not remove event from favorites');
+    } finally {
+      swipeableRef.current?.close(); // Reset swipe after delete attempt
+    }
+  };
+
   const renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>
   ) => {
@@ -80,13 +106,7 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
       <Animated.View
         style={[styles.deleteActionContainer, { transform: [{ translateX }] }]}
       >
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => {
-            onDelete(event.id);
-            swipeableRef.current?.close(); // Reset swipe after delete
-          }}
-        >
+        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
           <MaterialIcons name='delete' size={24} color={colors.lightText} />
         </TouchableOpacity>
       </Animated.View>
@@ -143,14 +163,12 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
           activeOpacity={0.7}
           onPress={handlePress}
           onPressIn={handleTouchStart}
-          onTouchMove={handleTouchMove}
         >
           <View style={styles.card}>
             <View style={styles.eventImageContainer}>
               <Image
                 source={imageSource}
                 style={styles.eventImage}
-                loading='lazy'
                 progressiveRenderingEnabled={true}
                 defaultSource={require('@assets/images/FotoJazz.jpg')}
               />
@@ -208,10 +226,20 @@ const SavedEventCard = ({ event, onDelete }: EventCardProps) => {
                   )}
                 </View>
               </View>
+
+              <TouchableOpacity
+                style={styles.shareButton}
+                onPress={handleShare}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <MaterialIcons name='share' size={20} color={colors.primary} />
+              </TouchableOpacity>
             </View>
           </View>
         </TouchableOpacity>
       </Swipeable>
+
+      {/* Usar la versión actualizada del modal que usa el Context */}
       <EventDetailModal
         event={event}
         visible={showDetails}

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Constants from 'expo-constants';
 
 import { Event, EventDTO } from '@models/Event';
@@ -37,7 +38,6 @@ export class SavedService {
       const data: EventDTO[] = await response.json();
       return data.map((eventDto) => new Event(eventDto));
     } catch (error) {
-      console.error('Error fetching favorites:', error);
       throw error;
     }
   }
@@ -66,7 +66,6 @@ export class SavedService {
 
       return true;
     } catch (error) {
-      console.error('Error adding to favorites:', error);
       throw error;
     }
   }
@@ -95,7 +94,6 @@ export class SavedService {
 
       return true;
     } catch (error) {
-      console.error('Error removing from favorites:', error);
       throw error;
     }
   }
@@ -125,7 +123,6 @@ export class SavedService {
       const data = await response.json();
       return !!data.is_favorite;
     } catch (error) {
-      console.error('Error checking favorite status:', error);
       return false;
     }
   }

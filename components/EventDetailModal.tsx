@@ -11,11 +11,13 @@ import {
   Dimensions,
   PanResponder,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 
 import { Event } from '@models/Event';
 import { styles } from '@styles/EventDetailModal.styles';
 import { colors } from '@styles/globalStyles';
+import { useFavorites } from 'app/context/FavoritesContext';
 
 interface EventDetailModalProps {
   event: Event;
@@ -33,6 +35,14 @@ const EventDetailModal = ({
   const panY = useRef(new Animated.Value(screenHeight)).current;
   const [modalVisible, setModalVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Usar el contexto de favoritos
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+
+  // Obtener el estado de favorito directamente del contexto
+  const eventId = event?.id ? Number(event.id) : 0;
+  const isEventFavorite = isFavorite(eventId);
 
   useEffect(() => {
     if (visible) {
@@ -67,6 +77,29 @@ const EventDetailModal = ({
       setModalVisible(false);
       onClose();
     });
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!event.id) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const eventId = Number(event.id);
+
+      if (isEventFavorite) {
+        // Eliminar de favoritos usando el contexto
+        await removeFavorite(eventId);
+      } else {
+        // Añadir a favoritos usando el contexto
+        await addFavorite(event);
+      }
+    } catch (error) {
+      console.error('Error toggling favorite status:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const panResponder = useRef(
@@ -176,6 +209,25 @@ const EventDetailModal = ({
     return null;
   }
 
+  // Custom styles for the favorite button
+  const favoriteButtonStyle = {
+    position: 'absolute' as const,
+    bottom: -22,
+    right: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'white',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 10,
+  };
+
   return (
     <Modal
       visible={modalVisible}
@@ -207,59 +259,80 @@ const EventDetailModal = ({
               <Text style={styles.title}>{event.title}</Text>
             </View>
 
-            {/* Image carousel */}
-            {event.images && event.images.length > 0 ? (
-              <View style={{ position: 'relative' }}>
-                <ScrollView
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.imageCarousel}
-                  onScroll={handleImageScroll}
-                  scrollEventThrottle={16}
-                >
-                  {event.images.map((image, index) => (
-                    <Image
-                      key={index}
-                      source={{ uri: image.image_url }}
-                      style={styles.eventImage}
-                      resizeMode='cover'
-                    />
-                  ))}
-                </ScrollView>
-
-                {/* Carousel position indicator */}
-                {event.images.length > 1 && (
-                  <View style={styles.carouselDotsContainer}>
-                    {event.images.map((_, index) => (
-                      <View
+            {/* Image carousel with favorite button */}
+            <View style={{ position: 'relative' }}>
+              {event.images && event.images.length > 0 ? (
+                <View>
+                  <ScrollView
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.imageCarousel}
+                    onScroll={handleImageScroll}
+                    scrollEventThrottle={16}
+                  >
+                    {event.images.map((image, index) => (
+                      <Image
                         key={index}
-                        style={[
-                          styles.carouselIndicatorDot,
-                          currentImageIndex === index &&
-                            styles.carouselIndicatorActiveDot,
-                        ]}
+                        source={{ uri: image.image_url }}
+                        style={styles.eventImage}
+                        resizeMode='cover'
                       />
                     ))}
-                  </View>
+                  </ScrollView>
+
+                  {/* Carousel position indicator */}
+                  {event.images.length > 1 && (
+                    <View style={styles.carouselDotsContainer}>
+                      {event.images.map((_, index) => (
+                        <View
+                          key={index}
+                          style={[
+                            styles.carouselIndicatorDot,
+                            currentImageIndex === index &&
+                              styles.carouselIndicatorActiveDot,
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <MaterialIcons name='image' size={80} color={colors.border} />
+                </View>
+              )}
+
+              {/* Favorite button */}
+              <TouchableOpacity
+                style={favoriteButtonStyle}
+                onPress={handleToggleFavorite}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size='small' color={colors.primary} />
+                ) : (
+                  <MaterialIcons
+                    name={isEventFavorite ? 'favorite' : 'favorite-border'}
+                    size={28}
+                    color={isEventFavorite ? colors.error : colors.primary}
+                  />
                 )}
-              </View>
-            ) : (
-              <View style={styles.imagePlaceholder}>
-                <MaterialIcons name='image' size={80} color={colors.border} />
-              </View>
-            )}
+              </TouchableOpacity>
+            </View>
 
             {/* Categories */}
-            {event.categories && event.categories.length > 0 && (
-              <View style={styles.categoriesContainer}>
-                {event.categories.map((category, index) => (
-                  <View key={index} style={styles.categoryTag}>
-                    <Text style={styles.categoryText}>{category.name}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
+            <View style={{ marginTop: 15 }}>
+              {event.categories && event.categories.length > 0 && (
+                <View style={styles.categoriesContainer}>
+                  {event.categories.map((category, index) => (
+                    <View key={index} style={styles.categoryTag}>
+                      <Text style={styles.categoryText}>{category.name}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
 
             {/* Date and time */}
             <View style={styles.section}>
@@ -314,7 +387,7 @@ const EventDetailModal = ({
                       {event.location.town.name}, {event.location.region.name}
                     </Text>
                   )}
-                  {(event.location.latitude || event.location.address) && (
+                  {(event.location.latitude ?? event.location.address) && (
                     <TouchableOpacity
                       style={styles.mapButton}
                       onPress={openMap}
