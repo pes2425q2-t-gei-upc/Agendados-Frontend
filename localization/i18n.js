@@ -2,40 +2,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// Recursos de traducción
+// Importamos los recursos de traducción
+import translationCA from './translations/ca.json';
+import translationEN from './translations/en.json';
+import translationES from './translations/es.json';
+
+// Configuración de recursos
 const resources = {
   en: {
-    translation: {
-      welcome: 'Welcome to the App!',
-      goToSettings: 'Go to Settings',
-      settings: 'Settings',
-      language: 'Language',
-      spanish: 'Español',
-      catalan: 'Català',
-      english: 'English',
-    },
+    translation: translationEN,
   },
   es: {
-    translation: {
-      welcome: '¡Bienvenido a la Aplicación!',
-      goToSettings: 'Ir a Configuración',
-      settings: 'Configuración',
-      language: 'Idioma',
-      spanish: 'Español',
-      catalan: 'Català',
-      english: 'English',
-    },
+    translation: translationES,
   },
   ca: {
-    translation: {
-      welcome: "Benvingut a l'Aplicació!",
-      goToSettings: 'Anar a Configuració',
-      settings: 'Configuració',
-      language: 'Idioma',
-      spanish: 'Español',
-      catalan: 'Català',
-      english: 'English',
-    },
+    translation: translationCA,
   },
 };
 
@@ -48,6 +29,9 @@ i18n.use(initReactI18next).init({
   interpolation: {
     escapeValue: false,
   },
+  // Añadimos pluralización
+  pluralSeparator: '_',
+  keySeparator: '.',
 });
 
 // Función para cambiar el idioma

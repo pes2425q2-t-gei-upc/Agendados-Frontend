@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -89,20 +90,50 @@ interface DateGroupProps {
 }
 
 const DateGroup = memo(({ group, onDeleteEvent }: DateGroupProps) => {
+  const { t } = useTranslation();
   const date = new Date(group.date);
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const isToday = date.toDateString() === today.toDateString();
-  const formattedDate = date.toLocaleDateString('ca-ES', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
+
+  // Obtener día de la semana y mes de las traducciones
+  const weekdays = [
+    t('days.sunday'),
+    t('days.monday'),
+    t('days.tuesday'),
+    t('days.wednesday'),
+    t('days.thursday'),
+    t('days.friday'),
+    t('days.saturday'),
+  ];
+
+  const months = [
+    t('months.january'),
+    t('months.february'),
+    t('months.march'),
+    t('months.april'),
+    t('months.may'),
+    t('months.june'),
+    t('months.july'),
+    t('months.august'),
+    t('months.september'),
+    t('months.october'),
+    t('months.november'),
+    t('months.december'),
+  ];
+
+  const weekday = weekdays[date.getDay()];
+  const month = months[date.getMonth()];
+  const day = date.getDate();
+
+  // Formatear la fecha usando traducciones personalizadas
+  const formattedDate = `${weekday}, ${day} ${t('common.of')} ${month}`;
 
   return (
     <View style={styles.dateGroup}>
       <Text style={[styles.dateText, isToday && styles.todayText]}>
-        {isToday ? `Today - ${formattedDate}` : formattedDate}
+        {isToday ? `${t('saved.today')}, ${formattedDate}` : formattedDate}
       </Text>
       <View style={styles.eventsContainer}>
         {group.events.map((event: Event) => (
@@ -120,6 +151,7 @@ const DateGroup = memo(({ group, onDeleteEvent }: DateGroupProps) => {
 DateGroup.displayName = 'DateGroup';
 
 export default function SavedEvents() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
 
   // Usar el contexto de favoritos
@@ -159,10 +191,11 @@ export default function SavedEvents() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={globalStyles.container}>
-        <Text style={typography.title}>Saved Events</Text>
+        <Text style={typography.title}>{t('saved.title')}</Text>
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size='large' color={colors.primary} />
+            <Text style={styles.loadingText}>{t('saved.loadingEvents')}</Text>
           </View>
         ) : (
           <FlatList
@@ -178,7 +211,9 @@ export default function SavedEvents() {
             ListEmptyComponent={
               groupedEvents.length === 0 ? (
                 <View style={styles.emptyContainer}>
-                  <Text style={styles.emptyText}>No saved events</Text>
+                  <Text style={styles.emptyText}>
+                    {t('saved.noSavedEvents')}
+                  </Text>
                 </View>
               ) : null
             }
@@ -216,6 +251,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
+  },
+  loadingText: {
+    color: colors.textSecondary,
+    fontSize: 16,
+    marginTop: spacing.sm,
   },
   scrollContainer: {
     flex: 1,

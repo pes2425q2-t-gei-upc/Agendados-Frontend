@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 import { colors } from '@styles/globalStyles';
@@ -8,7 +9,6 @@ import { colors } from '@styles/globalStyles';
 // Custom Header Component
 function CustomHeader() {
   const router = useRouter();
-
   const handlePress = () => {
     router.push('/main');
   };
@@ -24,6 +24,7 @@ function CustomHeader() {
 }
 
 export default function TabLayout() {
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -61,7 +62,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='main'
         options={{
-          title: 'Home',
+          title: t('navigation.home'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
@@ -74,7 +75,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='explore'
         options={{
-          title: 'Explore',
+          title: t('navigation.explore'),
           header: () => null, // Esto elimina el header solo para esta pestaña
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
@@ -88,7 +89,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='saved'
         options={{
-          title: 'Saved',
+          title: t('navigation.saved'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'bookmark' : 'bookmark-outline'}
@@ -101,7 +102,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='profile'
         options={{
-          title: 'Profile',
+          title: t('navigation.profile'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}
