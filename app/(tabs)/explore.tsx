@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Ionicons } from '@expo/vector-icons';
 import type { Ionicons as IoniconsType } from '@expo/vector-icons';
@@ -20,6 +21,9 @@ import {
   Platform,
   ActivityIndicator,
   InteractionManager,
+  Animated,
+  Easing,
+  StyleSheet,
 } from 'react-native';
 import MapView from 'react-native-map-clustering';
 import { Marker } from 'react-native-maps';
@@ -247,27 +251,124 @@ const ActiveFilters = memo(
 );
 ActiveFilters.displayName = 'ActiveFilters';
 
-const NearbyEventsList = memo(
-  ({
-    events,
-    renderEventItem,
-  }: {
-    events: EventType[];
-    renderEventItem: ({ item }: { item: EventType }) => React.ReactElement;
-  }) => {
+// Componente para el control de visibilidad del carrusel
+const CarouselToggle = memo(
+  ({ onToggle, isVisible }: { onToggle: () => void; isVisible: boolean }) => {
+    // Animación para rotación del icono
+    const rotateAnim = useRef(new Animated.Value(isVisible ? 0 : 1)).current;
+
+    // Efecto para animar cuando cambia el estado
+    useEffect(() => {
+      Animated.timing(rotateAnim, {
+        toValue: isVisible ? 0 : 1,
+        duration: 300,
+        easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+        useNativeDriver: true,
+      }).start();
+    }, [isVisible, rotateAnim]);
+
+    // Cálculo de la rotación en base al valor de la animación
+    const rotate = rotateAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '180deg'],
+    });
+
     return (
-      <FlatList
-        horizontal
-        data={events}
-        renderItem={renderEventItem}
-        keyExtractor={(item) => item.id.toString()}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.nearbyEventsScrollContainer}
-      />
+      <TouchableOpacity
+        style={carouselStyles.toggleButton}
+        onPress={onToggle}
+        activeOpacity={0.7}
+      >
+        <View style={carouselStyles.toggleContainer}>
+          <Text style={carouselStyles.toggleText}>
+            {isVisible ? 'Ocultar esdeveniments' : 'Esdeveniments Propers'}
+          </Text>
+          <Animated.View style={{ transform: [{ rotate }] }}>
+            <Ionicons name='chevron-up' size={24} color='#4285F4' />
+          </Animated.View>
+        </View>
+      </TouchableOpacity>
     );
   }
 );
-NearbyEventsList.displayName = 'NearbyEventsList';
+CarouselToggle.displayName = 'CarouselToggle';
+
+// Modificación del componente NearbyEventsList para incluir animación
+type AnimatedNearbyEventsListProps = {
+  events: EventType[];
+  renderEventItem: ({ item }: { item: EventType }) => React.ReactElement;
+  visible: boolean;
+  bottomPosition: number;
+};
+
+const AnimatedNearbyEventsList = memo(
+  ({
+    events,
+    renderEventItem,
+    visible,
+    bottomPosition,
+  }: AnimatedNearbyEventsListProps) => {
+    const slideAnim = useRef(new Animated.Value(visible ? 1 : 0)).current;
+    const heightAnim = useRef(new Animated.Value(visible ? 1 : 0)).current;
+
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: visible ? 1 : 0,
+          duration: 300,
+          easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+          useNativeDriver: false,
+        }),
+        Animated.timing(heightAnim, {
+          toValue: visible ? 1 : 0,
+          duration: 300,
+          easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }, [visible, slideAnim, heightAnim]);
+
+    const translateY = slideAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [180, 0],
+    });
+
+    const opacity = slideAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 1],
+    });
+
+    const animatedStyle = {
+      opacity,
+      transform: [{ translateY }],
+      maxHeight: heightAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 300],
+      }),
+      overflow: 'visible' as const,
+      position: 'absolute' as const,
+      bottom: bottomPosition,
+      left: 0,
+      right: 0,
+    };
+
+    return (
+      <Animated.View style={animatedStyle}>
+        <View style={carouselStyles.listContainer}>
+          <FlatList
+            horizontal
+            data={events}
+            renderItem={renderEventItem}
+            keyExtractor={(item) => item.id.toString()}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.nearbyEventsScrollContainer}
+          />
+        </View>
+      </Animated.View>
+    );
+  }
+);
+AnimatedNearbyEventsList.displayName = 'AnimatedNearbyEventsList';
 
 export default function Explore() {
   const { events, loading, error } = useEvents();
@@ -319,6 +420,21 @@ export default function Explore() {
   // Estado para el detalle de un evento concreto
   const [selectedEventDetail, setSelectedEventDetail] = useState(null);
 
+  // Estado para controlar la visibilidad del carrusel
+  const [carouselVisible, setCarouselVisible] = useState(true);
+
+  const calculateCarouselPosition = () => {
+    // Comprueba si hay algún filtro activo
+    const hasActiveFilters =
+      selectedCategories.size > 0 ||
+      selectedPopulation !== null ||
+      startDate !== null ||
+      endDate !== null ||
+      searchQuery.trim() !== '';
+
+    // Retorna una posición más baja si hay filtros activos, o la posición normal si no
+    return hasActiveFilters ? 30 : 50;
+  };
   // Cargar lista de poblaciones (simulada en este ejemplo)
   useEffect(() => {
     let isMounted = true;
@@ -380,6 +496,11 @@ export default function Explore() {
     []
   );
 
+  const toggleCarousel = useCallback(
+    () => setCarouselVisible((prev) => !prev),
+    []
+  );
+
   const handleMapReady = useCallback(() => {
     isMapReady.current = true;
   }, []);
@@ -401,9 +522,6 @@ export default function Explore() {
       }
     }, 200);
   }, []);
-
-  // Filtro de eventos principal
-  // Modifica esta parte de la función filteredMarkers en Explore.js
 
   // Filtro de eventos principal
   const filteredMarkers = useMemo(() => {
@@ -777,13 +895,26 @@ export default function Explore() {
         />
       </View>
 
-      {/* Lista horizontal de eventos cercanos */}
-      <View style={styles.nearbyEventsContainer}>
-        <NearbyEventsList
-          events={getNearbyEvents}
-          renderEventItem={renderEventItem}
-        />
+      {/* Control de visibilidad del carrusel */}
+      <View
+        style={{
+          position: 'absolute',
+          top: 160,
+          left: 0,
+          right: 0,
+          alignItems: 'center',
+        }}
+      >
+        <CarouselToggle isVisible={carouselVisible} onToggle={toggleCarousel} />
       </View>
+
+      {/* Lista horizontal de eventos cercanos (ahora con animación) */}
+      <AnimatedNearbyEventsList
+        events={getNearbyEvents}
+        renderEventItem={renderEventItem}
+        visible={carouselVisible}
+        bottomPosition={calculateCarouselPosition()} // Pasa la posición calculada
+      />
 
       {/* Botón para ver todos los eventos filtrados */}
       <TouchableOpacity style={styles.eventsButton} onPress={toggleEventsModal}>
@@ -860,3 +991,33 @@ export default function Explore() {
     </View>
   );
 }
+
+// Estilos para los componentes de carrusel
+const carouselStyles = StyleSheet.create({
+  listContainer: {
+    paddingVertical: 10,
+  },
+  toggleButton: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    elevation: 2,
+    marginHorizontal: 16,
+    marginVertical: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  toggleContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  toggleText: {
+    color: '#4285F4',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+});

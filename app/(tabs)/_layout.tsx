@@ -75,6 +75,7 @@ export default function TabLayout() {
         name='explore'
         options={{
           title: 'Explore',
+          header: () => null, // Esto elimina el header solo para esta pestaña
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'compass' : 'compass-outline'}
