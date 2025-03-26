@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import React, { useEffect } from 'react';
 
+import { FavoritesProvider } from '@context/FavoritesContext';
 import { initializeLanguage } from 'localization/i18n';
 
 import { EventsProvider } from './context/eventsContext';
@@ -14,9 +15,11 @@ export default function RootLayout() {
   return (
     // Envuelves tu Stack dentro de EventsProvider
     <EventsProvider>
-      <Stack>
-        <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
-      </Stack>
+      <FavoritesProvider>
+        <Stack>
+          <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+        </Stack>
+      </FavoritesProvider>
     </EventsProvider>
   );
 }
