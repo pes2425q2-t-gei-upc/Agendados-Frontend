@@ -1,5 +1,7 @@
 // src/Services/eventsService.ts
 
+import Constants from 'expo-constants';
+
 import { MarkerData } from '../(tabs)/exploreComponents/EventCard'; // Ajusta la ruta según tu estructura
 
 export const getEvents = async (): Promise<MarkerData[]> => {
@@ -68,6 +70,34 @@ export const getEventDetails = async (
 ): Promise<any> => {
   try {
     const response = await fetch(`http://localhost:8000/api/events/${eventId}`);
+    if (!response.ok) {
+      throw new Error('Error al cargar los detalles del evento');
+    }
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getEventRecomendations = async (): Promise<any> => {
+  try {
+    // Get token from storage or authentication service
+    const token = Constants.expoConfig?.extra?.Token;
+    // Fallback if token is not defined
+    if (!token) {
+      throw new Error('Authentication token is missing');
+    }
+
+    const response = await fetch(
+      `http://localhost:8000/api/events/recommended`,
+      {
+        headers: {
+          Authorization: `Token ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
     if (!response.ok) {
       throw new Error('Error al cargar los detalles del evento');
     }
