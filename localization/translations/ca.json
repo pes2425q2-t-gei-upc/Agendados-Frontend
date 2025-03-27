@@ -123,7 +123,16 @@
     "goToSettings": "Anar a Configuració",
     "logout": "Tancar sessió",
     "preferences": "Preferències",
-    "personalInfo": "Informació personal"
+    "personalInfo": "Informació personal",
+    "profile": "Perfil",
+  "joinedOn": "Membre des de {{date}}",
+  "savedEvents": "Desats",
+  "attendedEvents": "Assistits",
+  "favoriteCategories": "Categories Preferides",
+  "recentlySaved": "Desats Recentment",
+  "seeAll": "Veure Tots",
+  "logout": "Tancar Sessió",
+  "editProfile": "Editar Perfil"
   },
   "settings": {
     "title": "Configuració",

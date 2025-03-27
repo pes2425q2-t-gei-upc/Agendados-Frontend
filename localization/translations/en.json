@@ -119,11 +119,22 @@
     "of": "of"
   },
   "profile": {
-    "welcome": "Welcome to your profile",
+    "welcome": "Welcome to the App!",
     "goToSettings": "Go to Settings",
-    "logout": "Logout",
-    "preferences": "Preferences",
-    "personalInfo": "Personal information"
+    "settings": "Settings",
+    "language": "Language",
+    "spanish": "Español",
+    "catalan": "Català",
+    "english": "English",
+    "profile": "Profile",
+    "joinedOn": "Joined on {{date}}",
+    "savedEvents": "Saved Events",
+    "attendedEvents": "Attended",
+    "favoriteCategories": "Favorite Categories",
+    "recentlySaved": "Recently Saved",
+    "seeAll": "See All",
+    "logout": "Log Out",
+    "editProfile": "Edit Profile"
   },
   "settings": {
     "title": "Settings",

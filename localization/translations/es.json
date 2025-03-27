@@ -123,7 +123,16 @@
     "goToSettings": "Ir a Configuración",
     "logout": "Cerrar sesión",
     "preferences": "Preferencias",
-    "personalInfo": "Información personal"
+    "personalInfo": "Información personal",
+    "profile": "Perfil",
+  "joinedOn": "Miembro desde {{date}}",
+  "savedEvents": "Guardados",
+  "attendedEvents": "Asistidos",
+  "favoriteCategories": "Categorías Favoritas",
+  "recentlySaved": "Guardados Recientemente",
+  "seeAll": "Ver Todos",
+  "logout": "Cerrar Sesión",
+  "editProfile": "Editar Perfil"
   },
   "settings": {
     "title": "Configuración",
