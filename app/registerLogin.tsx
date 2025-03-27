@@ -12,6 +12,7 @@ import {
   StyleSheet,
 } from 'react-native';
 
+import { useAuth } from '@context/authContext';
 import { login, register } from '@services/AuthService';
 
 import { colors, spacing } from '../styles/globalStyles';
@@ -19,6 +20,7 @@ import { colors, spacing } from '../styles/globalStyles';
 export default function RegisterLoginPage() {
   const router = useRouter();
   const { t } = useTranslation(); // Inicializar el hook de traducción
+  const auth = useAuth();
   const [showLogin, setShowLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState(''); // Usado solo en registro
@@ -32,29 +34,29 @@ export default function RegisterLoginPage() {
     return re.test(email);
   };
 
+  // app/registerLogin.tsx
+
+  // En el handleLogin:
   const handleLogin = async () => {
     setErrorMessage('');
 
     if (!username || !password) {
-      setErrorMessage(t('auth.completeFields'));
+      setErrorMessage('Por favor, completa todos los campos');
       return;
     }
 
     try {
       setLoading(true);
-      // Suponiendo que la función login retorna un objeto con { user, error }
       const response = await login(username, password);
-      // Si el backend indica que el usuario no existe o la contraseña es incorrecta
-      if (response.error) {
-        // Aquí puedes filtrar distintos mensajes de error
-        setErrorMessage(response.error);
-        return;
+
+      // El método login ya almacena el token, ahora actualiza el contexto
+      if (response.token) {
+        await auth.login(response.token, response.user);
+        router.replace('/(tabs)/main');
+      } else {
+        setErrorMessage('No se recibió un token de autenticación');
       }
-      // Si todo está bien, se navega a la pantalla principal
-      router.replace('/(tabs)/main');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      // También puedes detectar errores específicos en el catch
       if (
         error.response &&
         error.response.data &&
@@ -62,13 +64,15 @@ export default function RegisterLoginPage() {
       ) {
         setErrorMessage(error.response.data.message);
       } else {
-        setErrorMessage(t('auth.loginError'));
+        setErrorMessage('Error al iniciar sesión. Inténtalo de nuevo.');
       }
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Actualiza handleRegister de manera similar
 
   const handleRegister = async () => {
     setErrorMessage('');

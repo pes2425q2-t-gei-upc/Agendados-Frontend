@@ -1,8 +1,8 @@
 // src/Services/eventsService.ts
 
-import Constants from 'expo-constants';
-
 import { MarkerData } from '../(tabs)/exploreComponents/EventCard'; // Ajusta la ruta según tu estructura
+
+import { getUserToken } from './AuthService';
 
 export const getEvents = async (): Promise<MarkerData[]> => {
   try {
@@ -81,9 +81,7 @@ export const getEventDetails = async (
 
 export const getEventRecomendations = async (): Promise<any> => {
   try {
-    // Get token from storage or authentication service
-    const token = Constants.expoConfig?.extra?.Token;
-    // Fallback if token is not defined
+    const token = await getUserToken();
     if (!token) {
       throw new Error('Authentication token is missing');
     }

@@ -10,18 +10,27 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 
 import EventDetailModal from '@components/EventDetailModal';
+import { useAuth } from '@context/authContext'; // Importar el hook de autenticación
+import { useFavorites } from '@context/FavoritesContext';
 import { Event } from '@models/Event';
 import { SavedService } from '@services/SavedService';
 import { colors, spacing, typography } from '@styles/globalStyles';
 import { changeLanguage } from 'localization/i18n';
 
+import ProtectedRoute from '../components/ProtectedRoute'; // Importar el componente de ruta protegida
+
 export default function ProfileScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
+  // Extraer también el userToken del contexto
+  const { userInfo, userToken, logout } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const { favorites } = useFavorites();
+
   const [recentEvents, setRecentEvents] = useState<Event[]>([]);
   const [stats, setStats] = useState({
     savedEvents: 0,
@@ -31,22 +40,77 @@ export default function ProfileScreen() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
-  // Simulated user data
-  const user = {
-    name: 'Alex García',
-    username: 'alexgarcia',
-    email: 'alex.garcia@example.com',
-    avatar: require('@assets/images/ReyLeon.jpg'), // Using an example image from your assets
-    joinDate: new Date(2023, 2, 15),
-  };
+  useEffect(() => {
+    if (favorites.length > 0) {
+      // Actualizar los eventos recientes
+      setRecentEvents(favorites.slice(0, 3));
 
-  // Load user stats
+      // Calcular estadísticas
+      const categories = favorites.flatMap(
+        (event) => event.categories?.map((cat) => cat.name) || []
+      );
+
+      const categoryCounts = categories.reduce(
+        (acc, category) => {
+          acc[category] = (acc[category] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+
+      const likedCategories = Object.entries(categoryCounts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 3);
+
+      setStats({
+        savedEvents: favorites.length,
+        attendedEvents: Math.floor(favorites.length * 0.7), // Simulated data
+        likedCategories,
+      });
+    } else {
+      // Resetear datos si no hay favoritos
+      setRecentEvents([]);
+      setStats({
+        savedEvents: 0,
+        attendedEvents: 0,
+        likedCategories: [],
+      });
+    }
+  }, [favorites]);
+  // Log para depuración
+  useEffect(() => {
+    console.log('ProfileScreen - Auth state:', {
+      hasUserInfo: !!userInfo,
+      hasUserToken: !!userToken,
+    });
+  }, [userInfo, userToken]);
+
+  // Cargar datos del usuario y estadísticas
   useEffect(() => {
     const loadUserData = async () => {
       setIsLoading(true);
       try {
+        // Verificar si el usuario está autenticado y si hay token
+        if (!userInfo || !userToken) {
+          console.log(
+            'ProfileScreen - No user info or token, skipping data load'
+          );
+          return; // No cargar datos si no hay usuario o token
+        }
+
+        console.log(
+          'ProfileScreen - Loading user data with token:',
+          userToken ? 'Token exists' : 'No token'
+        );
+
         // Fetch saved events
         const savedEvents = await SavedService.getFavorites();
+        console.log(
+          'ProfileScreen - Fetched saved events:',
+          savedEvents.length
+        );
+
         setRecentEvents(savedEvents.slice(0, 3)); // Get just the 3 most recent
 
         // Calculate stats
@@ -74,14 +138,14 @@ export default function ProfileScreen() {
           likedCategories,
         });
       } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error('ProfileScreen - Error loading user data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
     loadUserData();
-  }, []);
+  }, [userInfo, userToken]);
 
   const handleLanguageChange = async (lang: string) => {
     await changeLanguage(lang);
@@ -102,10 +166,30 @@ export default function ProfileScreen() {
     router.push('/(tabs)/saved');
   };
 
-  const handleLogout = () => {
-    // Add logout functionality here
-    router.replace('/registerLogin');
+  const handleLogout = async () => {
+    try {
+      Alert.alert(t('profile.logoutConfirmation'), t('profile.logoutMessage'), [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('common.confirm'),
+          onPress: async () => {
+            await logout(); // Usar la función de cierre de sesión del contexto
+            router.replace('/registerLogin');
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
+
+  // Obtener fecha de registro desde el usuario si está disponible, o usar una por defecto
+  const joinDate = userInfo?.createdAt
+    ? new Date(userInfo.createdAt)
+    : new Date(2023, 2, 15);
 
   if (isLoading) {
     return (
@@ -116,172 +200,189 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header with avatar and user info */}
-      <View style={styles.header}>
-        <Image source={user.avatar} style={styles.avatar} />
-        <View style={styles.userInfo}>
-          <Text style={styles.userName}>{user.name}</Text>
-          <Text style={styles.userHandle}>@{user.username}</Text>
-          <Text style={styles.joinDate}>
-            {t('profile.joinedOn', { date: formatJoinDate(user.joinDate) })}
-          </Text>
+    <ProtectedRoute>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header with avatar and user info */}
+        <View style={styles.header}>
+          <Image
+            source={
+              userInfo?.avatar
+                ? { uri: userInfo.avatar }
+                : require('@assets/images/ReyLeon.jpg')
+            }
+            style={styles.avatar}
+          />
+          <View style={styles.userInfo}>
+            <Text style={styles.userName}>
+              {userInfo?.name ?? userInfo?.username ?? 'User'}
+            </Text>
+            <Text style={styles.userHandle}>
+              @{userInfo?.username ?? 'username'}
+            </Text>
+            <Text style={styles.joinDate}>
+              {t('profile.joinedOn', { date: formatJoinDate(joinDate) })}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={navigateToSettings}
+          >
+            <Ionicons
+              name='settings-outline'
+              size={24}
+              color={colors.primary}
+            />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={navigateToSettings}
-        >
-          <Ionicons name='settings-outline' size={24} color={colors.primary} />
-        </TouchableOpacity>
-      </View>
 
-      {/* User Stats */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{stats.savedEvents}</Text>
-          <Text style={styles.statLabel}>{t('profile.savedEvents')}</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{stats.attendedEvents}</Text>
-          <Text style={styles.statLabel}>{t('profile.attendedEvents')}</Text>
-        </View>
-      </View>
-
-      {/* Favorite Categories */}
-      {stats.likedCategories.length > 0 && (
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>
-            {t('profile.favoriteCategories')}
-          </Text>
-          <View style={styles.categoriesContainer}>
-            {stats.likedCategories.map((category, index) => (
-              <View key={index} style={styles.categoryTag}>
-                <Text style={styles.categoryText}>{category.name}</Text>
-              </View>
-            ))}
+        {/* User Stats */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{stats.savedEvents}</Text>
+            <Text style={styles.statLabel}>{t('profile.savedEvents')}</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{stats.attendedEvents}</Text>
+            <Text style={styles.statLabel}>{t('profile.attendedEvents')}</Text>
           </View>
         </View>
-      )}
 
-      {/* Recently Saved Events */}
-      {recentEvents.length > 0 && (
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
+        {/* Favorite Categories */}
+        {stats.likedCategories.length > 0 && (
+          <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>
-              {t('profile.recentlySaved')}
+              {t('profile.favoriteCategories')}
             </Text>
-            <TouchableOpacity onPress={navigateToSaved}>
-              <Text style={styles.seeAllText}>{t('profile.seeAll')}</Text>
+            <View style={styles.categoriesContainer}>
+              {stats.likedCategories.map((category, index) => (
+                <View key={index} style={styles.categoryTag}>
+                  <Text style={styles.categoryText}>{category.name}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Recently Saved Events */}
+        {recentEvents.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                {t('profile.recentlySaved')}
+              </Text>
+              <TouchableOpacity onPress={navigateToSaved}>
+                <Text style={styles.seeAllText}>{t('profile.seeAll')}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.eventsPreview}>
+              {recentEvents.map((event, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.eventPreviewItem}
+                  onPress={() => {
+                    setSelectedEvent(event);
+                    setDetailModalVisible(true);
+                  }}
+                >
+                  <Image
+                    source={
+                      event.images && event.images.length > 0
+                        ? { uri: event.images[0].image_url }
+                        : require('@assets/images/FotoJazz.jpg')
+                    }
+                    style={styles.eventImage}
+                  />
+                  <Text style={styles.eventTitle} numberOfLines={2}>
+                    {event.title}
+                  </Text>
+                  <Text style={styles.eventDate}>
+                    {new Date(event.date_ini).toLocaleDateString()}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Language Selector */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
+          <View style={styles.languageSelector}>
+            <TouchableOpacity
+              style={[
+                styles.languageOption,
+                i18n.language === 'es' && styles.languageOptionActive,
+              ]}
+              onPress={() => handleLanguageChange('es')}
+            >
+              <Text
+                style={[
+                  styles.languageText,
+                  i18n.language === 'es' && styles.languageTextActive,
+                ]}
+              >
+                {t('settings.spanish')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.languageOption,
+                i18n.language === 'en' && styles.languageOptionActive,
+              ]}
+              onPress={() => handleLanguageChange('en')}
+            >
+              <Text
+                style={[
+                  styles.languageText,
+                  i18n.language === 'en' && styles.languageTextActive,
+                ]}
+              >
+                {t('settings.english')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.languageOption,
+                i18n.language === 'ca' && styles.languageOptionActive,
+              ]}
+              onPress={() => handleLanguageChange('ca')}
+            >
+              <Text
+                style={[
+                  styles.languageText,
+                  i18n.language === 'ca' && styles.languageTextActive,
+                ]}
+              >
+                {t('settings.catalan')}
+              </Text>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.eventsPreview}>
-            {recentEvents.map((event, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.eventPreviewItem}
-                onPress={() => {
-                  setSelectedEvent(event);
-                  setDetailModalVisible(true);
-                }}
-              >
-                <Image
-                  source={
-                    event.images && event.images.length > 0
-                      ? { uri: event.images[0].image_url }
-                      : require('@assets/images/FotoJazz.jpg')
-                  }
-                  style={styles.eventImage}
-                />
-                <Text style={styles.eventTitle} numberOfLines={2}>
-                  {event.title}
-                </Text>
-                <Text style={styles.eventDate}>
-                  {new Date(event.date_ini).toLocaleDateString()}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
-      )}
 
-      {/* Language Selector */}
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
-        <View style={styles.languageSelector}>
-          <TouchableOpacity
-            style={[
-              styles.languageOption,
-              i18n.language === 'es' && styles.languageOptionActive,
-            ]}
-            onPress={() => handleLanguageChange('es')}
-          >
-            <Text
-              style={[
-                styles.languageText,
-                i18n.language === 'es' && styles.languageTextActive,
-              ]}
-            >
-              {t('settings.spanish')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.languageOption,
-              i18n.language === 'en' && styles.languageOptionActive,
-            ]}
-            onPress={() => handleLanguageChange('en')}
-          >
-            <Text
-              style={[
-                styles.languageText,
-                i18n.language === 'en' && styles.languageTextActive,
-              ]}
-            >
-              {t('settings.english')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.languageOption,
-              i18n.language === 'ca' && styles.languageOptionActive,
-            ]}
-            onPress={() => handleLanguageChange('ca')}
-          >
-            <Text
-              style={[
-                styles.languageText,
-                i18n.language === 'ca' && styles.languageTextActive,
-              ]}
-            >
-              {t('settings.catalan')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name='log-out-outline' size={22} color={colors.lightText} />
+          <Text style={styles.logoutText}>{t('profile.logout')}</Text>
+        </TouchableOpacity>
 
-      {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Ionicons name='log-out-outline' size={22} color={colors.lightText} />
-        <Text style={styles.logoutText}>{t('profile.logout')}</Text>
-      </TouchableOpacity>
+        {/* Version Info */}
+        <Text style={styles.versionText}>Agendados v1.0.0</Text>
 
-      {/* Version Info */}
-      <Text style={styles.versionText}>Agendados v1.0.0</Text>
-
-      {/* Event Detail Modal */}
-      {selectedEvent && (
-        <EventDetailModal
-          event={selectedEvent}
-          visible={detailModalVisible}
-          onClose={() => {
-            setDetailModalVisible(false);
-            setSelectedEvent(null);
-          }}
-        />
-      )}
-    </ScrollView>
+        {/* Event Detail Modal */}
+        {selectedEvent && (
+          <EventDetailModal
+            event={selectedEvent}
+            visible={detailModalVisible}
+            onClose={() => {
+              setDetailModalVisible(false);
+              setSelectedEvent(null);
+            }}
+          />
+        )}
+      </ScrollView>
+    </ProtectedRoute>
   );
 }
 
