@@ -32,7 +32,7 @@ jobs:
         run: yarn test -- --watchAll=false --ci
         timeout-minutes: 5
       - name: Build application
-        run: yarn run build || echo "Build skipped"
+        run: EXPO_PUBLIC_DISABLE_STATIC_RENDERING=1 yarn run build || echo "Build skipped"
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
