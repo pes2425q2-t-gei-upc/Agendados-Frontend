@@ -12,7 +12,8 @@
     "delete": "Eliminar",
     "back": "Volver",
     "edit": "Editar",
-    "search": "Buscar"
+    "search": "Buscar",
+    "of": "de"
   },
   "navigation": {
     "home": "Inicio",
@@ -36,7 +37,9 @@
     "invalidEmail": "Por favor, introduce un email válido",
     "passwordLength": "La contraseña debe tener al menos 6 caracteres",
     "loginError": "Error al iniciar sesión. Inténtalo de nuevo.",
-    "registerError": "Error al registrar usuario. Inténtalo de nuevo."
+    "registerError": "Error al registrar usuario. Inténtalo de nuevo.",
+    "noAccount": "No tienes cuenta?",
+    "registerNow": "Regístrate ahora"
   },
   "explore": {
     "search": {
@@ -115,9 +118,7 @@
       "november": "Noviembre",
       "december": "Diciembre"
     },
-    "common": {
-      "of": "de"
-    },
+
   "profile": {
     "welcome": "Bienvenido a tu perfil",
     "goToSettings": "Ir a Configuración",

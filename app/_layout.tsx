@@ -20,6 +20,10 @@ export default function RootLayout() {
         <FavoritesProvider>
           <Stack>
             <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+            <Stack.Screen
+              name='registerLogin'
+              options={{ headerShown: false }}
+            />
           </Stack>
         </FavoritesProvider>
       </EventsProvider>

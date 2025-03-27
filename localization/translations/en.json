@@ -12,7 +12,8 @@
     "delete": "Delete",
     "back": "Back",
     "edit": "Edit",
-    "search": "Search"
+    "search": "Search",
+    "of": "of"
   },
   "navigation": {
     "home": "Home",
@@ -115,9 +116,7 @@
     "november": "November",
     "december": "December"
   },
-  "common": {
-    "of": "of"
-  },
+
   "profile": {
     "welcome": "Welcome to the App!",
     "goToSettings": "Go to Settings",
