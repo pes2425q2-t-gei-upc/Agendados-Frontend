@@ -32,7 +32,9 @@ jobs:
         run: yarn test -- --watchAll=false --ci
         timeout-minutes: 5
       - name: Build application
-        run: yarn expo export --platform android,ios || echo "Build skipped"
+        run: |
+          yarn expo export --platform android || echo "Android build skipped"
+          yarn expo export --platform ios || echo "iOS build skipped"
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
