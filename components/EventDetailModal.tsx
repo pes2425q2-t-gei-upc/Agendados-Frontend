@@ -1,3 +1,5 @@
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';

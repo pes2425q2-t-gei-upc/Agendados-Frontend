@@ -119,15 +119,6 @@ const SavedEventCard = ({ event, onRemoved }: EventCardProps) => {
     isSwiping.current = false;
   };
 
-  const handleTouchMove = (e: GestureResponderEvent) => {
-    const deltaX = Math.abs(e.nativeEvent.pageX - touchStartX.current);
-    const deltaY = Math.abs(e.nativeEvent.pageY - touchStartY.current);
-
-    if (deltaX > deltaY && deltaX > 10) {
-      isSwiping.current = true;
-    }
-  };
-
   const handlePress = () => {
     if (!isSwiping.current) {
       setShowDetails(true);

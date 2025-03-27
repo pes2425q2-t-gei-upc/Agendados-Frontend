@@ -12,6 +12,7 @@ import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 import { styles } from '@styles/mainPageStyles';
 
 const Card = (props: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   event1: { name: any; image: any; place: any; cat: any; date: any };
   onInfoPress: ((event: GestureResponderEvent) => void) | undefined;
 }) => {

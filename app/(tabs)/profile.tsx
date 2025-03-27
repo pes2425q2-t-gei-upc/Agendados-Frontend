@@ -25,10 +25,7 @@ export default function Profile() {
       <View style={styles.buttonContainer}>
         <Button
           title={t('profile.logout')}
-          onPress={() => {
-            // Logout functionality would go here
-            console.log('User logged out');
-          }}
+          onPress={() => {}}
           color={colors.primary}
         />
       </View>
