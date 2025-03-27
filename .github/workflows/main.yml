@@ -4,12 +4,10 @@ on:
     branches:
       - main
       - develop
-      - feature/67/ConfigCI
   pull_request:
     branches:
       - main
       - develop
-      - feature/67/ConfigCI
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -20,21 +18,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: 'yarn'
       - name: Install dependencies
-        run: npm install
+        run: yarn install
       # Optional: Install Expo CLI globally if needed
       - name: Install Expo CLI
-        run: npm install -g expo-cli
+        run: yarn global add expo-cli
       - name: Type check
-        run: npm run type-check || echo "Type check skipped"
+        run: yarn run type-check || echo "Type check skipped"
       - name: Lint code
-        run: npm run lint
+        run: yarn run lint
       - name: Run tests
-        run: npm test -- --watchAll=false --ci
+        run: yarn test -- --watchAll=false --ci
         timeout-minutes: 5
       - name: Build application
-        run: npm run build || echo "Build skipped"
+        run: yarn run build || echo "Build skipped"
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
