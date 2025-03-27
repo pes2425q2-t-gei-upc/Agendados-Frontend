@@ -63,7 +63,6 @@ export default function ProfileScreen() {
           {} as Record<string, number>
         );
 
-        // Convert to array and sort by count
         const likedCategories = Object.entries(categoryCounts)
           .map(([name, count]) => ({ name, count }))
           .sort((a, b) => b.count - a.count)
