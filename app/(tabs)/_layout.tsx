@@ -1,45 +1,137 @@
-import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { colors } from '@styles/globalStyles';
+
+// Custom Header Component
+function CustomHeader() {
+  const router = useRouter();
+  const handlePress = () => {
+    router.push('/main');
+  };
+  return (
+    <TouchableOpacity
+      onPress={handlePress}
+      style={styles.headerContainer}
+      activeOpacity={0.9}
+    >
+      <Text style={styles.headerTitle}>Agendados</Text>
+    </TouchableOpacity>
+  );
+}
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarShowLabel: true,
+        tabBarStyle: {
+          backgroundColor: colors.background,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: Platform.OS === 'ios' ? 90 : 80,
+          shadowColor: colors.darkBackground,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 4,
+          elevation: 5,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '500',
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginBottom: 0,
+        },
+        // Add the custom header to all screens
+        header: () => <CustomHeader />,
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name='main'
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: t('navigation.home'),
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'home' : 'home-outline'}
+              size={30}
+              color={color}
+            />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name='explore'
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: t('navigation.explore'),
+          header: () => null, // Esto elimina el header solo para esta pestaña
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'compass' : 'compass-outline'}
+              size={30}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='saved'
+        options={{
+          title: t('navigation.saved'),
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'bookmark' : 'bookmark-outline'}
+              size={30}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='profile'
+        options={{
+          title: t('navigation.profile'),
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'person' : 'person-outline'}
+              size={30}
+              color={color}
+            />
+          ),
         }}
       />
     </Tabs>
   );
 }
+
+// Styles for the Custom Header
+const styles = StyleSheet.create({
+  headerContainer: {
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    elevation: 3,
+    height: Platform.OS === 'ios' ? 100 : 80,
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    color: colors.primary,
+    fontSize: 24,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    paddingTop: Platform.OS === 'ios' ? 40 : 20,
+  },
+});

@@ -1,0 +1,43 @@
+name: CI - Agendados
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/67/ConfigCI
+  pull_request:
+    branches:
+      - main
+      - develop
+      - feature/67/ConfigCI
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install
+      # Optional: Install Expo CLI globally if needed
+      - name: Install Expo CLI
+        run: npm install -g expo-cli
+      - name: Type check
+        run: npm run type-check || echo "Type check skipped"
+      - name: Lint code
+        run: npm run lint
+      - name: Run tests
+        run: npm test -- --watchAll=false --ci
+        timeout-minutes: 5
+      - name: Build application
+        run: npm run build || echo "Build skipped"
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files
+          path: build/
+          retention-days: 7

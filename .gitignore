@@ -35,4 +35,8 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+package-lock.json
+
 app-example
+
+package-lock.json

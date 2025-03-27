@@ -1,0 +1,168 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "noResults": "No results found",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "apply": "Apply",
+    "clear": "Clear",
+    "close": "Close",
+    "save": "Save",
+    "delete": "Delete",
+    "back": "Back",
+    "edit": "Edit",
+    "search": "Search"
+  },
+  "navigation": {
+    "home": "Home",
+    "explore": "Explore",
+    "saved": "Saved",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Create Account",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Login",
+    "registerButton": "Register",
+    "switchToRegister": "Don't have an account? Register",
+    "switchToLogin": "Already have an account? Login",
+    "forgotPassword": "Forgot your password?",
+    "completeFields": "Please complete all fields",
+    "invalidEmail": "Please enter a valid email",
+    "passwordLength": "Password must be at least 6 characters",
+    "loginError": "Error logging in. Please try again.",
+    "registerError": "Error registering user. Please try again."
+  },
+  "explore": {
+    "search": {
+      "placeholder": "Barcelona, concerts...",
+      "clearFilters": "Clear filters"
+    },
+    "filters": {
+      "title": "Search customization",
+      "dateRange": "Date range",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "categories": "Categories",
+      "population": "Location",
+      "selectPopulation": "Select location",
+      "clearFilters": "Clear filters",
+      "applyFilters": "Apply filters",
+      "noResults": "No results found"
+    },
+    "datePicker": {
+      "selectStartDate": "Select start date",
+      "selectEndDate": "Select end date",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "events": {
+      "title": "Events",
+      "allEvents": "All events",
+      "loadingMore": "Loading more events...",
+      "nearbyEvents": "Nearby events",
+      "hideEvents": "Hide events"
+    },
+    "population": {
+      "title": "Select location",
+      "search": "Search location...",
+      "noResults": "No results found"
+    }
+  },
+  "eventDetails": {
+    "dateAndTime": "Date and Time",
+    "schedule": "Schedule",
+    "location": "Location",
+    "description": "Description",
+    "ticketInfo": "Ticket Information",
+    "relatedLinks": "Related Links",
+    "viewOnMap": "View on map",
+    "moreInfo": "More information",
+    "from": "From",
+    "to": "To"
+  },
+  "saved": {
+    "title": "Saved events",
+    "loadingEvents": "Loading saved events...",
+    "noSavedEvents": "You don't have any saved events",
+    "today": "Today"
+  },
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  "months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+  },
+  "common": {
+    "of": "of"
+  },
+  "profile": {
+    "welcome": "Welcome to your profile",
+    "goToSettings": "Go to Settings",
+    "logout": "Logout",
+    "preferences": "Preferences",
+    "personalInfo": "Personal information"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "spanish": "Spanish",
+    "catalan": "Catalan",
+    "english": "English",
+    "notifications": "Notifications",
+    "theme": "Theme",
+    "privacy": "Privacy",
+    "about": "About",
+    "help": "Help"
+  },
+  "home": {
+    "events": {
+      "nearYou": "Near you",
+      "popular": "Popular",
+      "thisWeek": "This week"
+    }
+  },
+  "categories": {
+    "concerts": "Concerts",
+    "exhibitions": "Exhibitions",
+    "routes": "Routes and Tours",
+    "festivals": "Festivals and Shows",
+    "cycles": "Cycles",
+    "theater": "Theater",
+    "conferences": "Conferences",
+    "children": "Children",
+    "commemorations": "Commemorations",
+    "holyWeek": "Holy Week",
+    "sardanas": "Sardanas",
+    "dance": "Dance",
+    "courses": "Courses",
+    "parties": "Parties",
+    "fairsMarkets": "Fairs and Markets",
+    "giants": "Giants",
+    "circus": "Circus",
+    "digitalCulture": "Digital Culture",
+    "virtualActivities": "Virtual Activities"
+  }
+}
