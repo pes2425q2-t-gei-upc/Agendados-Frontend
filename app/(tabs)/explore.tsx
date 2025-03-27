@@ -55,7 +55,7 @@ type EventType = {
   location?: string;
   coordinate?: { latitude: number; longitude: number };
   fullDate?: Date;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 type FilterItem = {
@@ -76,7 +76,6 @@ const INITIAL_REGION = {
 
 // Para carga progresiva de eventos
 const INITIAL_BATCH = 100;
-const BATCH_SIZE = 100;
 
 // Umbral de zoom para controlar el clustering
 const ZOOM_THRESHOLD = 14;
@@ -385,9 +384,9 @@ export default function Explore() {
 
   // Estados de región y clustering
   const [region, setRegion] = useState(INITIAL_REGION);
+  const prevZoom = useRef(getZoomFromLatDelta(INITIAL_REGION.latitudeDelta));
   const [clusteringEnabled, setClusteringEnabled] = useState(true);
   const previousClusteringState = useRef(true);
-
   // Estados de búsqueda y filtros
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(
@@ -475,18 +474,8 @@ export default function Explore() {
   ];
 
   const calculateCarouselPosition = () => {
-    // Comprueba si hay algún filtro activo
-    const hasActiveFilters =
-      selectedCategories.size > 0 ||
-      selectedPopulation !== null ||
-      startDate !== null ||
-      endDate !== null ||
-      searchQuery.trim() !== '';
-
-    // Retorna una posición más baja si hay filtros activos, o la posición normal si no
-    return hasActiveFilters ? 30 : 50;
+    return 35; // Valor fijo, sin depender de los filtros
   };
-  // Cargar lista de poblaciones (simulada en este ejemplo)
   useEffect(() => {
     let isMounted = true;
     const fetchTowns = async () => {
@@ -524,17 +513,11 @@ export default function Explore() {
     });
   }, []);
 
-  // Carga progresiva de eventos
   useEffect(() => {
-    if (maxEventsToProcess < events.length) {
-      const timer = setTimeout(() => {
-        setMaxEventsToProcess((prev) =>
-          Math.min(prev + BATCH_SIZE, events.length)
-        );
-      }, 500);
-      return () => clearTimeout(timer);
+    if (events.length > 0) {
+      setMaxEventsToProcess(events.length);
     }
-  }, [maxEventsToProcess, events.length]);
+  }, [events.length]);
 
   // Callback handlers
   const toggleFilterModal = useCallback(
@@ -557,22 +540,30 @@ export default function Explore() {
   }, []);
 
   // Actualiza región y clustering de forma controlada
-  const handleRegionChangeComplete = useCallback((newRegion: Region) => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
 
-    debounceRef.current = setTimeout(() => {
-      setRegion(newRegion);
-      const approximateZoom = getZoomFromLatDelta(newRegion.latitudeDelta);
-      const shouldEnableClustering = approximateZoom < ZOOM_THRESHOLD;
-
-      if (shouldEnableClustering !== previousClusteringState.current) {
-        previousClusteringState.current = shouldEnableClustering;
-        setClusteringEnabled(shouldEnableClustering);
+  const handleRegionChangeComplete = useCallback(
+    (newRegion: Region) => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
       }
-    }, 200);
-  }, []);
+      debounceRef.current = setTimeout(() => {
+        const newZoom = getZoomFromLatDelta(newRegion.latitudeDelta);
+        // Solo actualiza si el cambio de zoom es mayor a un umbral (por ejemplo, 0.5)
+        if (Math.abs(newZoom - prevZoom.current) > 0.5) {
+          setRegion(newRegion);
+          prevZoom.current = newZoom;
+
+          const shouldEnableClustering = newZoom < ZOOM_THRESHOLD;
+          if (shouldEnableClustering !== previousClusteringState.current) {
+            previousClusteringState.current = shouldEnableClustering;
+            setClusteringEnabled(shouldEnableClustering);
+          }
+        }
+        // Si solo se mueve (panning) y el zoom no cambia, no actualizamos el estado.
+      }, 200);
+    },
+    [debounceRef, previousClusteringState]
+  );
 
   // Filtro de eventos principal
   const filteredMarkers = useMemo(() => {

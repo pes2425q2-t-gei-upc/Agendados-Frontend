@@ -293,9 +293,10 @@ export const styles = StyleSheet.create({
     borderRadius: 25,
     bottom: 10,
     elevation: 4,
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: 60,
+    paddingVertical: 8,
     position: 'absolute',
+    zIndex: 10,
   },
   eventsButtonText: {
     color: '#fff',
@@ -434,11 +435,12 @@ export const styles = StyleSheet.create({
     zIndex: 1,
   },
   nearbyEventsContainer: {
-    bottom: 60,
+    bottom: 80,
     left: 0,
     paddingHorizontal: 20,
     position: 'absolute',
     right: 0,
+    zIndex: 10,
   },
   nearbyEventsScrollContainer: {
     paddingBottom: 10,

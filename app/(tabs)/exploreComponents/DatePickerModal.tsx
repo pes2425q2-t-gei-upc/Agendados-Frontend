@@ -10,7 +10,7 @@ interface DatePickerModalProps {
   onClose: () => void;
   currentMode: 'start' | 'end';
   datePickerDate: Date;
-  onDateChange: (event: any, date?: Date) => void;
+  onDateChange: (event: unknown, date?: Date) => void;
   onConfirm: () => void;
 }
 
