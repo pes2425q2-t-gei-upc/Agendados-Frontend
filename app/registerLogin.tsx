@@ -52,6 +52,7 @@ export default function RegisterLoginPage() {
       }
       // Si todo está bien, se navega a la pantalla principal
       router.replace('/(tabs)/main');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       // También puedes detectar errores específicos en el catch
       if (

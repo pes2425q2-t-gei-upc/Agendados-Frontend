@@ -27,7 +27,7 @@ interface EventCardProps {
     image?: string;
     date?: string;
     time?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   onPress: () => void;
 }

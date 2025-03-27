@@ -7,7 +7,7 @@ interface EventDTO {
   info_tickets?: string;
   schedule?: string;
   categories: Category[];
-  scopes?: any[];
+  scopes?: unknown[];
   location?: Location;
   images: Image[];
   links: Link[];
@@ -43,7 +43,7 @@ class Event implements EventDTO {
   info_tickets?: string;
   schedule?: string;
   categories: Category[];
-  scopes?: any[];
+  scopes?: unknown[];
   location?: Location;
   images: Image[];
   links: Link[];

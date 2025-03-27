@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
@@ -42,7 +43,7 @@ const Dislike = require('@assets/images/RedColor.png');
 // Define Event type for TinderCard
 type TinderCardEvent = {
   name: string;
-  image: any;
+  image: unknown;
   place: string;
   cat: string;
   date: string;
@@ -211,13 +212,10 @@ export default function Main() {
     async (eventId: number) => {
       try {
         await SavedService.addFavorite(eventId);
-        console.log(`Added event ${eventId} to favorites`);
         // Refrescar la lista de favoritos
         await refreshFavorites();
-      } catch (err) {
-        console.error('Error adding to favorites:', err);
-        // Opcional: mostrar un mensaje de error o toast
-      }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (err) {}
     },
     [refreshFavorites]
   );

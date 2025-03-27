@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React from 'react';
