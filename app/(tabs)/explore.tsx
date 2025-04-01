@@ -1048,7 +1048,7 @@ const carouselStyles = StyleSheet.create({
     paddingVertical: 10,
   },
   toggleButton: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
     borderRadius: 8,
     elevation: 2,
     marginHorizontal: 16,
