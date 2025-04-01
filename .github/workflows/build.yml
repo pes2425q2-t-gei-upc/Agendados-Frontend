@@ -5,15 +5,27 @@ on:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
-jobs:
-  sonarqube:
-    name: SonarQube
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis relevancy
+
+      # Remove Pods directory to prevent analysis issues
+      - name: Remove Pods directory
+        run: rm -rf ios/Pods
+        shell: bash  # Ensure this runs correctly on Windows
+
+      # Debug sonar-project.properties to confirm exclusions
+      - name: Debug SonarQube Config
+        run: cat sonar-project.properties
+
+      # Run SonarQube scan with exclusions explicitly set
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.exclusions="ios/Pods/**"
+
+      # Clear SonarQube cache (Optional, but useful if issues persist)
+      - name: Clear SonarQube Cache
+        run: rm -rf ~/.sonar/cache
+        shell: bash
