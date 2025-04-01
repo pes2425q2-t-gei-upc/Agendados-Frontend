@@ -195,6 +195,7 @@ export default function ProfileScreen() {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <ActivityIndicator size='large' color={colors.primary} />
+
       </View>
     );
   }
