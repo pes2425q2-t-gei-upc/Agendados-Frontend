@@ -12,7 +12,8 @@
     "delete": "Eliminar",
     "back": "Tornar",
     "edit": "Editar",
-    "search": "Cercar"
+    "search": "Cercar",
+    "of": "de"
   },
   "navigation": {
     "home": "Inici",
@@ -36,7 +37,9 @@
     "invalidEmail": "Si us plau, introdueix un email vàlid",
     "passwordLength": "La contrasenya ha de tenir almenys 6 caràcters",
     "loginError": "Error a l'iniciar sessió. Torna-ho a provar.",
-    "registerError": "Error al registrar usuari. Torna-ho a provar."
+    "registerError": "Error al registrar usuari. Torna-ho a provar.",
+    "noAccount": "No tens compte?",
+    "registerNow": "Registra't ara"
   },
   "explore": {
     "search": {
@@ -115,15 +118,22 @@
     "november": "Novembre",
     "december": "Desembre"
   },
-  "common": {
-    "of": "de"
-  },
+
   "profile": {
     "welcome": "Benvingut al teu perfil",
     "goToSettings": "Anar a Configuració",
     "logout": "Tancar sessió",
     "preferences": "Preferències",
-    "personalInfo": "Informació personal"
+    "personalInfo": "Informació personal",
+    "profile": "Perfil",
+  "joinedOn": "Membre des de {{date}}",
+  "savedEvents": "Desats",
+  "attendedEvents": "Assistits",
+  "favoriteCategories": "Categories Preferides",
+  "recentlySaved": "Desats Recentment",
+  "seeAll": "Veure Tots",
+  "logout": "Tancar Sessió",
+  "editProfile": "Editar Perfil"
   },
   "settings": {
     "title": "Configuració",
