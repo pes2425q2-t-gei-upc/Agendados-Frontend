@@ -11,15 +11,35 @@ import {
   getUserToken,
   getUserInfo,
   removeUserToken,
+  storeUserInfo,
+  updateUserProfile as apiUpdateProfile,
+  changePassword as apiChangePassword,
 } from '../Services/AuthService';
 
+// Definir tipos de usuario
+interface UserInfo {
+  id?: number | string;
+  username?: string;
+  name?: string;
+  email?: string;
+  avatar?: string;
+  createdAt?: string;
+  [key: string]: any;
+}
+
+// Definir tipo para el contexto
 interface AuthContextType {
   isAuthenticated: boolean;
   userToken: string | null;
-  userInfo: any | null;
-  login: (token: string, userInfo?: any) => Promise<void>;
+  userInfo: UserInfo | null;
+  login: (token: string, userInfo?: UserInfo) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
+  updateUserProfile: (data: Partial<UserInfo>) => Promise<boolean>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string
+  ) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -29,6 +49,8 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   logout: async () => {},
   loading: true,
+  updateUserProfile: async () => false,
+  changePassword: async () => false,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -36,7 +58,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userToken, setUserToken] = useState<string | null>(null);
-  const [userInfo, setUserInfo] = useState<any | null>(null);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Verificar si hay token al cargar la app
@@ -61,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loadToken();
   }, []);
 
-  const login = async (token: string, user?: any) => {
+  const login = async (token: string, user?: UserInfo) => {
     setUserToken(token);
     if (user) {
       setUserInfo(user);
@@ -70,10 +92,78 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    await removeUserToken();
-    setUserToken(null);
-    setUserInfo(null);
-    setIsAuthenticated(false);
+    try {
+      setLoading(true);
+      await removeUserToken();
+      setUserToken(null);
+      setUserInfo(null);
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Nueva función para actualizar el perfil
+  const updateUserProfile = async (
+    data: Partial<UserInfo>
+  ): Promise<boolean> => {
+    try {
+      setLoading(true);
+
+      if (!userToken) {
+        throw new Error('No authentication token available');
+      }
+
+      // Llamar a la API para actualizar el perfil
+      const updatedUser = await apiUpdateProfile(userToken, data);
+
+      if (updatedUser) {
+        // Actualizar estado local con la información actualizada
+        const newUserInfo = { ...userInfo, ...updatedUser };
+        setUserInfo(newUserInfo);
+
+        // Guardar en almacenamiento local
+        await storeUserInfo(newUserInfo);
+
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Nueva función para cambiar la contraseña
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string
+  ): Promise<boolean> => {
+    try {
+      setLoading(true);
+
+      if (!userToken) {
+        throw new Error('No authentication token available');
+      }
+
+      // Llamar a la API para cambiar la contraseña
+      const success = await apiChangePassword(
+        userToken,
+        currentPassword,
+        newPassword
+      );
+      return success;
+    } catch (error) {
+      console.error('Error changing password:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,6 +175,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         logout,
         loading,
+        updateUserProfile,
+        changePassword,
       }}
     >
       {children}
