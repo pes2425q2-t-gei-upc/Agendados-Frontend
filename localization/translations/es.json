@@ -14,7 +14,8 @@
     "edit": "Editar",
     "search": "Buscar",
     "of": "de",
-    "success": "Éxito"
+    "success": "Éxito",
+    "retry": "Reintentar"
   },
   "navigation": {
     "home": "Inicio",
@@ -222,5 +223,27 @@
     "circus": "Circo",
     "digitalCulture": "Cultura Digital",
     "virtualActivities": "Actividades Virtuales"
-  }
+  },
+  "friends": {
+  "title": "Amigos",
+  "search": "Buscar amigos",
+  "noFriends": "Aún no tienes amigos",
+  "addFriend": "Añadir Amigo",
+  "pendingRequests": "Solicitudes Pendientes",
+  "noPendingRequests": "No hay solicitudes pendientes",
+  "accept": "Aceptar",
+  "reject": "Rechazar",
+  "remove": "Eliminar",
+  "friendEvents": "Eventos del Amigo",
+  "noEvents": "Este amigo aún no ha guardado eventos",
+  "friendAdded": "Solicitud de amistad enviada con éxito",
+  "friendAccepted": "Solicitud de amistad aceptada",
+  "friendRejected": "Solicitud de amistad rechazada",
+  "friendRemoved": "Amigo eliminado",
+  "searchUsers": "Buscar Usuarios",
+  "noUsersFound": "No se encontraron usuarios",
+  "alreadyFriend": "Ya son amigos",
+  "friendRequestSent": "Solicitud enviada",
+  "send": "Enviar Solicitud"
+}
 }

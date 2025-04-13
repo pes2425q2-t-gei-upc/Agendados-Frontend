@@ -14,7 +14,8 @@
     "edit": "Edit",
     "search": "Search",
     "of": "of",
-    "success": "Success"
+    "success": "Success",
+    "retry": "Retry"
   },
   "navigation": {
     "home": "Home",
@@ -226,5 +227,28 @@
     "circus": "Circus",
     "digitalCulture": "Digital Culture",
     "virtualActivities": "Virtual Activities"
+    
+  }, 
+    "friends": {
+    "title": "Friends",
+    "search": "Search friends",
+    "noFriends": "You don't have any friends yet",
+    "addFriend": "Add Friend",
+    "pendingRequests": "Pending Requests",
+    "noPendingRequests": "No pending requests",
+    "accept": "Accept",
+    "reject": "Reject",
+    "remove": "Remove",
+    "friendEvents": "Friend's Events",
+    "noEvents": "This friend hasn't saved any events yet",
+    "friendAdded": "Friend request sent successfully",
+    "friendAccepted": "Friend request accepted",
+    "friendRejected": "Friend request rejected",
+    "friendRemoved": "Friend removed",
+    "searchUsers": "Search Users",
+    "noUsersFound": "No users found",
+    "alreadyFriend": "Already friends",
+    "friendRequestSent": "Request sent",
+    "send": "Send Request"
   }
 }

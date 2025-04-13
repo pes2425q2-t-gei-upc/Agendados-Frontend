@@ -14,7 +14,9 @@
     "edit": "Editar",
     "search": "Cercar",
     "of": "de",
-    "success": "Èxit"
+    "success": "Èxit",
+    "retry": "Tornar-ho a provar"
+
   },
   "navigation": {
     "home": "Inici",
@@ -222,5 +224,27 @@
     "circus": "Circ",
     "digitalCulture": "Cultura Digital",
     "virtualActivities": "Activitats Virtuals"
-  }
+  },
+  "friends": {
+  "title": "Amics",
+  "search": "Cercar amics",
+  "noFriends": "Encara no tens amics",
+  "addFriend": "Afegir Amic",
+  "pendingRequests": "Sol·licituds Pendents",
+  "noPendingRequests": "No hi ha sol·licituds pendents",
+  "accept": "Acceptar",
+  "reject": "Rebutjar",
+  "remove": "Eliminar",
+  "friendEvents": "Esdeveniments de l'Amic",
+  "noEvents": "Aquest amic encara no ha desat esdeveniments",
+  "friendAdded": "Sol·licitud d'amistat enviada amb èxit",
+  "friendAccepted": "Sol·licitud d'amistat acceptada",
+  "friendRejected": "Sol·licitud d'amistat rebutjada",
+  "friendRemoved": "Amic eliminat",
+  "searchUsers": "Cercar Usuaris",
+  "noUsersFound": "No s'han trobat usuaris",
+  "alreadyFriend": "Ja sou amics",
+  "friendRequestSent": "Sol·licitud enviada",
+  "send": "Enviar Sol·licitud"
+}
 }

@@ -20,12 +20,13 @@ import {
 import EventDetailModal from '@components/EventDetailModal';
 import { useAuth } from '@context/authContext';
 import { useFavorites } from '@context/FavoritesContext';
+import { useFriendship } from '@context/FriendshipContext'; // Importación correcta del hook de amigos
 import { Event } from '@models/Event';
 import { uploadAvatar } from '@services/AuthService';
 import { colors, spacing, typography } from '@styles/globalStyles';
 import { changeLanguage } from 'localization/i18n';
 
-import ProfileAvatar from '../components/ProfileAvatar'; // Importación del componente ProfileAvatar
+import ProfileAvatar from '../components/ProfileAvatar';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 export default function ProfileScreen() {
@@ -36,6 +37,7 @@ export default function ProfileScreen() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { favorites, refreshFavorites } = useFavorites();
+  const { friends, refreshFriends } = useFriendship(); // Usar el hook en el nivel superior
 
   const [recentEvents, setRecentEvents] = useState<Event[]>([]);
   const [stats, setStats] = useState({
@@ -85,24 +87,27 @@ export default function ProfileScreen() {
     }
   }, [favorites]);
 
+  // Función para actualizar la pantalla y los datos
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshFavorites();
+      if (refreshFriends) {
+        await refreshFriends();
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   // Formatear la fecha para mostrar en el perfil
   const formatJoinDate = (date: Date) => {
     return date.toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'es-ES', {
       year: 'numeric',
       month: 'long',
     });
-  };
-
-  // Función para actualizar la pantalla y los datos
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await refreshFavorites();
-    } catch (error) {
-      console.error('Error refreshing data:', error);
-    } finally {
-      setRefreshing(false);
-    }
   };
 
   // Navegar a la página de configuración
@@ -392,6 +397,67 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        {/* Amigos destacados - Sección independiente y correctamente ubicada */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{t('friends.title')}</Text>
+            <TouchableOpacity onPress={() => router.push('/friends')}>
+              <Text style={styles.seeAllText}>{t('profile.seeAll')}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {friends && friends.length > 0 ? (
+            <View style={styles.friendsContainer}>
+              {friends.slice(0, 4).map((friendship, index) => {
+                const friend = friendship.friend;
+                if (!friend) {
+                  return null;
+                }
+
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.friendBubble}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/friends/[id]/events',
+                        params: {
+                          id: friend.id,
+                          name: friend.name ?? friend.username,
+                        },
+                      })
+                    }
+                  >
+                    <ProfileAvatar
+                      avatar={friend.avatar}
+                      savedEventsCount={0}
+                      size={60}
+                      showEditButton={false}
+                    />
+                    <Text style={styles.friendBubbleName} numberOfLines={1}>
+                      {friend.name ?? friend.username}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.addFriendsButton}
+              onPress={() => router.push('/friends')}
+            >
+              <Ionicons
+                name='people-outline'
+                size={24}
+                color={colors.primary}
+              />
+              <Text style={styles.addFriendsText}>
+                {t('friends.addFriend')}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Categorías favoritas */}
         {stats.likedCategories.length > 0 && (
           <View style={styles.sectionContainer}>
@@ -492,6 +558,25 @@ export default function ProfileScreen() {
               />
             </View>
             <Text style={styles.actionText}>{t('navigation.saved')}</Text>
+            <Ionicons
+              name='chevron-forward'
+              size={20}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/friends')}
+          >
+            <View style={styles.actionIcon}>
+              <Ionicons
+                name='people-outline'
+                size={24}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={styles.actionText}>{t('friends.title')}</Text>
             <Ionicons
               name='chevron-forward'
               size={20}
@@ -822,5 +907,39 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginVertical: spacing.xl,
     textAlign: 'center',
+  },
+  // Estilos para la sección de amigos
+  friendsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  friendBubble: {
+    alignItems: 'center',
+    width: '23%',
+  },
+  friendBubbleName: {
+    color: colors.text,
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'center',
+    width: '100%',
+  },
+  addFriendsButton: {
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    padding: spacing.md,
+  },
+  addFriendsText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: spacing.sm,
   },
 });
