@@ -4,7 +4,7 @@ import { Event, EventDTO } from '@models/Event';
 import { getUserToken } from './AuthService';
 
 export class SavedService {
-  private static baseUrl: string = 'http://localhost:8000/api';
+  private static baseUrl: string = 'https://agendados-backend-842309366027.europe-southwest1.run.app/api';
 
   /**
    * Gets the authentication token from storage

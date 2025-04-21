@@ -6,7 +6,7 @@ import { getUserToken } from './AuthService';
 
 export const getEvents = async (): Promise<MarkerData[]> => {
   try {
-    const response = await fetch('http://localhost:8000/api/events');
+    const response = await fetch('https://agendados-backend-842309366027.europe-southwest1.run.app/api/events');
     if (!response.ok) {
       throw new Error('Error al cargar los eventos');
     }
@@ -69,7 +69,7 @@ export const getEventDetails = async (
   eventId: string | number
 ): Promise<any> => {
   try {
-    const response = await fetch(`http://localhost:8000/api/events/${eventId}`);
+    const response = await fetch(`https://agendados-backend-842309366027.europe-southwest1.run.app/api/events/${eventId}`);
     if (!response.ok) {
       throw new Error('Error al cargar los detalles del evento');
     }
@@ -87,7 +87,7 @@ export const getEventRecomendations = async (): Promise<any> => {
     }
 
     const response = await fetch(
-      `http://localhost:8000/api/events/recommended`,
+      `https://agendados-backend-842309366027.europe-southwest1.run.app/api/events/recommended`,
       {
         headers: {
           Authorization: `Token ${token}`,
