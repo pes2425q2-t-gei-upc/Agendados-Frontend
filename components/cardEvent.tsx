@@ -8,8 +8,8 @@ import {
   GestureResponderEvent,
 } from 'react-native';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
-import { Event as EventModel } from '@models/Event';
 
+import { Event as EventModel } from '@models/Event';
 import { styles } from '@styles/mainPageStyles';
 
 const Card = (props: {
@@ -21,7 +21,10 @@ const Card = (props: {
   const image = event.images[0]
     ? { uri: event.images[0].image_url }
     : require('../assets/images/agendadosbg.png');
-  const place = typeof event.location?.town === 'string' ? event.location.town : 'Unknown Place';
+  const place =
+    typeof event.location?.town === 'string'
+      ? event.location.town
+      : 'Unknown Place';
   const cat = event.categories?.[0]?.name || 'Unknown Category';
   const date = event.date_ini
     ? new Date(event.date_ini).toLocaleDateString('es', {
@@ -31,7 +34,6 @@ const Card = (props: {
       })
     : 'Unknown Date';
 
-    
   return (
     <View style={styles.card}>
       <ImageBackground source={image} style={styles.image}>
