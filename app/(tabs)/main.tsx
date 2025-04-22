@@ -41,9 +41,6 @@ import { useFavorites } from 'app/context/FavoritesContext';
 const Like = require('@assets/images/GreenColor.jpeg');
 const Dislike = require('@assets/images/RedColor.png');
 
-
-
-
 const SWIPE_VELOCITY = 800;
 
 export default function Main() {
@@ -78,12 +75,21 @@ export default function Main() {
   // Get next event from index
   const nextEvent = events[nextIndex];
 
+  // Update current event ID when currentIndex or events change
+  useEffect(() => {
+    if (events[currentIndex]) {
+      currentEventId.value = events[currentIndex].id;
+    } else {
+      currentEventId.value = null;
+    }
+  }, [currentIndex, events]);
+
   // Open event detail modal - similar to how it's done in explore.tsx
   const openDetailModal = useCallback(
-    async (eventId: number) => {
-      setSelectedEventDetail(currentEvent);
+    async (event: EventModal) => {
+      setSelectedEventDetail(event);
       setDetailModalVisible(true);
-  }, [currentEvent]);
+    }, []); 
 
   // Fetch recommended events from backend
   const fetchRecommendedEvents = useCallback(async () => {
@@ -276,7 +282,7 @@ export default function Main() {
             <Animated.View style={[styles.animatedCard, nextCardStyle]}>
               <Card
                 event={nextEvent}
-                onInfoPress={() => handleInfoButtonPress(nextEvent.id)}
+                onInfoPress={() => handleInfoButtonPress(nextEvent)}
               />
             </Animated.View>
           )}
@@ -297,7 +303,7 @@ export default function Main() {
             />
             <Card
               event={currentEvent}
-              onInfoPress={() => handleInfoButtonPress(currentEvent.id)}
+              onInfoPress={() => handleInfoButtonPress(currentEvent)}
             />
           </Animated.View>
         </PanGestureHandler>
