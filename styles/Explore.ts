@@ -243,17 +243,20 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   eventCardFooter: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'space-between',
   },
   eventCardTime: {
     alignItems: 'center',
+    marginBottom: 4,
     flexDirection: 'row',
   },
   eventCardTimeText: {
     color: '#666',
     fontSize: 12,
     marginLeft: 4,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   eventCardTitle: {
     color: '#333',

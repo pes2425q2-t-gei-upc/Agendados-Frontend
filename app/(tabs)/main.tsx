@@ -40,9 +40,6 @@ import { useFavorites } from 'app/context/FavoritesContext';
 const Like = require('@assets/images/GreenColor.jpeg');
 const Dislike = require('@assets/images/RedColor.png');
 
-
-
-
 const SWIPE_VELOCITY = 800;
 
 export default function Main() {
@@ -55,6 +52,9 @@ export default function Main() {
   // Card state
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(1);
+
+  // Store current event ID for UI thread
+  const currentEventId = useSharedValue<number | null>(null);
 
   // Event detail modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -72,12 +72,21 @@ export default function Main() {
   // Get next event from index
   const nextEvent = events[nextIndex];
 
+  // Update current event ID when currentIndex or events change
+  useEffect(() => {
+    if (events[currentIndex]) {
+      currentEventId.value = events[currentIndex].id;
+    } else {
+      currentEventId.value = null;
+    }
+  }, [currentIndex, events]);
+
   // Open event detail modal - similar to how it's done in explore.tsx
   const openDetailModal = useCallback(
-    async (eventId: number) => {
-      setSelectedEventDetail(currentEvent);
+    async (event: EventModal) => {
+      setSelectedEventDetail(event);
       setDetailModalVisible(true);
-  }, [currentEvent]);
+    }, []); 
 
   // Fetch recommended events from backend
   const fetchRecommendedEvents = useCallback(async () => {
@@ -166,9 +175,9 @@ export default function Main() {
         isSwipeRight ? hiddenTranslateX : -hiddenTranslateX,
         {},
         () => {
-          if (isSwipeRight && events[currentIndex]) {
+          if (isSwipeRight && currentEventId.value !== null) {
             // Add to favorites on right swipe
-            runOnJS(handleSwipeRight)(events[currentIndex].id);
+            runOnJS(handleSwipeRight)(currentEventId.value);
           }
           // Move to next card
           runOnJS(setCurrentIndex)(currentIndex + 1);
@@ -198,8 +207,8 @@ export default function Main() {
 
   // Handle info button click from card component
   const handleInfoButtonPress = useCallback(
-    (eventId: number) => {
-      openDetailModal(eventId);
+    (event: EventModal) => {
+      openDetailModal(event);
     },
     [openDetailModal]
   );
@@ -260,7 +269,7 @@ export default function Main() {
             <Animated.View style={[styles.animatedCard, nextCardStyle]}>
               <Card
                 event={nextEvent}
-                onInfoPress={() => handleInfoButtonPress(nextEvent.id)}
+                onInfoPress={() => handleInfoButtonPress(nextEvent)}
               />
             </Animated.View>
           )}
@@ -281,7 +290,7 @@ export default function Main() {
             />
             <Card
               event={currentEvent}
-              onInfoPress={() => handleInfoButtonPress(currentEvent.id)}
+              onInfoPress={() => handleInfoButtonPress(currentEvent)}
             />
           </Animated.View>
         </PanGestureHandler>
