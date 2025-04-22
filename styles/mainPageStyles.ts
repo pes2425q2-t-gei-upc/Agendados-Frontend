@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '@styles/globalStyles';
 
 export const styles = StyleSheet.create({
   animatedCard: {
@@ -118,5 +119,17 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     marginLeft: 5,
+  },
+  retryButton: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
