@@ -14,47 +14,46 @@ import {
   Dimensions,
   Platform,
   PanResponder,
-  Image,
 } from 'react-native';
+import { TFunction } from 'i18next';
+
+import EventCard from '@components/EventCard';
+import { Event } from '@models/Event'; // Adjust the import path as necessary
 
 interface EventsModalProps {
   visible: boolean;
   toggleEventsModal: () => void;
-  filteredMarkers: any[]; // Usando any para simplificar
-  onEventPress?: (eventId: number) => void;
+  filteredMarkers: any[];
+  onEventPress?: (eventId: number) => void; // Keep prop definition if it might be used elsewhere
+  t: TFunction<"translation", undefined>; // Add t prop
 }
 
 export const EventsModal: React.FC<EventsModalProps> = ({
   visible,
   toggleEventsModal,
   filteredMarkers,
-  onEventPress,
+  t, // Destructure t prop
 }) => {
-  const [displayedItems, setDisplayedItems] = useState<any[]>([]);
+  const [displayedItems, setDisplayedItems] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
-  // Animation references
   const slideAnim = useRef(new Animated.Value(0)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
-  // Handle swipe down to close
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (_, gestureState) => {
         if (gestureState.dy > 0) {
-          // Only if dragging downwards
           slideAnim.setValue(gestureState.dy);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > 80) {
-          // Threshold to close
           closeModal();
         } else {
-          // Reset position if not enough to close
           Animated.spring(slideAnim, {
             toValue: 0,
             useNativeDriver: true,
@@ -65,7 +64,6 @@ export const EventsModal: React.FC<EventsModalProps> = ({
     })
   ).current;
 
-  // Animation for opening modal
   useEffect(() => {
     if (visible) {
       setDisplayedItems(filteredMarkers.slice(0, ITEMS_PER_PAGE));
@@ -87,7 +85,6 @@ export const EventsModal: React.FC<EventsModalProps> = ({
     }
   }, [visible, filteredMarkers, slideAnim, backdropOpacity]);
 
-  // Close modal with animation
   const closeModal = () => {
     Animated.parallel([
       Animated.timing(backdropOpacity, {
@@ -112,7 +109,6 @@ export const EventsModal: React.FC<EventsModalProps> = ({
 
     setLoading(true);
 
-    // Simulate a network request with setTimeout
     setTimeout(() => {
       const nextPage = page + 1;
       const startIndex = (nextPage - 1) * ITEMS_PER_PAGE;
@@ -134,81 +130,25 @@ export const EventsModal: React.FC<EventsModalProps> = ({
       <View style={{ padding: 10, alignItems: 'center' }}>
         <ActivityIndicator size='small' color='#4285F4' />
         <Text style={{ marginTop: 5, color: '#666' }}>
-          Carregant més esdeveniments...
+          {t('explore.events.loadingMore')} {/* Use passed t */}
         </Text>
       </View>
     );
   };
 
-  const handleEventPress = (eventId: number) => {
-    if (onEventPress) {
-      onEventPress(eventId);
-    }
-  };
-
-  // Renderiza cada elemento de evento con la implementación mejorada
-  const renderEventItem = ({ item }: { item: (typeof filteredMarkers)[0] }) => (
-    <TouchableOpacity
-      style={styles.eventItem}
-      onPress={() => handleEventPress(item.id)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.eventCard}>
-        <Image
-          source={
-            typeof item.image === 'string' ? { uri: item.image } : item.image
-          }
-          style={styles.eventImage}
-          resizeMode='cover'
-        />
-        <View style={styles.eventDateBadge}>
-          <Text style={styles.eventDateBadgeText}>
-            {item.fullDate
-              ? new Date(item.fullDate).toLocaleDateString('ca-ES', {
-                  day: '2-digit',
-                  month: 'short',
-                })
-              : (item.date ?? 'Sense data')}
-          </Text>
-        </View>
-        <View style={styles.eventDetails}>
-          <Text style={styles.eventTitle} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <View style={styles.categoryContainer}>
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>{item.category}</Text>
-            </View>
-            <Text style={styles.locationText} numberOfLines={1}>
-              {item.location}
-            </Text>
-          </View>
-          <View style={styles.eventDateTimeRow}>
-            {item.time && (
-              <View style={styles.timeContainer}>
-                <Ionicons
-                  name='time-outline'
-                  size={16}
-                  color='#666'
-                  style={styles.icon}
-                />
-                <Text style={styles.eventTime}>{item.time}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
+  const renderEventItem = ({ item }: { item: Event }) => (
+    <View style={styles.eventItem}>
+      <EventCard event={item} />
+    </View>
   );
 
-  // If not visible, don't render anything
   if (!visible) {
     return null;
   }
 
   return (
     <Modal
-      animationType='none' // We're handling our own animations
+      animationType='none'
       transparent
       visible={visible}
       onRequestClose={closeModal}
@@ -232,7 +172,7 @@ export const EventsModal: React.FC<EventsModalProps> = ({
         </View>
 
         <View style={styles.header}>
-          <Text style={styles.title}>Esdeveniments</Text>
+          <Text style={styles.title}>{t('explore.events.title')}</Text> {/* Use passed t */}
           <View style={styles.countBadge}>
             <Text style={styles.countText}>{filteredMarkers.length}</Text>
           </View>
@@ -254,7 +194,7 @@ export const EventsModal: React.FC<EventsModalProps> = ({
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name='calendar-outline' size={60} color='#ccc' />
-              <Text style={styles.emptyText}>Cap esdeveniment trobat</Text>
+              <Text style={styles.emptyText}>{t('explore.events.noEventsFound')}</Text> {/* Use passed t */}
             </View>
           }
         />
@@ -277,24 +217,6 @@ const styles = StyleSheet.create({
     height: 4,
     marginBottom: Platform.OS === 'ios' ? 30 : 10,
     width: 100,
-  },
-  categoryBadge: {
-    backgroundColor: '#3b5998',
-    borderRadius: 4,
-    marginRight: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  categoryContainer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 8,
-  },
-  categoryText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
   },
   closeButton: {
     alignItems: 'center',
@@ -349,55 +271,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 10,
   },
-  eventCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    elevation: 4,
+  eventItem: {
     marginHorizontal: 12,
     marginVertical: 8,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  eventDateBadge: {
-    backgroundColor: '#3b5998',
-    borderRadius: 4,
-    padding: 6,
-    position: 'absolute',
-    right: 12,
-    top: 12,
-  },
-  eventDateBadgeText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  eventDateTimeRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    marginTop: 4,
-  },
-  eventDetails: {
-    padding: 12,
-  },
-  eventImage: {
-    height: 180,
-    width: '100%',
-  },
-  eventItem: {
-    marginBottom: 8,
-  },
-  eventTime: {
-    color: '#666',
-    fontSize: 14,
-  },
-  eventTitle: {
-    color: '#333',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
   },
   flatListContent: {
     paddingVertical: 8,
@@ -408,17 +284,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 14,
-  },
-  icon: {
-    marginRight: 4,
-  },
-  locationText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  timeContainer: {
-    alignItems: 'center',
-    flexDirection: 'row',
   },
   title: {
     color: '#fff',

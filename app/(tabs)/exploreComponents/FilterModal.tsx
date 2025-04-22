@@ -2,7 +2,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { TFunction } from 'i18next';
 import {
   Modal,
   View,
@@ -14,7 +14,7 @@ import {
 
 import { DatePickerModal } from 'app/(tabs)/exploreComponents/DatePickerModal';
 
-import { styles } from '../../../styles/Explore';
+import { styles } from '@styles/Explore';
 
 import { CategoryCarousel, FilterItem } from './CategoryCarousel';
 import { PopulationSelector, PopulationItem } from './PopulationSelector';
@@ -46,6 +46,7 @@ interface FilterModalProps {
   onSelectPopulation: (populationId: string) => void;
   clearFilters: () => void;
   formatDate: (date: Date | null) => string;
+  t: TFunction<"translation", undefined>; // Add t prop
 }
 
 export const FilterModal: React.FC<FilterModalProps> = ({
@@ -72,9 +73,8 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   onSelectPopulation,
   clearFilters,
   formatDate,
+  t, // Destructure t prop
 }) => {
-  const { t } = useTranslation();
-
   return (
     <Modal
       animationType='slide'
@@ -210,6 +210,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({
           onSelectPopulation(populationId);
           setPopulationDropdownVisible(false);
         }}
+        t={t} // Pass t prop here
       />
     </Modal>
   );

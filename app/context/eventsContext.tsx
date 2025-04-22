@@ -8,11 +8,10 @@ import React, {
   ReactNode,
 } from 'react';
 
-import { MarkerData } from '../(tabs)/exploreComponents/EventCard';
-import { getEvents } from '../Services/EventsService';
-
+import { Event as EventModel } from '../Models/Event';
+import { getEventsWithLocations } from '../Services/EventsService';
 interface EventsContextType {
-  events: MarkerData[];
+  events: EventModel[];
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -26,14 +25,14 @@ const EventsContext = createContext<EventsContextType>({
 });
 
 export const EventsProvider = ({ children }: { children: ReactNode }) => {
-  const [events, setEvents] = useState<MarkerData[]>([]);
+  const [events, setEvents] = useState<EventModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const data = await getEvents();
+      const data: EventModel[] = await getEventsWithLocations();
+      setEvents(data);
       setEvents(data);
       setError(null);
     } catch (err) {

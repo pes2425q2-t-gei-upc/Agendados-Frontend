@@ -21,6 +21,7 @@ import { Event } from '@models/Event';
 import { styles } from '@styles/EventDetailModal.styles';
 import { colors } from '@styles/globalStyles';
 import { useFavorites } from 'app/context/FavoritesContext';
+import { TFunction } from 'i18next';
 
 interface EventDetailModalProps {
   event: Event;
@@ -39,8 +40,8 @@ const EventDetailModal = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const { t, i18n } = useTranslation(); // Add translation hook
-  const locale = i18n.language;
+  const { t } = useTranslation(); // Keep i18n if needed separately
+  const locale = 'es'; // Replace with your locale logic
 
   // Usar el contexto de favoritos
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();

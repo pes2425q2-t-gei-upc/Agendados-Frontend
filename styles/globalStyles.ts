@@ -11,8 +11,8 @@ export const colors = {
 
   accent: '#FFA552', // Orange - accent for attention/CTAs
 
-  background: '#F8F1FF', // Light lavender for main backgrounds
-  backgroundAlt: '#EDE5F2', // Alternative background for cards/sections
+  background: '#fCFCFC', // Light lavender for main backgrounds
+  backgroundAlt: '#F8F8F1', // Alternative background for cards/sections
   darkBackground: '#001514', // Very dark teal for dark mode
 
   text: '#001514', // Very dark teal for main text

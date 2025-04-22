@@ -1,12 +1,14 @@
 /* eslint-disable react-native/sort-styles */
 import { StyleSheet } from 'react-native';
 
+import { colors } from '@styles/globalStyles';
+
 export const styles = StyleSheet.create({
   // Ejemplo de estilos para el carrusel (ajusta según tu línea gráfica)
   // Añade estos estilos a tu archivo styles/Explore.js
   clusteringIndicator: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderColor: '#4285F4',
+    borderColor: colors.primary,
     borderRadius: 20,
     borderWidth: 1,
     paddingHorizontal: 10,
@@ -20,7 +22,7 @@ export const styles = StyleSheet.create({
     padding: 10,
   },
   clusteringText: {
-    color: '#4285F4',
+    color: colors.primary,
     fontWeight: 'bold',
   },
   markerCount: {
@@ -44,7 +46,7 @@ export const styles = StyleSheet.create({
   // eslint-disable-next-line react-native/sort-styles
   applyButton: {
     alignItems: 'center',
-    backgroundColor: '#4285F4',
+    backgroundColor: colors.primary,
     borderRadius: 10,
     flex: 1,
     marginLeft: 10,
@@ -69,7 +71,7 @@ export const styles = StyleSheet.create({
     width: 120,
   },
   carouselItemActive: {
-    backgroundColor: '#4285F4',
+    backgroundColor: colors.primaryDark,
   },
   carouselText: {
     color: '#666',
@@ -289,7 +291,7 @@ export const styles = StyleSheet.create({
   },
   eventsButton: {
     alignSelf: 'center',
-    backgroundColor: '#4285F4',
+    backgroundColor: colors.primary,
     borderRadius: 25,
     bottom: 10,
     elevation: 4,
@@ -340,7 +342,7 @@ export const styles = StyleSheet.create({
     padding: 8,
   },
   filterButtonActive: {
-    backgroundColor: '#4285F4',
+    backgroundColor: colors.primaryDark,
   },
   filterChip: {
     alignItems: 'center',
