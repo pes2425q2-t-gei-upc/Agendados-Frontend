@@ -3,7 +3,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import React from 'react';
 import { Modal, TouchableOpacity, View, Text } from 'react-native';
 
-import { styles } from '../../../styles/Explore';
+import { styles } from '@styles/Explore';
 
 interface DatePickerModalProps {
   visible: boolean;

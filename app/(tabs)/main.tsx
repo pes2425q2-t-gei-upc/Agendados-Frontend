@@ -26,7 +26,7 @@ import Animated, {
 
 import Card from '@components/cardEvent';
 import EventDetailModal from '@components/EventDetailModal';
-import { Event } from '@models/Event';
+import { Event as EventModal } from '@models/Event';
 import {
   getEventRecomendations,
   getEventDetails,
@@ -40,23 +40,12 @@ import { useFavorites } from 'app/context/FavoritesContext';
 const Like = require('@assets/images/GreenColor.jpeg');
 const Dislike = require('@assets/images/RedColor.png');
 
-// Define Event type for TinderCard
-type TinderCardEvent = {
-  name: string;
-  image: unknown;
-  place: string;
-  cat: string;
-  date: string;
-  id: number;
-};
-
 const SWIPE_VELOCITY = 800;
 
 export default function Main() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [originalEvents, setOriginalEvents] = useState<Event[]>([]);
-  const [events, setEvents] = useState<TinderCardEvent[]>([]);
+  const [events, setEvents] = useState<EventModal[]>([]);
   const detailCache = useRef(new Map());
   const { refreshFavorites } = useFavorites();
 
@@ -64,9 +53,12 @@ export default function Main() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(1);
 
+  // Store current event ID for UI thread
+  const currentEventId = useSharedValue<number | null>(null);
+
   // Event detail modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
-  const [selectedEventDetail, setSelectedEventDetail] = useState<Event | null>(
+  const [selectedEventDetail, setSelectedEventDetail] = useState<EventModal | null>(
     null
   );
 
@@ -75,41 +67,26 @@ export default function Main() {
   const hiddenTranslateX = 2 * screenWidth;
   const translateX = useSharedValue(0);
 
+  // Get current event from index (defined early to avoid reference error)
+  const currentEvent = events[currentIndex];
+  // Get next event from index
+  const nextEvent = events[nextIndex];
+
+  // Update current event ID when currentIndex or events change
+  useEffect(() => {
+    if (events[currentIndex]) {
+      currentEventId.value = events[currentIndex].id;
+    } else {
+      currentEventId.value = null;
+    }
+  }, [currentIndex, events]);
+
   // Open event detail modal - similar to how it's done in explore.tsx
   const openDetailModal = useCallback(
-    async (eventId: number) => {
-      try {
-        const cachedDetail = detailCache.current.get(eventId.toString());
-        if (cachedDetail) {
-          setSelectedEventDetail(cachedDetail);
-          setDetailModalVisible(true);
-          return;
-        }
-
-        // Find the original event data (which contains full Event object)
-        const originalEvent = originalEvents.find(
-          (event) => event.id === eventId
-        );
-
-        if (originalEvent) {
-          // If we have the full event data in our state already
-          setSelectedEventDetail(originalEvent);
-          detailCache.current.set(eventId.toString(), originalEvent);
-        } else {
-          // Fetch from API if not available in state
-          const detail = await getEventDetails(eventId);
-          detailCache.current.set(eventId.toString(), detail);
-          setSelectedEventDetail(detail);
-        }
-
-        setDetailModalVisible(true);
-      } catch (err) {
-        console.error('Error loading event details:', err);
-        Alert.alert('Error', 'Could not load event details.');
-      }
-    },
-    [originalEvents]
-  );
+    async (event: EventModal) => {
+      setSelectedEventDetail(event);
+      setDetailModalVisible(true);
+    }, []); 
 
   // Fetch recommended events from backend
   const fetchRecommendedEvents = useCallback(async () => {
@@ -117,87 +94,11 @@ export default function Main() {
       setLoading(true);
       setError(null);
 
-      const data = await getEventRecomendations();
-      setOriginalEvents(data);
-
-      // Transform data to format needed for card component
-      const transformedEvents = data.map((event: Event) => {
-        const eventDate = new Date(event.date_ini);
-        return {
-          id: event.id,
-          name: event.title,
-          image:
-            event.images && event.images.length > 0
-              ? { uri: event.images[0].image_url }
-              : require('@assets/images/FotoJazz.jpg'),
-          place: event.location?.town?.name ?? 'Unknown location',
-          cat:
-            event.categories && event.categories.length > 0
-              ? event.categories[0].name
-              : 'Events',
-          date: eventDate.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-          }),
-        };
-      });
-
-      setEvents(transformedEvents);
+      const data: EventModal[] = await getEventRecomendations();
+      setEvents(data);
+      
     } catch (err) {
-      console.error('Error fetching recommendations:', err);
-      setError('Could not load recommended events');
-
-      // Fallback to static data if API fails
-      const fallbackEvents = [
-        {
-          id: 1,
-          name: 'Concierto de Jazz',
-          image: require('@assets/images/FotoJazz.jpg'),
-          place: 'UPC',
-          cat: 'Conciertos',
-          date: '22/01/2026',
-        },
-        {
-          id: 2,
-          name: 'Festival Arena Sound',
-          image: require('@assets/images/FotoConcierto.jpg'),
-          place: 'Playa Barceloneta',
-          cat: 'Festivales',
-          date: '02/12/2028',
-        },
-        {
-          id: 3,
-          name: 'Teatro Rey Leon',
-          image: require('@assets/images/ReyLeon.jpg'),
-          place: 'Sala Apolo',
-          cat: 'Teatros',
-          date: '26/8/2025',
-        },
-        {
-          id: 4,
-          name: 'Museo de Arte Contemporaneo',
-          image: require('@assets/images/MuseoContemporaneo.jpg'),
-          place: 'Museo Historia de Catalunya',
-          cat: 'Museos',
-          date: '16/4/2025',
-        },
-      ];
-
-      setEvents(fallbackEvents);
-
-      // Create fallback original events for compatibility
-      const fallbackOriginalEvents = fallbackEvents.map((event) => ({
-        id: event.id,
-        title: event.name,
-        date_ini: new Date(event.date).toISOString(),
-        date_end: new Date(event.date).toISOString(),
-        categories: [{ id: 1, name: event.cat }],
-        images: [],
-        links: [],
-      }));
-
-      setOriginalEvents(fallbackOriginalEvents as Event[]);
+      setError('Failed to fetch events. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -274,9 +175,9 @@ export default function Main() {
         isSwipeRight ? hiddenTranslateX : -hiddenTranslateX,
         {},
         () => {
-          if (isSwipeRight && events[currentIndex]) {
+          if (isSwipeRight && currentEventId.value !== null) {
             // Add to favorites on right swipe
-            runOnJS(handleSwipeRight)(events[currentIndex].id);
+            runOnJS(handleSwipeRight)(currentEventId.value);
           }
           // Move to next card
           runOnJS(setCurrentIndex)(currentIndex + 1);
@@ -306,8 +207,8 @@ export default function Main() {
 
   // Handle info button click from card component
   const handleInfoButtonPress = useCallback(
-    (eventId: number) => {
-      openDetailModal(eventId);
+    (event: EventModal) => {
+      openDetailModal(event);
     },
     [openDetailModal]
   );
@@ -330,10 +231,10 @@ export default function Main() {
       <View style={styles.pageContainer}>
         <Text style={{ color: colors.error, marginBottom: 20 }}>{error}</Text>
         <TouchableOpacity
-          style={localStyles.retryButton}
+          style={styles.retryButton}
           onPress={fetchRecommendedEvents}
         >
-          <Text style={localStyles.retryButtonText}>Retry</Text>
+          <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -347,31 +248,28 @@ export default function Main() {
           No more events to display!
         </Text>
         <TouchableOpacity
-          style={localStyles.retryButton}
+          style={styles.retryButton}
           onPress={() => {
             setCurrentIndex(0);
             fetchRecommendedEvents();
           }}
         >
-          <Text style={localStyles.retryButtonText}>Find more events</Text>
+          <Text style={styles.retryButtonText}>Find more events</Text>
         </TouchableOpacity>
       </View>
     );
   }
-
-  const currentProfile = events[currentIndex];
-  const nextProfile = events[nextIndex];
-
+  
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.pageContainer}>
         {/* Next card (shown behind current) */}
         <View style={styles.nextCardContainer}>
-          {nextProfile && (
+          {nextEvent && (
             <Animated.View style={[styles.animatedCard, nextCardStyle]}>
               <Card
-                event1={currentProfile}
-                onInfoPress={() => handleInfoButtonPress(currentProfile.id)}
+                event={nextEvent}
+                onInfoPress={() => handleInfoButtonPress(nextEvent)}
               />
             </Animated.View>
           )}
@@ -391,40 +289,12 @@ export default function Main() {
               resizeMode='stretch'
             />
             <Card
-              event1={currentProfile}
-              onInfoPress={() => handleInfoButtonPress(currentProfile.id)}
+              event={currentEvent}
+              onInfoPress={() => handleInfoButtonPress(currentEvent)}
             />
           </Animated.View>
         </PanGestureHandler>
-
-        {/* Event Detail Modal */}
-        {selectedEventDetail && (
-          <EventDetailModal
-            event={selectedEventDetail}
-            visible={detailModalVisible}
-            onClose={() => {
-              setDetailModalVisible(false);
-              setSelectedEventDetail(null);
-            }}
-          />
-        )}
       </View>
     </GestureHandlerRootView>
   );
 }
-
-// Additional local styles
-const localStyles = StyleSheet.create({
-  retryButton: {
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
