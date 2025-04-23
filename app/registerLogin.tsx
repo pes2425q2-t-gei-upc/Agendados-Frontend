@@ -26,6 +26,7 @@ import Animated, {
 
 import { useAuth } from '@context/authContext';
 import { login, register } from '@services/AuthService';
+
 import { colors, spacing } from '@styles/globalStyles';
 
 export default function RegisterLoginPage() {
