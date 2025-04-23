@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, TouchableOpacity, Text } from 'react-native';
 
-import { styles } from '../../../styles/Explore';
+import { styles } from '@styles/Explore';
 
 export type FilterItem = {
   id: string;
