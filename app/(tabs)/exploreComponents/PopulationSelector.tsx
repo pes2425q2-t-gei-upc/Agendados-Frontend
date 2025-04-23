@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { TFunction } from 'i18next';
 
-import { styles } from '../../../styles/Explore';
+import { styles } from '@styles/Explore';
 
 export type PopulationItem = {
   id: string;

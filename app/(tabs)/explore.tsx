@@ -26,7 +26,7 @@ import { styles } from '@styles/Explore';
 import { useEvents } from '@context/eventsContext';
 import { getTowns } from '@services/LocationService';
 
-import { EventCard } from './exploreComponents/EventCard';
+import { EventCard } from './exploreComponents/ExploreEventCard';
 import { CarouselToggle } from './exploreComponents/CarouselToggle';
 import { AnimatedNearbyEventsList } from './exploreComponents/AnimatedNearbyEventsList';
 import { FilterModal } from './exploreComponents/FilterModal';
