@@ -29,7 +29,7 @@ export class FriendshipService {
   public static async getFriends(): Promise<Friendship[]> {
     try {
       const token = await this.getAuthToken();
-      const response = await fetch(`${this.baseUrl}/friendships`, {
+      const response = await fetch(`${this.baseUrl}/users/friendships`, {
         method: 'GET',
         headers: {
           Authorization: `Token ${token}`,
@@ -55,8 +55,11 @@ export class FriendshipService {
   public static async searchUsers(query: string): Promise<User[]> {
     try {
       const token = await this.getAuthToken();
+      // Imprime el token para depuración (solo durante desarrollo)
+      console.log('Token usado:', token.substring(0, 10) + '...');
+
       const response = await fetch(
-        `${this.baseUrl}/users/search?q=${encodeURIComponent(query)}`,
+        `${this.baseUrl}/users?query=${encodeURIComponent(query)}`,
         {
           method: 'GET',
           headers: {
@@ -67,6 +70,11 @@ export class FriendshipService {
       );
 
       if (!response.ok) {
+        console.log('Status code:', response.status);
+        console.log(
+          'Response headers:',
+          Object.fromEntries([...response.headers])
+        );
         throw new Error(`Failed to search users: ${response.status}`);
       }
 

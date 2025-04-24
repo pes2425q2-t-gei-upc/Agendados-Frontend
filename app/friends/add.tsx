@@ -1,6 +1,6 @@
 // app/friends/add.tsx
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -21,17 +21,18 @@ import { User } from '../Models/User';
 
 export default function AddFriendScreen() {
   const { t } = useTranslation();
-  const { searchUsers, sendFriendRequest, friends } = useFriendship();
+  const { searchUsers, sendFriendRequest, friends, pendingRequests } =
+    useFriendship();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [pendingRequests, setPendingRequests] = useState<Set<number>>(
-    new Set()
-  );
+  const [processingIds, setProcessingIds] = useState<number[]>([]);
 
+  // Buscar usuarios por nombre de usuario o email
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
+      setSearchResults([]);
       return;
     }
 
@@ -47,32 +48,52 @@ export default function AddFriendScreen() {
     }
   };
 
-  const handleSendRequest = async (friendId: number) => {
+  // Enviar solicitud de amistad
+  const handleSendRequest = async (userId: number) => {
+    if (processingIds.includes(userId)) {
+      return;
+    }
+
+    setProcessingIds((prev) => [...prev, userId]);
     try {
-      const success = await sendFriendRequest(friendId);
+      const success = await sendFriendRequest(userId);
       if (success) {
-        // Actualizar UI localmente
-        setPendingRequests((prev) => new Set(prev).add(friendId));
-        Alert.alert(t('common.success'), t('friends.friendAdded'));
+        // Actualizar UI localmente para mostrar que la solicitud fue enviada
+        Alert.alert(t('common.success'), t('friends.friendRequestSent'));
       }
     } catch (error) {
       console.error('Error sending friend request:', error);
       Alert.alert(t('common.error'), String(error));
+    } finally {
+      setProcessingIds((prev) => prev.filter((id) => id !== userId));
     }
   };
 
-  // Comprobar si ya es amigo o tiene solicitud pendiente
-  const isFriend = (userId: number) => {
-    return friends.some((f) => f.friend?.id === userId);
-  };
+  // Comprobar si ya es amigo
+  const isFriend = useCallback(
+    (userId: number) => {
+      return friends.some(
+        (f) => f.friend?.id === userId || f.user?.id === userId
+      );
+    },
+    [friends]
+  );
 
-  const hasPendingRequest = (userId: number) => {
-    return pendingRequests.has(userId);
-  };
+  // Comprobar si ya hay una solicitud pendiente
+  const hasPendingRequest = useCallback(
+    (userId: number) => {
+      return pendingRequests.some(
+        (req) => req.friend?.id === userId || req.user?.id === userId
+      );
+    },
+    [pendingRequests]
+  );
 
+  // Renderizar un resultado de búsqueda de usuario
   const renderUserItem = ({ item }: { item: User }) => {
     const alreadyFriend = isFriend(item.id);
     const isPending = hasPendingRequest(item.id);
+    const isProcessing = processingIds.includes(item.id);
 
     return (
       <View style={styles.userItem}>
@@ -86,7 +107,9 @@ export default function AddFriendScreen() {
           <Text style={styles.userName}>{item.name ?? item.username}</Text>
           <Text style={styles.userUsername}>@{item.username}</Text>
         </View>
-        {alreadyFriend ? (
+        {isProcessing ? (
+          <ActivityIndicator size='small' color={colors.primary} />
+        ) : alreadyFriend ? (
           <View style={styles.alreadyFriendTag}>
             <Text style={styles.alreadyFriendText}>
               {t('friends.alreadyFriend')}
@@ -95,7 +118,7 @@ export default function AddFriendScreen() {
         ) : isPending ? (
           <View style={styles.pendingTag}>
             <Text style={styles.pendingText}>
-              {t('friends.friendRequestSent')}
+              {t('friends.pendingRequest')}
             </Text>
           </View>
         ) : (
@@ -113,6 +136,7 @@ export default function AddFriendScreen() {
   return (
     <ProtectedRoute>
       <View style={styles.container}>
+        {/* Barra de búsqueda */}
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
@@ -121,6 +145,7 @@ export default function AddFriendScreen() {
             onChangeText={setSearchQuery}
             onSubmitEditing={handleSearch}
             returnKeyType='search'
+            autoCapitalize='none'
           />
           <TouchableOpacity
             style={styles.searchButton}
@@ -135,12 +160,18 @@ export default function AddFriendScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Texto de ayuda */}
+        {searchQuery.trim() === '' && (
+          <Text style={styles.helpText}>{t('friends.searchHelpText')}</Text>
+        )}
+
+        {/* Resultados de búsqueda */}
         <FlatList
           data={searchResults}
           renderItem={renderUserItem}
           keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={
-            searchQuery.trim() !== '' ? (
+            searchQuery.trim() !== '' && !isSearching ? (
               <View style={styles.emptyContainer}>
                 <Ionicons
                   name='search-outline'
@@ -154,7 +185,9 @@ export default function AddFriendScreen() {
             ) : null
           }
           contentContainerStyle={
-            searchResults.length === 0 ? { flex: 1 } : null
+            searchResults.length === 0 && searchQuery.trim() !== ''
+              ? { flex: 1 }
+              : null
           }
         />
       </View>
@@ -189,6 +222,12 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 16,
     marginTop: spacing.md,
+  },
+  helpText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    marginBottom: spacing.md,
+    textAlign: 'center',
   },
   pendingTag: {
     backgroundColor: colors.secondaryLight,

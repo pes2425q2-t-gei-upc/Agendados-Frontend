@@ -19,6 +19,7 @@ export class Friendship implements FriendshipDTO {
   created_at: string;
   updated_at: string;
   friend?: UserDTO;
+  user: any;
 
   constructor(friendship: FriendshipDTO) {
     this.id = friendship.id;

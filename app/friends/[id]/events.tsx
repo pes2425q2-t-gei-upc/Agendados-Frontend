@@ -1,5 +1,6 @@
 // app/friends/[id]/events.tsx
-import { useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -21,7 +22,8 @@ import { Event } from '../../Models/Event';
 
 export default function FriendEventsScreen() {
   const { t } = useTranslation();
-  const { id, name } = useLocalSearchParams();
+  const router = useRouter();
+  const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
   const { getFriendEvents } = useFriendship();
 
   const [events, setEvents] = useState<Event[]>([]);
@@ -31,15 +33,19 @@ export default function FriendEventsScreen() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
+  // Cargar los eventos guardados por el amigo
   const fetchEvents = async () => {
     if (!id) {
       return;
     }
 
-    setLoading(true);
+    if (!refreshing) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
+      // Llamar al endpoint GET /api/users/{friendId}/events a través del service
       const friendEvents = await getFriendEvents(Number(id));
       setEvents(friendEvents);
     } catch (err) {
@@ -47,24 +53,33 @@ export default function FriendEventsScreen() {
       setError(t('friends.errorFetchingEvents'));
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
+  // Cargar eventos al entrar en la pantalla
   useEffect(() => {
     fetchEvents();
   }, [id]);
 
+  // Recargar eventos al hacer pull to refresh
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchEvents();
-    setRefreshing(false);
   };
 
+  // Mostrar detalles de un evento
   const handleEventPress = (event: Event) => {
     setSelectedEvent(event);
     setDetailModalVisible(true);
   };
 
+  // Volver a la pantalla anterior
+  const goBack = () => {
+    router.back();
+  };
+
+  // Renderizar un evento en la lista
   const renderEventItem = ({ item }: { item: Event }) => {
     return (
       <TouchableOpacity
@@ -99,7 +114,11 @@ export default function FriendEventsScreen() {
   return (
     <ProtectedRoute>
       <View style={styles.container}>
+        {/* Header con botón de regreso */}
         <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={goBack}>
+            <Ionicons name='arrow-back' size={24} color={colors.text} />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>
             {name
               ? `${name}${t('friends.apostropheS')} ${t('profile.savedEvents').toLowerCase()}`
@@ -129,6 +148,11 @@ export default function FriendEventsScreen() {
             contentContainerStyle={events.length === 0 ? { flex: 1 } : null}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
+                <Ionicons
+                  name='bookmark-outline'
+                  size={60}
+                  color={colors.border}
+                />
                 <Text style={styles.emptyText}>{t('friends.noEvents')}</Text>
               </View>
             }
@@ -136,6 +160,7 @@ export default function FriendEventsScreen() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
+                colors={[colors.primary]}
               />
             }
           />
@@ -157,6 +182,9 @@ export default function FriendEventsScreen() {
 }
 
 const styles = StyleSheet.create({
+  backButton: {
+    marginRight: spacing.sm,
+  },
   categoryTag: {
     alignSelf: 'flex-start',
     backgroundColor: colors.primaryLight,
@@ -231,12 +259,15 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   header: {
+    alignItems: 'center',
     backgroundColor: colors.backgroundAlt,
+    flexDirection: 'row',
     marginBottom: spacing.md,
     padding: spacing.md,
   },
   headerTitle: {
     color: colors.text,
+    flex: 1,
     fontSize: 18,
     fontWeight: 'bold',
   },
