@@ -26,7 +26,6 @@ import Animated, {
 
 import { useAuth } from '@context/authContext';
 import { login, register } from '@services/AuthService';
-
 import { colors, spacing } from '@styles/globalStyles';
 
 export default function RegisterLoginPage() {
@@ -143,10 +142,10 @@ export default function RegisterLoginPage() {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 3) {
       setErrorMessage(
         t('auth.passwordLength') ||
-          'La contraseña debe tener al menos 6 caracteres'
+          'La contraseña debe tener al menos 3 caracteres'
       );
       return;
     }

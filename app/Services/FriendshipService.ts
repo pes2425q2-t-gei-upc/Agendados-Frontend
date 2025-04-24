@@ -5,7 +5,9 @@ import { User, UserDTO } from '@models/User';
 import { getUserToken } from './AuthService';
 
 export class FriendshipService {
-  private static baseUrl: string = 'http://localhost:8000/api';
+  private static baseUrl: string =
+    'https://agendados-backend-842309366027.europe-southwest1.run.app/api';
+  //'http://localhost:8080/api';
 
   /**
    * Obtiene el token de autenticación
@@ -50,16 +52,47 @@ export class FriendshipService {
   }
 
   /**
-   * Busca usuarios por nombre de usuario o email
+   * Busca usuarios por término de búsqueda
    */
   public static async searchUsers(query: string): Promise<User[]> {
+    const token = await this.getAuthToken();
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Token usado:', token.substring(0, 10) + '...');
+    }
+
+    const url = new URL(`${this.baseUrl}/users/all`);
+    url.searchParams.append('query', query);
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        Authorization: `Token ${token}`,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.log('Status code:', response.status);
+      console.log(
+        'Response headers:',
+        Object.fromEntries([...response.headers])
+      );
+      throw new Error(`Failed to search users: ${response.status}`);
+    }
+
+    const data: UserDTO[] = await response.json();
+    return Array.isArray(data) ? data.map((user) => new User(user)) : [];
+  }
+
+  /**
+   * Obtiene las solicitudes de amistad pendientes
+   */
+  public static async getPendingFriendRequests(): Promise<any[]> {
     try {
       const token = await this.getAuthToken();
-      // Imprime el token para depuración (solo durante desarrollo)
-      console.log('Token usado:', token.substring(0, 10) + '...');
-
       const response = await fetch(
-        `${this.baseUrl}/users?query=${encodeURIComponent(query)}`,
+        `${this.baseUrl}/users/friendships/pending`,
         {
           method: 'GET',
           headers: {
@@ -70,18 +103,12 @@ export class FriendshipService {
       );
 
       if (!response.ok) {
-        console.log('Status code:', response.status);
-        console.log(
-          'Response headers:',
-          Object.fromEntries([...response.headers])
-        );
-        throw new Error(`Failed to search users: ${response.status}`);
+        throw new Error(`Failed to fetch pending requests: ${response.status}`);
       }
 
-      const data: UserDTO[] = await response.json();
-      return data.map((user) => new User(user));
+      return await response.json();
     } catch (error) {
-      console.error('Error searching users:', error);
+      console.error('Error fetching pending friend requests:', error);
       throw error;
     }
   }
@@ -92,14 +119,16 @@ export class FriendshipService {
   public static async sendFriendRequest(friendId: number): Promise<Friendship> {
     try {
       const token = await this.getAuthToken();
-      const response = await fetch(`${this.baseUrl}/friendships`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ friend_id: friendId }),
-      });
+      const response = await fetch(
+        `${this.baseUrl}/users/friendships/${friendId}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Token ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to send friend request: ${response.status}`);
@@ -117,12 +146,12 @@ export class FriendshipService {
    * Acepta una solicitud de amistad
    */
   public static async acceptFriendRequest(
-    friendshipId: number
+    requestId: number
   ): Promise<Friendship> {
     try {
       const token = await this.getAuthToken();
       const response = await fetch(
-        `${this.baseUrl}/friendships/${friendshipId}/accept`,
+        `${this.baseUrl}/users/friendships/accept/${requestId}`,
         {
           method: 'POST',
           headers: {
@@ -147,15 +176,13 @@ export class FriendshipService {
   /**
    * Rechaza una solicitud de amistad
    */
-  public static async rejectFriendRequest(
-    friendshipId: number
-  ): Promise<boolean> {
+  public static async rejectFriendRequest(requestId: number): Promise<boolean> {
     try {
       const token = await this.getAuthToken();
       const response = await fetch(
-        `${this.baseUrl}/friendships/${friendshipId}/reject`,
+        `${this.baseUrl}/users/friendships/decline/${requestId}`,
         {
-          method: 'POST',
+          method: 'DELETE',
           headers: {
             Authorization: `Token ${token}`,
             'Content-Type': 'application/json',
@@ -176,12 +203,14 @@ export class FriendshipService {
 
   /**
    * Elimina una amistad
+   * Nota: Este endpoint no está definido en el OpenAPI, deberías verificar si existe en el backend
    */
-  public static async removeFriend(friendshipId: number): Promise<boolean> {
+  public static async removeFriend(friendId: number): Promise<boolean> {
     try {
       const token = await this.getAuthToken();
+      // Esta URL es una suposición, necesitas confirmar la ruta correcta con el backend
       const response = await fetch(
-        `${this.baseUrl}/friendships/${friendshipId}`,
+        `${this.baseUrl}/users/friendships/${friendId}`,
         {
           method: 'DELETE',
           headers: {
@@ -204,10 +233,12 @@ export class FriendshipService {
 
   /**
    * Obtiene los eventos guardados por un amigo
+   * Nota: Este endpoint no está definido en el OpenAPI, deberías verificar si existe en el backend
    */
   public static async getFriendEvents(friendId: number): Promise<any[]> {
     try {
       const token = await this.getAuthToken();
+      // Esta URL es una suposición, necesitas confirmar la ruta correcta con el backend
       const response = await fetch(`${this.baseUrl}/users/${friendId}/events`, {
         method: 'GET',
         headers: {

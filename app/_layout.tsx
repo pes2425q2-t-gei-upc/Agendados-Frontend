@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 
 import { FavoritesProvider } from '@context/FavoritesContext';
 import { FriendshipProvider } from '@context/FriendshipContext'; // Nuevo import
+import { colors } from '@styles/globalStyles';
 import { initializeLanguage } from 'localization/i18n';
 
 import { AuthProvider } from './context/authContext';
@@ -35,6 +36,15 @@ export default function RootLayout() {
                 options={{
                   headerShown: true,
                   title: 'Eventos guardados por amigo',
+                }}
+              />
+              <Stack.Screen
+                name='config'
+                options={{
+                  headerShown: false, // Ocultamos el header por defecto
+                  title: 'Configuración', // Este título no se verá porque headerShown es false
+                  animation: 'slide_from_right', // Animación lateral
+                  presentation: 'card', // Presentación normal de tipo tarjeta
                 }}
               />
             </Stack>

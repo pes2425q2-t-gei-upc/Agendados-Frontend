@@ -1,6 +1,7 @@
 // app/config.tsx
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +18,9 @@ import {
   ActivityIndicator,
   Modal,
   Platform,
+  StatusBar,
+  SafeAreaView,
+  Animated,
 } from 'react-native';
 
 import { useAuth } from '@context/authContext';
@@ -34,6 +38,7 @@ const Config = () => {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const { userInfo, updateUserProfile, loading } = useAuth();
+  const scrollY = new Animated.Value(0);
 
   // Estados de usuario
   const [username, setUsername] = useState('');
@@ -64,6 +69,43 @@ const Config = () => {
     }
   }, [userInfo]);
 
+  // Animaciones para el header mejoradas
+  const headerHeight = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [180, 80],
+    extrapolate: 'clamp',
+  });
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 60, 120],
+    outputRange: [1, 0.8, 0],
+    extrapolate: 'clamp',
+  });
+
+  const titleScale = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [1, 0.8],
+    extrapolate: 'clamp',
+  });
+
+  const titleTranslateY = scrollY.interpolate({
+    inputRange: [0, 120],
+    outputRange: [0, -10],
+    extrapolate: 'clamp',
+  });
+
+  const titleOpacity = scrollY.interpolate({
+    inputRange: [0, 80, 130],
+    outputRange: [1, 0.8, 0],
+    extrapolate: 'clamp',
+  });
+
+  const compactTitleOpacity = scrollY.interpolate({
+    inputRange: [100, 130],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
   const handleLanguageChange = async (lang: 'es' | 'en' | 'ca') => {
     try {
       setIsLoading(true);
@@ -74,6 +116,10 @@ const Config = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBackPress = () => {
+    router.back();
   };
 
   const pickImage = async () => {
@@ -360,253 +406,319 @@ const Config = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>{t('settings.title')}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle='light-content' />
 
-      {/* Sección de Perfil */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('profile.personalInfo')}</Text>
+      {/* Header animado mejorado */}
+      <Animated.View style={[styles.header, { height: headerHeight }]}>
+        <LinearGradient
+          colors={[colors.primary, colors.primaryDark]}
+          style={styles.gradient}
+        >
+          {/* Botón de regreso (siempre visible) */}
+          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+            <Ionicons name='arrow-back' size={24} color='white' />
+          </TouchableOpacity>
 
-        {/* Avatar */}
-        <View style={styles.avatarContainer}>
-          <TouchableOpacity onPress={showAvatarOptions}>
-            {avatar ? (
-              <Image source={{ uri: avatar }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Ionicons name='person' size={60} color={colors.border} />
+          {/* Título compacto (visible solo al hacer scroll) */}
+          <Animated.View
+            style={[styles.compactTitle, { opacity: compactTitleOpacity }]}
+          >
+            <Text style={styles.compactTitleText}>{t('settings.title')}</Text>
+          </Animated.View>
+
+          {/* Avatar en header */}
+          <Animated.View
+            style={[styles.headerAvatarContainer, { opacity: headerOpacity }]}
+          >
+            <TouchableOpacity onPress={showAvatarOptions}>
+              {avatar ? (
+                <Image source={{ uri: avatar }} style={styles.headerAvatar} />
+              ) : (
+                <View style={styles.headerAvatarPlaceholder}>
+                  <Ionicons name='person' size={30} color='white' />
+                </View>
+              )}
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* Título animado */}
+          <Animated.View
+            style={[
+              styles.headerTitleContainer,
+              {
+                opacity: titleOpacity,
+                transform: [
+                  { scale: titleScale },
+                  { translateY: titleTranslateY },
+                ],
+              },
+            ]}
+          >
+            <Text style={styles.headerTitle}>{t('settings.title')}</Text>
+            <Text style={styles.headerSubtitle}>@{username}</Text>
+          </Animated.View>
+        </LinearGradient>
+      </Animated.View>
+
+      {/* Contenido principal */}
+      <Animated.ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+      >
+        {/* Sección de Perfil */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('profile.personalInfo')}</Text>
+
+          {/* Avatar */}
+          <View style={styles.avatarContainer}>
+            <TouchableOpacity onPress={showAvatarOptions}>
+              {avatar ? (
+                <Image source={{ uri: avatar }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Ionicons name='person' size={60} color={colors.border} />
+                </View>
+              )}
+              <View style={styles.avatarEditButton}>
+                <Ionicons name='camera' size={20} color={colors.lightText} />
               </View>
-            )}
-            <View style={styles.avatarEditButton}>
-              <Ionicons name='camera' size={20} color={colors.lightText} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Nombre para mostrar */}
+          <View style={styles.profileItem}>
+            <View style={styles.profileItemHeader}>
+              <Text style={styles.profileItemLabel}>
+                {t('settings.displayName')}
+              </Text>
+              {!isEditingDisplayName ? (
+                <TouchableOpacity onPress={() => setIsEditingDisplayName(true)}>
+                  <Ionicons
+                    name='create-outline'
+                    size={22}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+              ) : null}
             </View>
+
+            {isEditingDisplayName ? (
+              <View style={styles.editContainer}>
+                <TextInput
+                  style={styles.editInput}
+                  value={displayName}
+                  onChangeText={setDisplayName}
+                  placeholder={t('settings.enterDisplayName')}
+                  autoCapitalize='words'
+                />
+                <View style={styles.editActions}>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => setIsEditingDisplayName(false)}
+                  >
+                    <Ionicons
+                      name='close-outline'
+                      size={22}
+                      color={colors.error}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={handleSaveDisplayName}
+                  >
+                    <Ionicons
+                      name='checkmark-outline'
+                      size={22}
+                      color={colors.success}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <Text style={styles.profileItemValue}>{displayName}</Text>
+            )}
+          </View>
+
+          {/* Nombre de usuario */}
+          <View style={styles.profileItem}>
+            <View style={styles.profileItemHeader}>
+              <Text style={styles.profileItemLabel}>
+                {t('settings.username')}
+              </Text>
+              {!isEditingUsername ? (
+                <TouchableOpacity onPress={() => setIsEditingUsername(true)}>
+                  <Ionicons
+                    name='create-outline'
+                    size={22}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
+            {isEditingUsername ? (
+              <View style={styles.editContainer}>
+                <TextInput
+                  style={styles.editInput}
+                  value={username}
+                  onChangeText={setUsername}
+                  placeholder={t('settings.enterUsername')}
+                  autoCapitalize='none'
+                />
+                <View style={styles.editActions}>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => setIsEditingUsername(false)}
+                  >
+                    <Ionicons
+                      name='close-outline'
+                      size={22}
+                      color={colors.error}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={handleSaveUsername}
+                  >
+                    <Ionicons
+                      name='checkmark-outline'
+                      size={22}
+                      color={colors.success}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <Text style={styles.profileItemValue}>@{username}</Text>
+            )}
+          </View>
+
+          {/* Email */}
+          <View style={styles.profileItem}>
+            <Text style={styles.profileItemLabel}>{t('settings.email')}</Text>
+            <Text style={styles.profileItemValue}>{email}</Text>
+          </View>
+
+          {/* Cambiar contraseña */}
+          <TouchableOpacity
+            style={styles.changePasswordButton}
+            onPress={() => setChangePasswordVisible(true)}
+          >
+            <Ionicons name='key-outline' size={22} color={colors.primary} />
+            <Text style={styles.changePasswordText}>
+              {t('settings.changePassword')}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Nombre para mostrar */}
-        <View style={styles.profileItem}>
-          <View style={styles.profileItemHeader}>
-            <Text style={styles.profileItemLabel}>
-              {t('settings.displayName')}
-            </Text>
-            {!isEditingDisplayName ? (
-              <TouchableOpacity onPress={() => setIsEditingDisplayName(true)}>
-                <Ionicons
-                  name='create-outline'
-                  size={22}
-                  color={colors.primary}
-                />
-              </TouchableOpacity>
-            ) : null}
+        {/* Sección de Idioma */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
+          <LanguageSelector onLanguageChange={handleLanguageChange} />
+        </View>
+
+        {/* Sección de Notificaciones */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.notifications')}</Text>
+
+          <View style={styles.toggleItem}>
+            <View style={styles.toggleInfo}>
+              <Ionicons
+                name='notifications-outline'
+                size={22}
+                color={colors.text}
+              />
+              <Text style={styles.toggleLabel}>
+                {t('settings.pushNotifications')}
+              </Text>
+            </View>
+            <Switch
+              value={pushNotifications}
+              onValueChange={setPushNotifications}
+              trackColor={{ false: colors.border, true: colors.primaryLight }}
+              thumbColor={pushNotifications ? colors.primary : '#f4f3f4'}
+              ios_backgroundColor={colors.border}
+            />
           </View>
 
-          {isEditingDisplayName ? (
-            <View style={styles.editContainer}>
-              <TextInput
-                style={styles.editInput}
-                value={displayName}
-                onChangeText={setDisplayName}
-                placeholder={t('settings.enterDisplayName')}
-                autoCapitalize='words'
-              />
-              <View style={styles.editActions}>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => setIsEditingDisplayName(false)}
-                >
-                  <Ionicons
-                    name='close-outline'
-                    size={22}
-                    color={colors.error}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={handleSaveDisplayName}
-                >
-                  <Ionicons
-                    name='checkmark-outline'
-                    size={22}
-                    color={colors.success}
-                  />
-                </TouchableOpacity>
-              </View>
+          <View style={styles.toggleItem}>
+            <View style={styles.toggleInfo}>
+              <Ionicons name='mail-outline' size={22} color={colors.text} />
+              <Text style={styles.toggleLabel}>
+                {t('settings.emailNotifications')}
+              </Text>
             </View>
-          ) : (
-            <Text style={styles.profileItemValue}>{displayName}</Text>
-          )}
-        </View>
-
-        {/* Nombre de usuario */}
-        <View style={styles.profileItem}>
-          <View style={styles.profileItemHeader}>
-            <Text style={styles.profileItemLabel}>
-              {t('settings.username')}
-            </Text>
-            {!isEditingUsername ? (
-              <TouchableOpacity onPress={() => setIsEditingUsername(true)}>
-                <Ionicons
-                  name='create-outline'
-                  size={22}
-                  color={colors.primary}
-                />
-              </TouchableOpacity>
-            ) : null}
+            <Switch
+              value={emailNotifications}
+              onValueChange={setEmailNotifications}
+              trackColor={{ false: colors.border, true: colors.primaryLight }}
+              thumbColor={emailNotifications ? colors.primary : '#f4f3f4'}
+              ios_backgroundColor={colors.border}
+            />
           </View>
-
-          {isEditingUsername ? (
-            <View style={styles.editContainer}>
-              <TextInput
-                style={styles.editInput}
-                value={username}
-                onChangeText={setUsername}
-                placeholder={t('settings.enterUsername')}
-                autoCapitalize='none'
-              />
-              <View style={styles.editActions}>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => setIsEditingUsername(false)}
-                >
-                  <Ionicons
-                    name='close-outline'
-                    size={22}
-                    color={colors.error}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={handleSaveUsername}
-                >
-                  <Ionicons
-                    name='checkmark-outline'
-                    size={22}
-                    color={colors.success}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          ) : (
-            <Text style={styles.profileItemValue}>@{username}</Text>
-          )}
         </View>
 
-        {/* Email */}
-        <View style={styles.profileItem}>
-          <Text style={styles.profileItemLabel}>{t('settings.email')}</Text>
-          <Text style={styles.profileItemValue}>{email}</Text>
-        </View>
+        {/* Sección de Privacidad */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.privacy')}</Text>
 
-        {/* Cambiar contraseña */}
-        <TouchableOpacity
-          style={styles.changePasswordButton}
-          onPress={() => setChangePasswordVisible(true)}
-        >
-          <Ionicons name='key-outline' size={22} color={colors.primary} />
-          <Text style={styles.changePasswordText}>
-            {t('settings.changePassword')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Sección de Idioma */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
-        <LanguageSelector onLanguageChange={handleLanguageChange} />
-      </View>
-
-      {/* Sección de Notificaciones */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('settings.notifications')}</Text>
-
-        <View style={styles.toggleItem}>
-          <View style={styles.toggleInfo}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              /* Implementar navegación a términos */
+            }}
+          >
             <Ionicons
-              name='notifications-outline'
+              name='document-text-outline'
               size={22}
               color={colors.text}
             />
-            <Text style={styles.toggleLabel}>
-              {t('settings.pushNotifications')}
+            <Text style={styles.menuItemText}>
+              {t('settings.termsOfService')}
             </Text>
-          </View>
-          <Switch
-            value={pushNotifications}
-            onValueChange={setPushNotifications}
-            trackColor={{ false: colors.border, true: colors.primaryLight }}
-            thumbColor={pushNotifications ? colors.primary : '#f4f3f4'}
-            ios_backgroundColor={colors.border}
-          />
+            <Ionicons
+              name='chevron-forward'
+              size={22}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              /* Implementar navegación a política de privacidad */
+            }}
+          >
+            <Ionicons
+              name='shield-checkmark-outline'
+              size={22}
+              color={colors.text}
+            />
+            <Text style={styles.menuItemText}>
+              {t('settings.privacyPolicy')}
+            </Text>
+            <Ionicons
+              name='chevron-forward'
+              size={22}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.toggleItem}>
-          <View style={styles.toggleInfo}>
-            <Ionicons name='mail-outline' size={22} color={colors.text} />
-            <Text style={styles.toggleLabel}>
-              {t('settings.emailNotifications')}
-            </Text>
-          </View>
-          <Switch
-            value={emailNotifications}
-            onValueChange={setEmailNotifications}
-            trackColor={{ false: colors.border, true: colors.primaryLight }}
-            thumbColor={emailNotifications ? colors.primary : '#f4f3f4'}
-            ios_backgroundColor={colors.border}
-          />
-        </View>
-      </View>
-
-      {/* Sección de Privacidad */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('settings.privacy')}</Text>
-
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => {
-            /* Implementar navegación a términos */
-          }}
-        >
-          <Ionicons
-            name='document-text-outline'
-            size={22}
-            color={colors.text}
-          />
-          <Text style={styles.menuItemText}>
-            {t('settings.termsOfService')}
-          </Text>
-          <Ionicons
-            name='chevron-forward'
-            size={22}
-            color={colors.textSecondary}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => {
-            /* Implementar navegación a política de privacidad */
-          }}
-        >
-          <Ionicons
-            name='shield-checkmark-outline'
-            size={22}
-            color={colors.text}
-          />
-          <Text style={styles.menuItemText}>{t('settings.privacyPolicy')}</Text>
-          <Ionicons
-            name='chevron-forward'
-            size={22}
-            color={colors.textSecondary}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Versión de la app */}
-      <Text style={styles.versionText}>Agendados v1.0.0</Text>
+        {/* Versión de la app */}
+        <Text style={styles.versionText}>Agendados v1.0.0</Text>
+      </Animated.ScrollView>
 
       {/* Modal de cambio de contraseña */}
       {renderChangePasswordModal()}
-    </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -648,6 +760,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 100,
   },
+  backButton: {
+    left: spacing.md,
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 12 : 16,
+    zIndex: 100,
+  },
   changePasswordButton: {
     alignItems: 'center',
     backgroundColor: colors.background,
@@ -665,10 +783,28 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 4,
   },
+  compactTitle: {
+    alignItems: 'center',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: Platform.OS === 'ios' ? 12 : 16,
+    zIndex: 90,
+  },
+  compactTitleText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   container: {
     backgroundColor: colors.background,
     flex: 1,
+  },
+  contentContainer: {
     padding: spacing.lg,
+    paddingBottom: spacing.md,
+    paddingTop: spacing.sm, // Reducido el padding inferior
   },
   disabledButton: {
     backgroundColor: colors.disabled,
@@ -695,6 +831,59 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     padding: spacing.sm,
+  },
+  gradient: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: spacing.md,
+  },
+  header: {
+    backgroundColor: colors.primary,
+    overflow: 'hidden',
+    position: 'relative',
+    width: '100%',
+    zIndex: 1,
+  },
+  headerAvatar: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'white',
+    borderRadius: 30,
+    borderWidth: 2,
+    height: 60,
+    width: 60,
+  },
+  headerAvatarContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  headerAvatarPlaceholder: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'white',
+    borderRadius: 30,
+    borderStyle: 'solid',
+    borderWidth: 2,
+    height: 60,
+    justifyContent: 'center',
+    width: 60,
+  },
+  headerSubtitle: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 14,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  headerTitle: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  headerTitleContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
   input: {
     backgroundColor: colors.background,
@@ -779,6 +968,10 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 16,
   },
+  safeArea: {
+    backgroundColor: colors.primary,
+    flex: 1,
+  },
   saveButton: {
     alignItems: 'center',
     backgroundColor: colors.primary,
@@ -836,9 +1029,8 @@ const styles = StyleSheet.create({
   versionText: {
     color: colors.textSecondary,
     fontSize: 14,
-    marginBottom: spacing.xl * 2,
+    marginBottom: spacing.md,
     textAlign: 'center',
   },
 });
-
 export default Config;
