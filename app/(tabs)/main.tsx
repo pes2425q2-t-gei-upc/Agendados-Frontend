@@ -58,9 +58,8 @@ export default function Main() {
 
   // Event detail modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
-  const [selectedEventDetail, setSelectedEventDetail] = useState<EventModal | null>(
-    null
-  );
+  const [selectedEventDetail, setSelectedEventDetail] =
+    useState<EventModal | null>(null);
 
   // Values for animations
   const { width: screenWidth } = useWindowDimensions();
@@ -82,11 +81,10 @@ export default function Main() {
   }, [currentIndex, events]);
 
   // Open event detail modal - similar to how it's done in explore.tsx
-  const openDetailModal = useCallback(
-    async (event: EventModal) => {
-      setSelectedEventDetail(event);
-      setDetailModalVisible(true);
-    }, []); 
+  const openDetailModal = useCallback(async (event: EventModal) => {
+    setSelectedEventDetail(event);
+    setDetailModalVisible(true);
+  }, []);
 
   // Fetch recommended events from backend
   const fetchRecommendedEvents = useCallback(async () => {
@@ -96,7 +94,6 @@ export default function Main() {
 
       const data: EventModal[] = await getEventRecomendations();
       setEvents(data);
-      
     } catch (err) {
       setError('Failed to fetch events. Please try again later.');
     } finally {
@@ -259,7 +256,7 @@ export default function Main() {
       </View>
     );
   }
-  
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.pageContainer}>
@@ -294,6 +291,15 @@ export default function Main() {
             />
           </Animated.View>
         </PanGestureHandler>
+        {/* Event detail modal */}
+        <EventDetailModal
+          visible={detailModalVisible}
+          event={currentEvent}
+          onClose={() => {
+            setSelectedEventDetail(null);
+            setDetailModalVisible(false);
+          }}
+        />
       </View>
     </GestureHandlerRootView>
   );
