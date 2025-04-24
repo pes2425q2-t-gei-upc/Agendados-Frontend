@@ -226,7 +226,6 @@ export default function Main() {
           onPress={fetchRecommendedEvents}
         >
           <Text style={styles.retryButtonText}>Retry</Text>
-          <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
