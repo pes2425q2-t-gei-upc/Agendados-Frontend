@@ -27,7 +27,6 @@ import Animated, {
 import Card from '@components/cardEvent';
 import EventDetailModal from '@components/EventDetailModal';
 import { Event as EventModal } from '@models/Event';
-import { Event as EventModal } from '@models/Event';
 import {
   getEventRecomendations,
   getEventDetails,
@@ -46,7 +45,6 @@ const SWIPE_VELOCITY = 800;
 export default function Main() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [events, setEvents] = useState<EventModal[]>([]);
   const [events, setEvents] = useState<EventModal[]>([]);
   const detailCache = useRef(new Map());
   const { refreshFavorites } = useFavorites();
@@ -269,7 +267,6 @@ export default function Main() {
       <View style={styles.pageContainer}>
         {/* Next card (shown behind current) */}
         <View style={styles.nextCardContainer}>
-          {nextEvent && (
           {nextEvent && (
             <Animated.View style={[styles.animatedCard, nextCardStyle]}>
               <Card
