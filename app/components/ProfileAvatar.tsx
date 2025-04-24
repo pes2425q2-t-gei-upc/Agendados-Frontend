@@ -1,6 +1,5 @@
 // components/ProfileAvatar.tsx
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '@styles/globalStyles';
 import React from 'react';
 import {
   View,
@@ -11,6 +10,8 @@ import {
   Text,
 } from 'react-native';
 import Svg, { Circle, LinearGradient, Stop, Defs } from 'react-native-svg';
+
+import { colors } from '@styles/globalStyles';
 
 interface ProfileAvatarProps {
   avatar: string | null;

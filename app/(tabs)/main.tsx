@@ -1,13 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   ActivityIndicator,
-  StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
-  Alert,
 } from 'react-native';
 import {
   GestureHandlerRootView,
@@ -27,10 +25,7 @@ import Animated, {
 import Card from '@components/cardEvent';
 import EventDetailModal from '@components/EventDetailModal';
 import { Event as EventModal } from '@models/Event';
-import {
-  getEventRecomendations,
-  getEventDetails,
-} from '@services/EventsService';
+import { getEventRecomendations } from '@services/EventsService';
 import { SavedService } from '@services/SavedService';
 import { colors } from '@styles/globalStyles';
 import { styles } from '@styles/mainPageStyles';
@@ -46,7 +41,6 @@ export default function Main() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<EventModal[]>([]);
-  const detailCache = useRef(new Map());
   const { refreshFavorites } = useFavorites();
 
   // Card state
@@ -58,8 +52,7 @@ export default function Main() {
 
   // Event detail modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
-  const [selectedEventDetail, setSelectedEventDetail] =
-    useState<EventModal | null>(null);
+  const [, setSelectedEventDetail] = useState<EventModal | null>(null);
 
   // Values for animations
   const { width: screenWidth } = useWindowDimensions();
@@ -94,8 +87,8 @@ export default function Main() {
 
       const data: EventModal[] = await getEventRecomendations();
       setEvents(data);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      setError('Failed to fetch events. Please try again later.');
       setError('Failed to fetch events. Please try again later.');
     } finally {
       setLoading(false);
@@ -230,7 +223,6 @@ export default function Main() {
         <Text style={{ color: colors.error, marginBottom: 20 }}>{error}</Text>
         <TouchableOpacity
           style={styles.retryButton}
-          style={styles.retryButton}
           onPress={fetchRecommendedEvents}
         >
           <Text style={styles.retryButtonText}>Retry</Text>
@@ -249,13 +241,11 @@ export default function Main() {
         </Text>
         <TouchableOpacity
           style={styles.retryButton}
-          style={styles.retryButton}
           onPress={() => {
             setCurrentIndex(0);
             fetchRecommendedEvents();
           }}
         >
-          <Text style={styles.retryButtonText}>Find more events</Text>
           <Text style={styles.retryButtonText}>Find more events</Text>
         </TouchableOpacity>
       </View>

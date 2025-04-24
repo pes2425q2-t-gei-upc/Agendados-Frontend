@@ -1,6 +1,6 @@
 // app/friends/add.tsx
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -21,13 +21,33 @@ import { User } from '../Models/User';
 
 export default function AddFriendScreen() {
   const { t } = useTranslation();
-  const { searchUsers, sendFriendRequest, friends, pendingRequests } =
-    useFriendship();
+  const {
+    searchUsers,
+    sendFriendRequest,
+    friends,
+    pendingRequests,
+    refreshFriends,
+  } = useFriendship();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [processingIds, setProcessingIds] = useState<number[]>([]);
+
+  // Efecto para actualizar la lista de amigos y solicitudes al montar el componente
+  useEffect(() => {
+    // Refrescar amigos y solicitudes al entrar a la pantalla
+    refreshFriends();
+  }, []);
+
+  // Efecto para depuración
+  useEffect(() => {
+    console.log('AddFriendScreen: Amigos actuales:', friends.length);
+    console.log(
+      'AddFriendScreen: Solicitudes pendientes:',
+      pendingRequests.length
+    );
+  }, [friends, pendingRequests]);
 
   // Buscar usuarios por nombre de usuario o email
   const handleSearch = async () => {
@@ -39,6 +59,7 @@ export default function AddFriendScreen() {
     setIsSearching(true);
     try {
       const results = await searchUsers(searchQuery);
+      console.log('Resultados de búsqueda:', results.length);
       setSearchResults(results);
     } catch (error) {
       console.error('Error searching users:', error);
@@ -58,8 +79,14 @@ export default function AddFriendScreen() {
     try {
       const success = await sendFriendRequest(userId);
       if (success) {
-        // Actualizar UI localmente para mostrar que la solicitud fue enviada
         Alert.alert(t('common.success'), t('friends.friendRequestSent'));
+
+        // Actualizar la UI inmediatamente
+        const sentToUser = searchResults.find((user) => user.id === userId);
+        if (sentToUser) {
+          // Refrescar amigos y solicitudes después de enviar solicitud
+          refreshFriends();
+        }
       }
     } catch (error) {
       console.error('Error sending friend request:', error);
@@ -73,7 +100,9 @@ export default function AddFriendScreen() {
   const isFriend = useCallback(
     (userId: number) => {
       return friends.some(
-        (f) => f.friend?.id === userId || f.user?.id === userId
+        (f) =>
+          (f.friend && f.friend.id === userId) ??
+          (f.user && f.user.id === userId)
       );
     },
     [friends]
@@ -83,7 +112,9 @@ export default function AddFriendScreen() {
   const hasPendingRequest = useCallback(
     (userId: number) => {
       return pendingRequests.some(
-        (req) => req.friend?.id === userId || req.user?.id === userId
+        (req) =>
+          (req.friend && req.friend.id === userId) ??
+          (req.user && req.user.id === userId)
       );
     },
     [pendingRequests]

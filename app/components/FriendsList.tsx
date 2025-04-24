@@ -1,8 +1,6 @@
 // app/components/FriendsList.tsx
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState, memo } from 'react';
-import { useTranslation } from 'react-i18next';
+import React from 'react';
 import {
   View,
   Text,
@@ -11,12 +9,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
 
-import { Friendship } from '@models/Friendship';
-
 import { colors, spacing } from '../../styles/globalStyles';
+import { Friendship } from '../Models/Friendship';
 
 import ProfileAvatar from './ProfileAvatar';
 
@@ -24,9 +20,9 @@ interface FriendsListProps {
   friends: Friendship[];
   isLoading: boolean;
   isRefreshing: boolean;
-  onRefresh: () => Promise<void>;
-  onRemoveFriend: (friendshipId: number, friendName: string) => Promise<void>;
-  emptyMessage?: string;
+  onRefresh: () => void;
+  onRemoveFriend: (friendshipId: number) => void;
+  emptyMessage: string;
 }
 
 const FriendsList: React.FC<FriendsListProps> = ({
@@ -37,106 +33,53 @@ const FriendsList: React.FC<FriendsListProps> = ({
   onRemoveFriend,
   emptyMessage,
 }) => {
-  const { t } = useTranslation();
-  const router = useRouter();
-  const [processingIds, setProcessingIds] = useState<number[]>([]);
-
-  // Navegar a los eventos de un amigo
-  const navigateToFriendEvents = (friendId: number, friendName: string) => {
-    router.push({
-      pathname: '/friends/[id]/events',
-      params: { id: friendId, name: friendName },
-    });
-  };
-
-  // Manejar la eliminación de un amigo
-  const handleRemoveFriend = async (friendship: Friendship) => {
-    if (!friendship.friend) {
-      return;
+  // Renderizar un item de amigo
+  const renderFriendItem = ({ item }: { item: Friendship }) => {
+    // Verificamos si tenemos datos válidos para mostrar
+    if (!item.friend && !item.user) {
+      return null;
     }
 
-    const friendName =
-      friendship.friend.name ?? friendship.friend.username ?? 'Usuario';
+    // Determinamos qué información mostrar - podría ser friend o user
+    // dependiendo de quién inició la amistad
+    const friendInfo = item.friend ?? item.user;
 
-    Alert.alert(
-      t('friends.removeFriend'),
-      t('friends.confirmRemove', { name: friendName }),
-      [
-        {
-          text: t('common.cancel'),
-          style: 'cancel',
-        },
-        {
-          text: t('common.confirm'),
-          style: 'destructive',
-          onPress: async () => {
-            if (processingIds.includes(friendship.id)) {
-              return;
-            }
-
-            setProcessingIds((prev) => [...prev, friendship.id]);
-            try {
-              await onRemoveFriend(friendship.id, friendName);
-            } finally {
-              setProcessingIds((prev) =>
-                prev.filter((id) => id !== friendship.id)
-              );
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  // Renderizar un amigo en la lista
-  const renderFriendItem = ({ item }: { item: Friendship }) => {
-    const friendInfo = item.friend;
     if (!friendInfo) {
       return null;
     }
 
     const friendName = friendInfo.name ?? friendInfo.username ?? 'Usuario';
-    const isProcessing = processingIds.includes(item.id);
 
     return (
-      <TouchableOpacity
-        style={styles.friendItem}
-        onPress={() => navigateToFriendEvents(friendInfo.id, friendName)}
-        disabled={isProcessing}
-      >
+      <View style={styles.friendItem}>
         <ProfileAvatar
           avatar={friendInfo.avatar ?? null}
           savedEventsCount={0}
-          size={50}
+          size={40}
           showEditButton={false}
         />
         <View style={styles.friendInfo}>
           <Text style={styles.friendName}>{friendName}</Text>
           <Text style={styles.friendUsername}>@{friendInfo.username}</Text>
         </View>
-        {isProcessing ? (
-          <ActivityIndicator size='small' color={colors.primary} />
-        ) : (
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleRemoveFriend(item)}
-          >
-            <Ionicons
-              name='person-remove-outline'
-              size={20}
-              color={colors.error}
-            />
-          </TouchableOpacity>
-        )}
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.removeButton}
+          onPress={() => onRemoveFriend(item.id)}
+        >
+          <Ionicons
+            name='close-circle-outline'
+            size={24}
+            color={colors.error}
+          />
+        </TouchableOpacity>
+      </View>
     );
   };
 
-  if (isLoading && !isRefreshing) {
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size='large' color={colors.primary} />
-        <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </View>
     );
   }
@@ -146,54 +89,26 @@ const FriendsList: React.FC<FriendsListProps> = ({
       data={friends}
       renderItem={renderFriendItem}
       keyExtractor={(item) => item.id.toString()}
-      contentContainerStyle={
-        friends.length === 0 ? styles.emptyListContainer : null
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
       }
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
           <Ionicons name='people-outline' size={60} color={colors.border} />
-          <Text style={styles.emptyText}>
-            {emptyMessage ?? t('friends.noFriends')}
-          </Text>
-          <Text style={styles.emptySubtext}>
-            {t('friends.addFriendPrompt')}
-          </Text>
+          <Text style={styles.emptyText}>{emptyMessage}</Text>
         </View>
-      }
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={onRefresh}
-          colors={[colors.primary]}
-        />
       }
     />
   );
 };
 
 const styles = StyleSheet.create({
-  actionButton: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 0, 0, 0.1)',
-    borderRadius: 20,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
-  },
   emptyContainer: {
     alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
+    marginTop: 60,
     padding: spacing.xl,
-  },
-  emptyListContainer: {
-    flex: 1,
-  },
-  emptySubtext: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    marginTop: spacing.sm,
-    textAlign: 'center',
   },
   emptyText: {
     color: colors.textSecondary,
@@ -212,9 +127,8 @@ const styles = StyleSheet.create({
     elevation: 2,
     flexDirection: 'row',
     marginBottom: 10,
-    marginHorizontal: spacing.md,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    margin: spacing.xs,
+    padding: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -233,13 +147,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    padding: spacing.xl,
   },
-  loadingText: {
-    color: colors.textSecondary,
-    fontSize: 16,
-    marginTop: spacing.md,
+  removeButton: {
+    padding: 6,
   },
 });
 
-export default memo(FriendsList);
+export default FriendsList;

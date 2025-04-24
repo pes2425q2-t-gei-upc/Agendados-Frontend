@@ -1,7 +1,7 @@
 // app/friends/index.tsx
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -38,6 +38,15 @@ export default function FriendsScreen() {
   const [showingRequests, setShowingRequests] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [processingIds, setProcessingIds] = useState<number[]>([]);
+
+  // Efecto para depuración
+  useEffect(() => {
+    console.log('FriendsScreen: Amigos actuales:', friends.length);
+    console.log(
+      'FriendsScreen: Solicitudes pendientes:',
+      pendingRequests.length
+    );
+  }, [friends, pendingRequests]);
 
   // Función para refrescar los datos
   const handleRefresh = async () => {
@@ -111,9 +120,9 @@ export default function FriendsScreen() {
 
   // Renderizar una solicitud pendiente
   const renderRequestItem = ({ item }: { item: Friendship }) => {
-    // Solo mostrar solicitudes recibidas donde el usuario actual es el receptor
-    // verificando si el usuario de la solicitud no es uno mismo
-    if (!item.user || item.user.id === item.friend?.id) {
+    // Asegurarse de que haya un usuario remitente
+    if (!item.user) {
+      console.log('Solicitud sin usuario remitente:', item);
       return null;
     }
 
@@ -159,11 +168,6 @@ export default function FriendsScreen() {
     );
   };
 
-  // Filtrar solicitudes pendientes recibidas (no enviadas)
-  const receivedRequests = pendingRequests.filter(
-    (req) => req.user && req.user.id !== req.friend?.id
-  );
-
   return (
     <ProtectedRoute>
       <View style={styles.container}>
@@ -193,9 +197,9 @@ export default function FriendsScreen() {
             >
               {t('friends.pendingRequests')}
             </Text>
-            {receivedRequests.length > 0 && (
+            {pendingRequests.length > 0 && (
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>{receivedRequests.length}</Text>
+                <Text style={styles.badgeText}>{pendingRequests.length}</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -231,16 +235,23 @@ export default function FriendsScreen() {
             renderItem={renderRequestItem}
             keyExtractor={(item) => item.id.toString()}
             ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <Ionicons
-                  name='people-outline'
-                  size={60}
-                  color={colors.border}
-                />
-                <Text style={styles.emptyText}>
-                  {t('friends.noPendingRequests')}
-                </Text>
-              </View>
+              loadingFriends ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size='large' color={colors.primary} />
+                  <Text style={styles.loadingText}>{t('common.loading')}</Text>
+                </View>
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Ionicons
+                    name='people-outline'
+                    size={60}
+                    color={colors.border}
+                  />
+                  <Text style={styles.emptyText}>
+                    {t('friends.noPendingRequests')}
+                  </Text>
+                </View>
+              )
             }
             refreshControl={
               <RefreshControl
@@ -344,6 +355,16 @@ const styles = StyleSheet.create({
   friendUsername: {
     color: colors.textSecondary,
     fontSize: 14,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    marginTop: 60,
+  },
+  loadingText: {
+    color: colors.textSecondary,
+    marginTop: spacing.md,
   },
   rejectButton: {
     backgroundColor: 'transparent',

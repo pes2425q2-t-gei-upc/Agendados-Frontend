@@ -1,260 +1,140 @@
-// app/Services/FriendshipService.ts
+// app/services/FriendshipService.ts
 import { Friendship, FriendshipDTO } from '@models/Friendship';
-import { User, UserDTO } from '@models/User';
+import { User } from '@models/User';
 
-import { getUserToken } from './AuthService';
+import { getUserToken } from '../Services/AuthService';
+
+const API_URL =
+  'https://agendados-backend-842309366027.europe-southwest1.run.app/api';
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const token = await getUserToken();
+  console.log('FriendshipService: usando token →', token);
+  if (!token) {
+    throw new Error('No auth token found; please login again');
+  }
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Token ${token}`,
+  };
+}
 
 export class FriendshipService {
-  private static baseUrl: string =
-    'https://agendados-backend-842309366027.europe-southwest1.run.app/api';
-  //'http://localhost:8080/api';
-
-  /**
-   * Obtiene el token de autenticación
-   */
-  private static async getAuthToken(): Promise<string> {
-    try {
-      const token = await getUserToken();
-      if (!token) {
-        throw new Error('Authentication token is missing');
-      }
-      return token;
-    } catch (error) {
-      console.error('Error retrieving auth token:', error);
-      throw new Error('Authentication token is missing or invalid');
+  static async getFriends(): Promise<Friendship[]> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/users/friendships`, { headers });
+    if (res.status === 401) {
+      console.error('getFriends: 401 Unauthorized. Cabeceras:', headers);
+      throw new Error('No autorizado. Revisa tu token.');
     }
+    if (!res.ok) {
+      throw new Error(`Error ${res.status} fetching friends`);
+    }
+    const raw: any[] = await res.json();
+    const dtos: FriendshipDTO[] = raw.map((item) => ({
+      id: item.id,
+      status: 'accepted',
+      friend: item,
+    }));
+    return dtos.map((dto) => new Friendship(dto));
   }
 
-  /**
-   * Obtiene la lista de amigos del usuario actual
-   */
-  public static async getFriends(): Promise<Friendship[]> {
-    try {
-      const token = await this.getAuthToken();
-      const response = await fetch(`${this.baseUrl}/users/friendships`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Token ${token}`,
-          accept: 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch friends: ${response.status}`);
-      }
-
-      const data: FriendshipDTO[] = await response.json();
-      return data.map((friendship) => new Friendship(friendship));
-    } catch (error) {
-      console.error('Error fetching friends:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Busca usuarios por término de búsqueda
-   */
-  public static async searchUsers(query: string): Promise<User[]> {
-    const token = await this.getAuthToken();
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Token usado:', token.substring(0, 10) + '...');
-    }
-
-    const url = new URL(`${this.baseUrl}/users/all`);
-    url.searchParams.append('query', query);
-
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        Authorization: `Token ${token}`,
-        Accept: 'application/json',
-      },
+  static async getPendingFriendRequests(): Promise<Friendship[]> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/users/friendships/pending`, {
+      headers,
     });
-
-    if (!response.ok) {
-      console.log('Status code:', response.status);
-      console.log(
-        'Response headers:',
-        Object.fromEntries([...response.headers])
-      );
-      throw new Error(`Failed to search users: ${response.status}`);
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(text || `Error ${res.status} fetching pending requests`);
     }
-
-    const data: UserDTO[] = await response.json();
-    return Array.isArray(data) ? data.map((user) => new User(user)) : [];
+    const rawList: any[] = await res.json();
+    console.log('getPendingFriendRequests raw:', rawList);
+    const dtos: FriendshipDTO[] = rawList.map((item) => ({
+      id: item.id,
+      status: 'pending',
+      created_at: item.created_at,
+      user: item.user_from,
+      friend: item.user_to,
+    }));
+    return dtos.map((dto) => new Friendship(dto));
   }
 
-  /**
-   * Obtiene las solicitudes de amistad pendientes
-   */
-  public static async getPendingFriendRequests(): Promise<any[]> {
-    try {
-      const token = await this.getAuthToken();
-      const response = await fetch(
-        `${this.baseUrl}/users/friendships/pending`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Token ${token}`,
-            accept: 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch pending requests: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching pending friend requests:', error);
-      throw error;
+  static async sendFriendRequest(userId: number): Promise<void> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/users/friendships/${userId}`, {
+      method: 'POST',
+      headers,
+    });
+    if (!res.ok) {
+      let msg = `Error ${res.status} sending friend request`;
+      try {
+        msg = (await res.json()).detail ?? msg;
+      } catch {}
+      throw new Error(msg);
     }
+    if (
+      res.status === 201 ||
+      res.status === 204 ||
+      res.headers.get('Content-Length') === '0'
+    ) {
+      return;
+    }
+    await res.json().catch(() => {});
   }
 
-  /**
-   * Envía una solicitud de amistad
-   */
-  public static async sendFriendRequest(friendId: number): Promise<Friendship> {
-    try {
-      const token = await this.getAuthToken();
-      const response = await fetch(
-        `${this.baseUrl}/users/friendships/${friendId}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to send friend request: ${response.status}`);
-      }
-
-      const data: FriendshipDTO = await response.json();
-      return new Friendship(data);
-    } catch (error) {
-      console.error('Error sending friend request:', error);
-      throw error;
+  static async acceptFriendRequest(requestId: number): Promise<void> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(
+      `${API_URL}/users/friendships/accept/${requestId}`,
+      { method: 'POST', headers }
+    );
+    if (!res.ok) {
+      throw new Error(`Error ${res.status} accepting friend request`);
     }
   }
 
-  /**
-   * Acepta una solicitud de amistad
-   */
-  public static async acceptFriendRequest(
-    requestId: number
-  ): Promise<Friendship> {
-    try {
-      const token = await this.getAuthToken();
-      const response = await fetch(
-        `${this.baseUrl}/users/friendships/accept/${requestId}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to accept friend request: ${response.status}`);
-      }
-
-      const data: FriendshipDTO = await response.json();
-      return new Friendship(data);
-    } catch (error) {
-      console.error('Error accepting friend request:', error);
-      throw error;
+  static async rejectFriendRequest(requestId: number): Promise<void> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(
+      `${API_URL}/users/friendships/decline/${requestId}`,
+      { method: 'DELETE', headers }
+    );
+    if (!res.ok) {
+      throw new Error(`Error ${res.status} rejecting friend request`);
     }
   }
 
-  /**
-   * Rechaza una solicitud de amistad
-   */
-  public static async rejectFriendRequest(requestId: number): Promise<boolean> {
-    try {
-      const token = await this.getAuthToken();
-      const response = await fetch(
-        `${this.baseUrl}/users/friendships/decline/${requestId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to reject friend request: ${response.status}`);
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error rejecting friend request:', error);
-      throw error;
+  static async removeFriend(requestId: number): Promise<void> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/users/friendships/${requestId}`, {
+      method: 'DELETE',
+      headers,
+    });
+    if (!res.ok) {
+      throw new Error(`Error ${res.status} removing friend`);
     }
   }
 
-  /**
-   * Elimina una amistad
-   * Nota: Este endpoint no está definido en el OpenAPI, deberías verificar si existe en el backend
-   */
-  public static async removeFriend(friendId: number): Promise<boolean> {
-    try {
-      const token = await this.getAuthToken();
-      // Esta URL es una suposición, necesitas confirmar la ruta correcta con el backend
-      const response = await fetch(
-        `${this.baseUrl}/users/friendships/${friendId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to remove friend: ${response.status}`);
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error removing friend:', error);
-      throw error;
+  static async searchUsers(query: string): Promise<User[]> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(
+      `${API_URL}/users/all?query=${encodeURIComponent(query)}`,
+      { headers }
+    );
+    if (!res.ok) {
+      throw new Error(`Error ${res.status} searching users`);
     }
+    const data: any[] = await res.json();
+    return data.map((item) => new User(item));
   }
 
-  /**
-   * Obtiene los eventos guardados por un amigo
-   * Nota: Este endpoint no está definido en el OpenAPI, deberías verificar si existe en el backend
-   */
-  public static async getFriendEvents(friendId: number): Promise<any[]> {
-    try {
-      const token = await this.getAuthToken();
-      // Esta URL es una suposición, necesitas confirmar la ruta correcta con el backend
-      const response = await fetch(`${this.baseUrl}/users/${friendId}/events`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Token ${token}`,
-          accept: 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch friend events: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching friend events:', error);
-      throw error;
+  static async getFriendEvents(friendId: number): Promise<any[]> {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/users/${friendId}/events`, { headers });
+    if (!res.ok) {
+      throw new Error(`Error ${res.status} fetching friend events`);
     }
+    return res.json();
   }
 }

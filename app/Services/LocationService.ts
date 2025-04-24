@@ -3,7 +3,9 @@ export type PopulationItem = { id: string; label: string };
 
 export const getTowns = async (): Promise<PopulationItem[]> => {
   try {
-    const response = await fetch('https://agendados-backend-842309366027.europe-southwest1.run.app/api/locations/towns');
+    const response = await fetch(
+      'https://agendados-backend-842309366027.europe-southwest1.run.app/api/locations/towns'
+    );
     if (!response.ok) {
       throw new Error('Error al obtener las poblaciones');
     }

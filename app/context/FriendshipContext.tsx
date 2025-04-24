@@ -47,12 +47,14 @@ export const FriendshipProvider: React.FC<{ children: ReactNode }> = ({
   const refreshFriends = useCallback(async (): Promise<void> => {
     // Prevenir múltiples llamadas simultáneas
     if (isRefreshing.current) {
+      console.log('Ya se está refrescando, ignorando llamada');
       return;
     }
 
-    // Prevenir llamadas demasiado frecuentes (mínimo 2s entre llamadas)
+    // Prevenir llamadas demasiado frecuentes (mínimo 1s entre llamadas)
     const now = Date.now();
-    if (now - lastRefreshTime.current < 2000) {
+    if (now - lastRefreshTime.current < 1000) {
+      console.log('Refrescando demasiado rápido, ignorando llamada');
       return;
     }
 
@@ -65,14 +67,19 @@ export const FriendshipProvider: React.FC<{ children: ReactNode }> = ({
         setLoadingFriends(true);
       }
 
+      // Obtener todas las amistades
       const friendships = await FriendshipService.getFriends();
+      console.log('Amistades recibidas en el contexto:', friendships.length);
 
-      // Separar en amigos y solicitudes pendientes
-      const accepted = friendships.filter((f) => f.status === 'accepted');
-      const pending = friendships.filter((f) => f.status === 'pending');
+      // Obtener solicitudes pendientes por separado
+      const pendingReqs = await FriendshipService.getPendingFriendRequests();
+      console.log('Solicitudes pendientes en el contexto:', pendingReqs.length);
 
-      setFriends(accepted);
-      setPendingRequests(pending);
+      // Asignar directamente los resultados (los objetos ya están validados en el servicio)
+      setFriends(friendships);
+      setPendingRequests(pendingReqs);
+
+      // Actualizar timestamp del último refresco
       lastRefreshTime.current = Date.now();
     } catch (error) {
       console.error('Error refreshing friends:', error);
@@ -85,12 +92,14 @@ export const FriendshipProvider: React.FC<{ children: ReactNode }> = ({
 
   // Cargar amigos y solicitudes pendientes al inicio (una sola vez)
   useEffect(() => {
+    console.log('FriendshipContext: cargando datos inicialmente');
     refreshFriends();
-  }, []); // Importante: No incluir refreshFriends como dependencia
+  }, []);
 
   const searchUsers = async (query: string): Promise<User[]> => {
     try {
-      return await FriendshipService.searchUsers(query);
+      const users = await FriendshipService.searchUsers(query);
+      return users;
     } catch (error) {
       console.error('Error searching users:', error);
       setErrorMessage(
@@ -103,7 +112,9 @@ export const FriendshipProvider: React.FC<{ children: ReactNode }> = ({
   const sendFriendRequest = async (friendId: number): Promise<boolean> => {
     try {
       await FriendshipService.sendFriendRequest(friendId);
-      refreshFriends(); // No esperamos a que termine
+
+      // Refrescar amigos y solicitudes después de enviar solicitud
+      refreshFriends();
       return true;
     } catch (error) {
       console.error('Error sending friend request:', error);
@@ -120,19 +131,25 @@ export const FriendshipProvider: React.FC<{ children: ReactNode }> = ({
     try {
       await FriendshipService.acceptFriendRequest(friendshipId);
 
-      // Actualización optimista - no esperar a refreshFriends
+      // Actualización optimista
       const acceptedRequest = pendingRequests.find(
         (r) => r.id === friendshipId
       );
+
       if (acceptedRequest) {
         setPendingRequests((prev) => prev.filter((r) => r.id !== friendshipId));
-        setFriends((prev) => [
-          ...prev,
-          { ...acceptedRequest, status: 'accepted' },
-        ]);
+
+        // Create a copy that preserves the prototype chain with isValid method
+        const updatedFriendship = Object.create(
+          Object.getPrototypeOf(acceptedRequest),
+          Object.getOwnPropertyDescriptors(acceptedRequest)
+        );
+        updatedFriendship.status = 'accepted';
+
+        setFriends((prev) => [...prev, updatedFriendship]);
       }
 
-      // Refrescar en segundo plano
+      // Refrescar en segundo plano para asegurar datos correctos
       refreshFriends();
       return true;
     } catch (error) {

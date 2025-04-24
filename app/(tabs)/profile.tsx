@@ -24,8 +24,6 @@ import { Event } from '@models/Event';
 import { colors, spacing } from '@styles/globalStyles';
 import ProtectedRoute from 'app/components/ProtectedRoute';
 
-import FeaturedFriends from '../components/FeaturedFriends';
-import PendingFriendRequests from '../components/PendingFriendRequests';
 import ProfileAvatar from '../components/ProfileAvatar';
 
 export default function ProfileScreen() {
@@ -36,14 +34,7 @@ export default function ProfileScreen() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { favorites, refreshFavorites } = useFavorites();
-  const {
-    friends,
-    refreshFriends,
-    pendingRequests,
-    loadingFriends,
-    acceptFriendRequest,
-    rejectFriendRequest,
-  } = useFriendship();
+  const { friends, refreshFriends } = useFriendship();
 
   const [recentEvents, setRecentEvents] = useState<Event[]>([]);
   const [stats, setStats] = useState({
@@ -53,27 +44,6 @@ export default function ProfileScreen() {
   });
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
-
-  const handleAcceptFriendRequest = async (id: number) => {
-    try {
-      const ok = await acceptFriendRequest(id);
-      if (!ok) {
-        throw new Error();
-      }
-    } catch {
-      Alert.alert(t('common.error'), t('friends.acceptError'));
-    }
-  };
-  const handleRejectFriendRequest = async (id: number) => {
-    try {
-      const ok = await rejectFriendRequest(id);
-      if (!ok) {
-        throw new Error();
-      }
-    } catch {
-      Alert.alert(t('common.error'), t('friends.rejectError'));
-    }
-  };
 
   const navigateToFriends = () => router.push('/friends');
   const navigateToSettings = () => router.push('/config');
@@ -226,7 +196,7 @@ export default function ProfileScreen() {
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
             <ProfileAvatar
-              avatar={userInfo?.avatar}
+              avatar={userInfo?.avatar ?? null}
               savedEventsCount={stats.savedEvents}
               isLoading={uploadingAvatar}
               onPress={showAvatarOptions}
@@ -235,10 +205,10 @@ export default function ProfileScreen() {
             />
             <View style={styles.userInfo}>
               <Text style={styles.userName}>
-                {userInfo?.name || userInfo?.username || 'Usuario'}
+                {userInfo?.name ?? userInfo?.username ?? 'Usuario'}
               </Text>
               <Text style={styles.userHandle}>
-                @{userInfo?.username || 'username'}
+                @{userInfo?.username ?? 'username'}
               </Text>
               <Text style={styles.joinDate}>
                 {t('profile.joinedOn', { date: formatJoinDate(joinDate) })}
@@ -317,6 +287,7 @@ export default function ProfileScreen() {
                 <View
                   style={[
                     styles.badgeProgress,
+                    // eslint-disable-next-line react-native/no-inline-styles
                     {
                       width: `${Math.min(100, (stats.savedEvents / 30) * 100)}%`,
                       backgroundColor:
@@ -361,7 +332,7 @@ export default function ProfileScreen() {
                     }
                   >
                     <ProfileAvatar
-                      avatar={friend.avatar}
+                      avatar={friend.avatar ?? null}
                       savedEventsCount={0}
                       size={60}
                       showEditButton={false}
@@ -639,6 +610,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginBottom: spacing.sm,
+    marginTop: spacing.sm,
   },
   categoryTag: {
     backgroundColor: colors.primaryLight,
