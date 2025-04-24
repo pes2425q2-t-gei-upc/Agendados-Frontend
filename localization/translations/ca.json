@@ -13,7 +13,10 @@
     "back": "Tornar",
     "edit": "Editar",
     "search": "Cercar",
-    "of": "de"
+    "of": "de",
+    "success": "Èxit",
+    "retry": "Tornar-ho a provar"
+
   },
   "navigation": {
     "home": "Inici",
@@ -39,7 +42,9 @@
     "loginError": "Error a l'iniciar sessió. Torna-ho a provar.",
     "registerError": "Error al registrar usuari. Torna-ho a provar.",
     "noAccount": "No tens compte?",
-    "registerNow": "Registra't ara"
+    "registerNow": "Registra't ara",
+    "haveAccount": "Ja tens compte?",
+    "loginNow": "Inicia sessió ara"
   },
   "explore": {
     "search": {
@@ -118,7 +123,6 @@
     "november": "Novembre",
     "december": "Desembre"
   },
-
   "profile": {
     "welcome": "Benvingut al teu perfil",
     "goToSettings": "Anar a Configuració",
@@ -126,14 +130,23 @@
     "preferences": "Preferències",
     "personalInfo": "Informació personal",
     "profile": "Perfil",
-  "joinedOn": "Membre des de {{date}}",
-  "savedEvents": "Desats",
-  "attendedEvents": "Assistits",
-  "favoriteCategories": "Categories Preferides",
-  "recentlySaved": "Desats Recentment",
-  "seeAll": "Veure Tots",
-  "logout": "Tancar Sessió",
-  "editProfile": "Editar Perfil"
+    "joinedOn": "Membre des de {{date}}",
+    "savedEvents": "Desats",
+    "attendedEvents": "Assistits",
+    "favoriteCategories": "Categories Preferides",
+    "recentlySaved": "Desats Recentment",
+    "seeAll": "Veure Tots",
+    "editProfile": "Editar Perfil",
+    "logoutConfirmation": "Confirmació de tancament de sessió",
+    "logoutMessage": "Estàs segur que vols tancar la sessió?",
+    "badgeLevels": {
+      "basic": "Nivell Platejat",
+      "intermediate": "Nivell Verd",
+      "advanced": "Nivell Blau",
+      "premium": "Nivell Daurat",
+      "badgeTooltip": "Desa més esdeveniments per millorar la teva insígnia de perfil!",
+      "nextLevel": "Desa {{count}} esdeveniments més per assolir el següent nivell"
+    }
   },
   "settings": {
     "title": "Configuració",
@@ -145,7 +158,44 @@
     "theme": "Tema",
     "privacy": "Privacitat",
     "about": "Sobre",
-    "help": "Ajuda"
+    "help": "Ajuda",
+    "changePassword": "Canviar Contrasenya",
+    "currentPassword": "Contrasenya Actual",
+    "newPassword": "Nova Contrasenya",
+    "confirmPassword": "Confirmar Contrasenya",
+    "enterCurrentPassword": "Introdueix la teva contrasenya actual",
+    "enterNewPassword": "Introdueix la teva nova contrasenya",
+    "confirmNewPassword": "Confirma la teva nova contrasenya",
+    "updatePassword": "Actualitzar Contrasenya",
+    "passwordUpdated": "La teva contrasenya s'ha actualitzat correctament",
+    "passwordChangeError": "No s'ha pogut canviar la contrasenya. Si us plau, verifica la teva contrasenya actual.",
+    "username": "Nom d'usuari",
+    "displayName": "Nom per mostrar",
+    "enterUsername": "Introdueix nom d'usuari",
+    "enterDisplayName": "Introdueix nom per mostrar",
+    "email": "Correu electrònic",
+    "changeProfilePhoto": "Canviar foto de perfil",
+    "takePhoto": "Fer foto",
+    "chooseFromLibrary": "Triar de la galeria",
+    "validationError": "Error de validació",
+    "usernameMinLength": "El nom d'usuari ha de tenir almenys 3 caràcters",
+    "displayNameMinLength": "El nom per mostrar ha de tenir almenys 2 caràcters",
+    "passwordMinLength": "La contrasenya ha de tenir almenys 6 caràcters",
+    "passwordsDoNotMatch": "Les contrasenyes no coincideixen",
+    "currentPasswordRequired": "Es requereix la contrasenya actual",
+    "success": "Èxit",
+    "profileUpdated": "El teu perfil s'ha actualitzat correctament",
+    "updateProfileError": "No s'ha pogut actualitzar el perfil. Si us plau, torna-ho a intentar.",
+    "permissionRequired": "Permís Requerit",
+    "galleryPermissionMessage": "Necessitem permís per accedir a la teva galeria de fotos",
+    "cameraPermissionMessage": "Necessitem permís per accedir a la teva càmera",
+    "imageSelectionError": "Error en seleccionar la imatge. Si us plau, torna-ho a intentar.",
+    "cameraError": "Error en utilitzar la càmera. Si us plau, torna-ho a intentar.",
+    "languageChangeError": "Error en canviar l'idioma. Si us plau, torna-ho a intentar.",
+    "pushNotifications": "Notificacions Push",
+    "emailNotifications": "Notificacions per Correu",
+    "termsOfService": "Termes de Servei",
+    "privacyPolicy": "Política de Privacitat"
   },
   "home": {
     "events": {
@@ -174,5 +224,27 @@
     "circus": "Circ",
     "digitalCulture": "Cultura Digital",
     "virtualActivities": "Activitats Virtuals"
-  }
+  },
+  "friends": {
+  "title": "Amics",
+  "search": "Cercar amics",
+  "noFriends": "Encara no tens amics",
+  "addFriend": "Afegir Amic",
+  "pendingRequests": "Sol·licituds Pendents",
+  "noPendingRequests": "No hi ha sol·licituds pendents",
+  "accept": "Acceptar",
+  "reject": "Rebutjar",
+  "remove": "Eliminar",
+  "friendEvents": "Esdeveniments de l'Amic",
+  "noEvents": "Aquest amic encara no ha desat esdeveniments",
+  "friendAdded": "Sol·licitud d'amistat enviada amb èxit",
+  "friendAccepted": "Sol·licitud d'amistat acceptada",
+  "friendRejected": "Sol·licitud d'amistat rebutjada",
+  "friendRemoved": "Amic eliminat",
+  "searchUsers": "Cercar Usuaris",
+  "noUsersFound": "No s'han trobat usuaris",
+  "alreadyFriend": "Ja sou amics",
+  "friendRequestSent": "Sol·licitud enviada",
+  "send": "Enviar Sol·licitud"
+}
 }

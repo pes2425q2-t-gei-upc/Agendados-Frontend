@@ -13,7 +13,9 @@
     "back": "Back",
     "edit": "Edit",
     "search": "Search",
-    "of": "of"
+    "of": "of",
+    "success": "Success",
+    "retry": "Retry"
   },
   "navigation": {
     "home": "Home",
@@ -37,7 +39,11 @@
     "invalidEmail": "Please enter a valid email",
     "passwordLength": "Password must be at least 6 characters",
     "loginError": "Error logging in. Please try again.",
-    "registerError": "Error registering user. Please try again."
+    "registerError": "Error registering user. Please try again.",
+    "noAccount": "Don't have an account?",
+    "registerNow": "Register now",
+    "haveAccount": "Already have an account?",
+    "loginNow": "Login now"
   },
   "explore": {
     "search": {
@@ -116,7 +122,6 @@
     "november": "November",
     "december": "December"
   },
-
   "profile": {
     "welcome": "Welcome to the App!",
     "goToSettings": "Go to Settings",
@@ -133,7 +138,18 @@
     "recentlySaved": "Recently Saved",
     "seeAll": "See All",
     "logout": "Log Out",
-    "editProfile": "Edit Profile"
+    "editProfile": "Edit Profile",
+    "personalInfo": "Personal Information",
+    "logoutConfirmation": "Logout confirmation",
+    "logoutMessage": "Are you sure you want to log out?",
+    "badgeLevels": {
+      "basic": "Silver Level",
+      "intermediate": "Green Level",
+      "advanced": "Blue Level",
+      "premium": "Gold Level",
+      "badgeTooltip": "Save more events to upgrade your profile badge!",
+      "nextLevel": "Save {{count}} more events to reach the next level"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -145,7 +161,44 @@
     "theme": "Theme",
     "privacy": "Privacy",
     "about": "About",
-    "help": "Help"
+    "help": "Help",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "enterCurrentPassword": "Enter your current password",
+    "enterNewPassword": "Enter your new password",
+    "confirmNewPassword": "Confirm your new password",
+    "updatePassword": "Update Password",
+    "passwordUpdated": "Your password has been successfully updated",
+    "passwordChangeError": "Could not change password. Please check your current password.",
+    "username": "Username",
+    "displayName": "Display Name",
+    "enterUsername": "Enter username",
+    "enterDisplayName": "Enter display name",
+    "email": "Email",
+    "changeProfilePhoto": "Change profile photo",
+    "takePhoto": "Take photo",
+    "chooseFromLibrary": "Choose from library",
+    "validationError": "Validation Error",
+    "usernameMinLength": "Username must be at least 3 characters long",
+    "displayNameMinLength": "Display name must be at least 2 characters long",
+    "passwordMinLength": "Password must be at least 6 characters long",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "currentPasswordRequired": "Current password is required",
+    "success": "Success",
+    "profileUpdated": "Your profile has been successfully updated",
+    "updateProfileError": "Could not update profile. Please try again.",
+    "permissionRequired": "Permission Required",
+    "galleryPermissionMessage": "We need permission to access your photo library",
+    "cameraPermissionMessage": "We need permission to access your camera",
+    "imageSelectionError": "Error selecting image. Please try again.",
+    "cameraError": "Error using camera. Please try again.",
+    "languageChangeError": "Error changing language. Please try again.",
+    "pushNotifications": "Push Notifications",
+    "emailNotifications": "Email Notifications",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy"
   },
   "home": {
     "events": {
@@ -174,5 +227,28 @@
     "circus": "Circus",
     "digitalCulture": "Digital Culture",
     "virtualActivities": "Virtual Activities"
+    
+  }, 
+    "friends": {
+    "title": "Friends",
+    "search": "Search friends",
+    "noFriends": "You don't have any friends yet",
+    "addFriend": "Add Friend",
+    "pendingRequests": "Pending Requests",
+    "noPendingRequests": "No pending requests",
+    "accept": "Accept",
+    "reject": "Reject",
+    "remove": "Remove",
+    "friendEvents": "Friend's Events",
+    "noEvents": "This friend hasn't saved any events yet",
+    "friendAdded": "Friend request sent successfully",
+    "friendAccepted": "Friend request accepted",
+    "friendRejected": "Friend request rejected",
+    "friendRemoved": "Friend removed",
+    "searchUsers": "Search Users",
+    "noUsersFound": "No users found",
+    "alreadyFriend": "Already friends",
+    "friendRequestSent": "Request sent",
+    "send": "Send Request"
   }
 }

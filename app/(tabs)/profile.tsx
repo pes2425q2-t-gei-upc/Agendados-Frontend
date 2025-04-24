@@ -1,4 +1,6 @@
+// app/(tabs)/profile.tsx
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,25 +13,28 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 
 import EventDetailModal from '@components/EventDetailModal';
-import { useAuth } from '@context/authContext'; // Importar el hook de autenticación
+import { useAuth } from '@context/authContext';
 import { useFavorites } from '@context/FavoritesContext';
+import { useFriendship } from '@context/FriendshipContext';
 import { Event } from '@models/Event';
-import { SavedService } from '@services/SavedService';
-import { colors, spacing, typography } from '@styles/globalStyles';
-import { changeLanguage } from 'localization/i18n';
+import { colors, spacing } from '@styles/globalStyles';
+import ProtectedRoute from 'app/components/ProtectedRoute';
 
-import ProtectedRoute from '../components/ProtectedRoute'; // Importar el componente de ruta protegida
+import ProfileAvatar from '../components/ProfileAvatar';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
-  // Extraer también el userToken del contexto
-  const { userInfo, userToken, logout } = useAuth();
+  const { userInfo, userToken, logout, updateUserProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const { favorites } = useFavorites();
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const { favorites, refreshFavorites } = useFavorites();
+  const { friends, refreshFriends } = useFriendship();
 
   const [recentEvents, setRecentEvents] = useState<Event[]>([]);
   const [stats, setStats] = useState({
@@ -40,153 +45,131 @@ export default function ProfileScreen() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
+  const navigateToFriends = () => router.push('/friends');
+  const navigateToSettings = () => router.push('/config');
+  const navigateToSaved = () => router.push('/saved');
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshFavorites();
+      await refreshFriends();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
-    if (favorites.length > 0) {
-      // Actualizar los eventos recientes
+    if (favorites.length) {
       setRecentEvents(favorites.slice(0, 3));
-
-      // Calcular estadísticas
-      const categories = favorites.flatMap(
-        (event) => event.categories?.map((cat) => cat.name) || []
+      const allCats = favorites.flatMap(
+        (e) => e.categories?.map((c) => c.name) || []
       );
-
-      const categoryCounts = categories.reduce(
-        (acc, category) => {
-          acc[category] = (acc[category] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>
-      );
-
-      const likedCategories = Object.entries(categoryCounts)
+      const counts: Record<string, number> = {};
+      allCats.forEach((c) => (counts[c] = (counts[c] || 0) + 1));
+      const liked = Object.entries(counts)
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 3);
-
       setStats({
         savedEvents: favorites.length,
-        attendedEvents: Math.floor(favorites.length * 0.7), // Simulated data
-        likedCategories,
+        attendedEvents: Math.floor(favorites.length * 0.7),
+        likedCategories: liked,
       });
     } else {
-      // Resetear datos si no hay favoritos
       setRecentEvents([]);
-      setStats({
-        savedEvents: 0,
-        attendedEvents: 0,
-        likedCategories: [],
-      });
+      setStats({ savedEvents: 0, attendedEvents: 0, likedCategories: [] });
     }
   }, [favorites]);
-  // Log para depuración
-  useEffect(() => {
-    console.log('ProfileScreen - Auth state:', {
-      hasUserInfo: !!userInfo,
-      hasUserToken: !!userToken,
-    });
-  }, [userInfo, userToken]);
 
-  // Cargar datos del usuario y estadísticas
-  useEffect(() => {
-    const loadUserData = async () => {
-      setIsLoading(true);
-      try {
-        // Verificar si el usuario está autenticado y si hay token
-        if (!userInfo || !userToken) {
-          console.log(
-            'ProfileScreen - No user info or token, skipping data load'
-          );
-          return; // No cargar datos si no hay usuario o token
-        }
-
-        console.log(
-          'ProfileScreen - Loading user data with token:',
-          userToken ? 'Token exists' : 'No token'
-        );
-
-        // Fetch saved events
-        const savedEvents = await SavedService.getFavorites();
-        console.log(
-          'ProfileScreen - Fetched saved events:',
-          savedEvents.length
-        );
-
-        setRecentEvents(savedEvents.slice(0, 3)); // Get just the 3 most recent
-
-        // Calculate stats
-        const categories = savedEvents.flatMap(
-          (event) => event.categories?.map((cat) => cat.name) || []
-        );
-
-        // Count occurrences of each category
-        const categoryCounts = categories.reduce(
-          (acc, category) => {
-            acc[category] = (acc[category] || 0) + 1;
-            return acc;
-          },
-          {} as Record<string, number>
-        );
-
-        const likedCategories = Object.entries(categoryCounts)
-          .map(([name, count]) => ({ name, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 3); // Top 3 categories
-
-        setStats({
-          savedEvents: savedEvents.length,
-          attendedEvents: Math.floor(savedEvents.length * 0.7), // Simulated data
-          likedCategories,
-        });
-      } catch (error) {
-        console.error('ProfileScreen - Error loading user data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadUserData();
-  }, [userInfo, userToken]);
-
-  const handleLanguageChange = async (lang: string) => {
-    await changeLanguage(lang);
-  };
-
-  const formatJoinDate = (date: Date) => {
-    return date.toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'es-ES', {
+  const formatJoinDate = (d: Date) =>
+    d.toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'es-ES', {
       year: 'numeric',
       month: 'long',
     });
+
+  const showAvatarOptions = () => {
+    Alert.alert(
+      t('settings.changeProfilePhoto'),
+      '',
+      [
+        { text: t('settings.takePhoto'), onPress: handleTakePhoto },
+        { text: t('settings.chooseFromLibrary'), onPress: pickImage },
+        { text: t('common.cancel'), style: 'cancel' },
+      ],
+      { cancelable: true }
+    );
   };
 
-  const navigateToSettings = () => {
-    router.push('/config');
-  };
-
-  const navigateToSaved = () => {
-    router.push('/(tabs)/saved');
-  };
-
-  const handleLogout = async () => {
-    try {
-      Alert.alert(t('profile.logoutConfirmation'), t('profile.logoutMessage'), [
-        {
-          text: t('common.cancel'),
-          style: 'cancel',
-        },
-        {
-          text: t('common.confirm'),
-          onPress: async () => {
-            await logout(); // Usar la función de cierre de sesión del contexto
-            router.replace('/registerLogin');
-          },
-        },
-      ]);
-    } catch (error) {
-      console.error('Error during logout:', error);
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        t('settings.permissionRequired'),
+        t('settings.galleryPermissionMessage')
+      );
+      return;
+    }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!res.canceled && res.assets.length) {
+      await handleUpdateAvatar(res.assets[0].uri);
     }
   };
 
-  // Obtener fecha de registro desde el usuario si está disponible, o usar una por defecto
+  const handleTakePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        t('settings.permissionRequired'),
+        t('settings.cameraPermissionMessage')
+      );
+      return;
+    }
+    const res = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!res.canceled && res.assets.length) {
+      await handleUpdateAvatar(res.assets[0].uri);
+    }
+  };
+
+  const handleUpdateAvatar = async (uri: string) => {
+    if (!userToken) {
+      return;
+    }
+    try {
+      setUploadingAvatar(true);
+      // await uploadAvatar(userToken, uri);
+      await new Promise((r) => setTimeout(r, 1500));
+      await updateUserProfile({ avatar: uri });
+    } catch {
+      Alert.alert(t('settings.error'), t('settings.updateProfileError'));
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(t('profile.logoutConfirmation'), t('profile.logoutMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.confirm'),
+        onPress: async () => {
+          setIsLoading(true);
+          await logout();
+          router.replace('/registerLogin');
+        },
+      },
+    ]);
+  };
+
   const joinDate = userInfo?.createdAt
     ? new Date(userInfo.createdAt)
     : new Date(2023, 2, 15);
@@ -195,48 +178,52 @@ export default function ProfileScreen() {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <ActivityIndicator size='large' color={colors.primary} />
-
+        <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </View>
     );
   }
 
   return (
     <ProtectedRoute>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header with avatar and user info */}
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {/* — Header — */}
         <View style={styles.header}>
-          <Image
-            source={
-              userInfo?.avatar
-                ? { uri: userInfo.avatar }
-                : require('@assets/images/ReyLeon.jpg')
-            }
-            style={styles.avatar}
-          />
-          <View style={styles.userInfo}>
-            <Text style={styles.userName}>
-              {userInfo?.name ?? userInfo?.username ?? 'User'}
-            </Text>
-            <Text style={styles.userHandle}>
-              @{userInfo?.username ?? 'username'}
-            </Text>
-            <Text style={styles.joinDate}>
-              {t('profile.joinedOn', { date: formatJoinDate(joinDate) })}
-            </Text>
+          <View style={styles.avatarContainer}>
+            <ProfileAvatar
+              avatar={userInfo?.avatar ?? null}
+              savedEventsCount={stats.savedEvents}
+              isLoading={uploadingAvatar}
+              onPress={showAvatarOptions}
+              size={90}
+              showEditButton
+            />
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>
+                {userInfo?.name ?? userInfo?.username ?? 'Usuario'}
+              </Text>
+              <Text style={styles.userHandle}>
+                @{userInfo?.username ?? 'username'}
+              </Text>
+              <Text style={styles.joinDate}>
+                {t('profile.joinedOn', { date: formatJoinDate(joinDate) })}
+              </Text>
+            </View>
           </View>
           <TouchableOpacity
-            style={styles.editButton}
+            style={styles.settingsButton}
             onPress={navigateToSettings}
           >
-            <Ionicons
-              name='settings-outline'
-              size={24}
-              color={colors.primary}
-            />
+            <Ionicons name='settings-outline' size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
 
-        {/* User Stats */}
+        {/* — Stats — */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{stats.savedEvents}</Text>
@@ -249,23 +236,148 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Favorite Categories */}
+        {/* — Badge Level — */}
+        {stats.savedEvents > 0 && (
+          <View style={styles.badgeLevelContainer}>
+            <View style={styles.badgeLevelInfo}>
+              {stats.savedEvents < 30 ? (
+                <>
+                  <Text style={styles.badgeLevelText}>
+                    {stats.savedEvents >= 16
+                      ? t('profile.badgeLevels.advanced')
+                      : stats.savedEvents >= 6
+                        ? t('profile.badgeLevels.intermediate')
+                        : t('profile.badgeLevels.basic')}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      Alert.alert(
+                        t('profile.badgeLevels.badgeTooltip'),
+                        t('profile.badgeLevels.nextLevel', {
+                          count:
+                            stats.savedEvents >= 16
+                              ? 30 - stats.savedEvents
+                              : stats.savedEvents >= 6
+                                ? 16 - stats.savedEvents
+                                : 6 - stats.savedEvents,
+                        })
+                      )
+                    }
+                  >
+                    <Ionicons
+                      name='information-circle-outline'
+                      size={18}
+                      color={colors.primary}
+                    />
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <View style={styles.premiumBadgeContainer}>
+                  <Ionicons name='star' size={14} color='#FFD700' />
+                  <Text
+                    style={[styles.badgeLevelText, styles.premiumBadgeText]}
+                  >
+                    {t('profile.badgeLevels.premium')}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.badgeProgressContainer}>
+              <View style={styles.badgeProgressBackground}>
+                <View
+                  style={[
+                    styles.badgeProgress,
+                    // eslint-disable-next-line react-native/no-inline-styles
+                    {
+                      width: `${Math.min(100, (stats.savedEvents / 30) * 100)}%`,
+                      backgroundColor:
+                        stats.savedEvents >= 30
+                          ? '#FFD700'
+                          : stats.savedEvents >= 16
+                            ? '#1E90FF'
+                            : stats.savedEvents >= 6
+                              ? '#32CD32'
+                              : '#C0C0C0',
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* — Sección de Amigos — */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{t('friends.title')}</Text>
+            <TouchableOpacity onPress={navigateToFriends}>
+              <Text style={styles.seeAllText}>{t('profile.seeAll')}</Text>
+            </TouchableOpacity>
+          </View>
+          {friends.length > 0 ? (
+            <View style={styles.friendsContainer}>
+              {friends.slice(0, 4).map(({ friend }, i) =>
+                friend ? (
+                  <TouchableOpacity
+                    key={i}
+                    style={styles.friendBubble}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/friends/[id]/events',
+                        params: {
+                          id: friend.id,
+                          name: friend.name ?? friend.username,
+                        },
+                      })
+                    }
+                  >
+                    <ProfileAvatar
+                      avatar={friend.avatar ?? null}
+                      savedEventsCount={0}
+                      size={60}
+                      showEditButton={false}
+                    />
+                    <Text style={styles.friendBubbleName} numberOfLines={1}>
+                      {friend.name ?? friend.username}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null
+              )}
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.addFriendsButton}
+              onPress={navigateToFriends}
+            >
+              <Ionicons
+                name='people-outline'
+                size={24}
+                color={colors.primary}
+              />
+              <Text style={styles.addFriendsText}>
+                {t('friends.addFriend')}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* — Categorías Favoritas — */}
         {stats.likedCategories.length > 0 && (
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>
               {t('profile.favoriteCategories')}
             </Text>
             <View style={styles.categoriesContainer}>
-              {stats.likedCategories.map((category, index) => (
-                <View key={index} style={styles.categoryTag}>
-                  <Text style={styles.categoryText}>{category.name}</Text>
+              {stats.likedCategories.map((c, i) => (
+                <View key={i} style={styles.categoryTag}>
+                  <Text style={styles.categoryText}>{c.name}</Text>
                 </View>
               ))}
             </View>
           </View>
         )}
 
-        {/* Recently Saved Events */}
+        {/* — Eventos Recientes — */}
         {recentEvents.length > 0 && (
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
@@ -276,12 +388,11 @@ export default function ProfileScreen() {
                 <Text style={styles.seeAllText}>{t('profile.seeAll')}</Text>
               </TouchableOpacity>
             </View>
-
-            <View style={styles.eventsPreview}>
-              {recentEvents.map((event, index) => (
+            <View style={styles.eventsContainer}>
+              {recentEvents.map((event, i) => (
                 <TouchableOpacity
-                  key={index}
-                  style={styles.eventPreviewItem}
+                  key={i}
+                  style={styles.eventCard}
                   onPress={() => {
                     setSelectedEvent(event);
                     setDetailModalVisible(true);
@@ -289,89 +400,126 @@ export default function ProfileScreen() {
                 >
                   <Image
                     source={
-                      event.images && event.images.length > 0
+                      event.images?.[0]
                         ? { uri: event.images[0].image_url }
                         : require('@assets/images/FotoJazz.jpg')
                     }
                     style={styles.eventImage}
                   />
-                  <Text style={styles.eventTitle} numberOfLines={2}>
-                    {event.title}
-                  </Text>
-                  <Text style={styles.eventDate}>
-                    {new Date(event.date_ini).toLocaleDateString()}
-                  </Text>
+                  <View style={styles.eventDetails}>
+                    <Text style={styles.eventTitle} numberOfLines={2}>
+                      {event.title}
+                    </Text>
+                    <Text style={styles.eventDate}>
+                      {new Date(event.date_ini).toLocaleDateString()}
+                    </Text>
+                    {event.categories?.[0] && (
+                      <View style={styles.eventCategoryTag}>
+                        <Text style={styles.eventCategoryText}>
+                          {event.categories[0].name}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
         )}
 
-        {/* Language Selector */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
-          <View style={styles.languageSelector}>
-            <TouchableOpacity
-              style={[
-                styles.languageOption,
-                i18n.language === 'es' && styles.languageOptionActive,
-              ]}
-              onPress={() => handleLanguageChange('es')}
-            >
-              <Text
-                style={[
-                  styles.languageText,
-                  i18n.language === 'es' && styles.languageTextActive,
-                ]}
-              >
-                {t('settings.spanish')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.languageOption,
-                i18n.language === 'en' && styles.languageOptionActive,
-              ]}
-              onPress={() => handleLanguageChange('en')}
-            >
-              <Text
-                style={[
-                  styles.languageText,
-                  i18n.language === 'en' && styles.languageTextActive,
-                ]}
-              >
-                {t('settings.english')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.languageOption,
-                i18n.language === 'ca' && styles.languageOptionActive,
-              ]}
-              onPress={() => handleLanguageChange('ca')}
-            >
-              <Text
-                style={[
-                  styles.languageText,
-                  i18n.language === 'ca' && styles.languageTextActive,
-                ]}
-              >
-                {t('settings.catalan')}
-              </Text>
-            </TouchableOpacity>
-          </View>
+        {/* — Acciones Rápidas — */}
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={navigateToSettings}
+          >
+            <View style={styles.actionIcon}>
+              <Ionicons
+                name='person-circle-outline'
+                size={24}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={styles.actionText}>{t('profile.editProfile')}</Text>
+            <Ionicons
+              name='chevron-forward'
+              size={20}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={navigateToSaved}
+          >
+            <View style={styles.actionIcon}>
+              <Ionicons
+                name='bookmark-outline'
+                size={24}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={styles.actionText}>{t('navigation.saved')}</Text>
+            <Ionicons
+              name='chevron-forward'
+              size={20}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={navigateToFriends}
+          >
+            <View style={styles.actionIcon}>
+              <Ionicons
+                name='people-outline'
+                size={24}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={styles.actionText}>{t('friends.title')}</Text>
+            <Ionicons
+              name='chevron-forward'
+              size={20}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() =>
+              Alert.alert('Notificaciones', 'Función en desarrollo')
+            }
+          >
+            <View style={styles.actionIcon}>
+              <Ionicons
+                name='notifications-outline'
+                size={24}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={styles.actionText}>{t('settings.notifications')}</Text>
+            <Ionicons
+              name='chevron-forward'
+              size={20}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.logoutButton]}
+            onPress={handleLogout}
+          >
+            <View style={[styles.actionIcon, styles.logoutIcon]}>
+              <Ionicons name='log-out-outline' size={24} color={colors.error} />
+            </View>
+            <Text style={styles.logoutText}>{t('profile.logout')}</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name='log-out-outline' size={22} color={colors.lightText} />
-          <Text style={styles.logoutText}>{t('profile.logout')}</Text>
-        </TouchableOpacity>
-
-        {/* Version Info */}
         <Text style={styles.versionText}>Agendados v1.0.0</Text>
 
-        {/* Event Detail Modal */}
         {selectedEvent && (
           <EventDetailModal
             event={selectedEvent}
@@ -388,15 +536,81 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  avatar: {
-    backgroundColor: colors.border,
-    borderRadius: 40,
-    height: 80,
-    width: 80,
+  actionButton: {
+    alignItems: 'center',
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    paddingVertical: spacing.sm,
   },
+  actionIcon: { alignItems: 'center', width: 40 },
+  actionText: { color: colors.text, flex: 1, fontSize: 16 },
+
+  actionsContainer: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 12,
+    elevation: 2,
+    marginHorizontal: spacing.lg,
+    marginVertical: spacing.md,
+    padding: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  addFriendsButton: {
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderStyle: 'dashed',
+    borderWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    padding: spacing.md,
+  },
+  addFriendsText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: spacing.sm,
+  },
+  avatarContainer: { alignItems: 'center', flexDirection: 'row' },
+  badgeLevelContainer: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 12,
+    elevation: 2,
+    marginBottom: spacing.md,
+    marginHorizontal: spacing.lg,
+    padding: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  badgeLevelInfo: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: spacing.xs,
+  },
+
+  badgeLevelText: { color: colors.text, fontSize: 14, fontWeight: '600' },
+
+  badgeProgress: { borderRadius: 4, height: '100%' },
+  badgeProgressBackground: {
+    backgroundColor: colors.border,
+    borderRadius: 4,
+    height: '100%',
+    overflow: 'hidden',
+    width: '100%',
+  },
+  badgeProgressContainer: { height: 8, width: '100%' },
   categoriesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
   },
   categoryTag: {
     backgroundColor: colors.primaryLight,
@@ -406,171 +620,137 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 6,
   },
-  categoryText: {
-    color: colors.lightText,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  container: {
-    backgroundColor: colors.background,
-    flex: 1,
-  },
+
+  categoryText: { color: colors.lightText, fontSize: 14, fontWeight: '500' },
+  container: { backgroundColor: colors.background, flex: 1 },
   divider: {
     backgroundColor: colors.border,
     marginHorizontal: spacing.md,
     width: 1,
   },
-  editButton: {
-    alignItems: 'center',
-    borderRadius: 20,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
-  },
-  eventDate: {
-    color: colors.textSecondary,
-    fontSize: 10,
-    paddingBottom: 6,
-    paddingHorizontal: 6,
-  },
-  eventImage: {
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    height: 90,
-    width: '100%',
-  },
-  eventPreviewItem: {
+  eventCard: {
     backgroundColor: colors.backgroundAlt,
     borderRadius: 8,
+    elevation: 2,
     overflow: 'hidden',
-    width: '30%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.5,
+    width: '31%',
   },
+  eventCategoryTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.primaryLight,
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  eventCategoryText: { color: colors.lightText, fontSize: 10 },
+  eventDate: { color: colors.textSecondary, fontSize: 12, marginBottom: 4 },
+  eventDetails: { padding: 8 },
+
+  eventImage: { height: 90, width: '100%' },
   eventTitle: {
-    color: colors.text,
-    fontSize: 12,
-    fontWeight: '500',
-    padding: 6,
-  },
-  eventsPreview: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    paddingBottom: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-  },
-  joinDate: {
-    color: colors.textSecondary,
-    fontSize: 12,
-  },
-  languageOption: {
-    alignItems: 'center',
-    backgroundColor: colors.backgroundAlt,
-    borderRadius: 8,
-    flex: 1,
-    marginHorizontal: 4,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-  },
-  languageOptionActive: {
-    backgroundColor: colors.primary,
-  },
-  languageSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  languageText: {
     color: colors.text,
     fontSize: 14,
     fontWeight: '500',
+    marginBottom: 4,
   },
-  languageTextActive: {
-    color: colors.lightText,
+  eventsContainer: { flexDirection: 'row', justifyContent: 'space-between' },
+  friendBubble: { alignItems: 'center', width: '23%' },
+
+  friendBubbleName: {
+    color: colors.text,
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'center',
+    width: '100%',
   },
-  loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoutButton: {
-    alignItems: 'center',
-    backgroundColor: colors.error,
-    borderRadius: 8,
+  friendsContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.sm,
-    paddingVertical: 12,
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
   },
-  logoutText: {
-    color: colors.lightText,
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: spacing.xs,
+  header: {
+    paddingBottom: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
   },
-  sectionContainer: {
-    marginBottom: spacing.lg,
-    marginHorizontal: spacing.lg,
+  joinDate: { color: colors.textSecondary, fontSize: 14 },
+  loadingContainer: { alignItems: 'center', justifyContent: 'center' },
+
+  loadingText: { color: colors.textSecondary, marginTop: 10 },
+  logoutButton: { borderBottomWidth: 0, marginTop: spacing.xs },
+  logoutIcon: {},
+
+  logoutText: { color: colors.error, flex: 1, fontSize: 16, fontWeight: '500' },
+  premiumBadgeContainer: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderColor: 'rgba(255, 215, 0, 0.3)',
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
   },
+  premiumBadgeText: { color: '#B8860B', marginLeft: 4 },
+  sectionContainer: { marginBottom: spacing.lg, marginHorizontal: spacing.lg },
   sectionHeader: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: spacing.sm,
   },
-  sectionTitle: {
-    fontSize: typography.subtitle.fontSize,
-    fontWeight: '600', // Using a specific valid fontWeight value
-    marginBottom: spacing.sm,
-  },
-  seeAllText: {
-    color: colors.primary,
-    fontSize: 14,
-  },
-  statItem: {
+  sectionTitle: { color: colors.text, fontSize: 18, fontWeight: '600' },
+  seeAllText: { color: colors.primary, fontSize: 14, fontWeight: '500' },
+  settingsButton: {
     alignItems: 'center',
-    flex: 1,
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 20,
+    elevation: 2,
+    height: 40,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.5,
+    top: spacing.md,
+    width: 40,
   },
-  statLabel: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    marginTop: 4,
-  },
-  statValue: {
-    color: colors.primary,
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
+
+  statItem: { alignItems: 'center', flex: 1 },
+  statLabel: { color: colors.textSecondary, fontSize: 14, marginTop: 4 },
+  statValue: { color: colors.primary, fontSize: 24, fontWeight: 'bold' },
   statsContainer: {
     backgroundColor: colors.backgroundAlt,
     borderRadius: 12,
+    elevation: 2,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     marginHorizontal: spacing.lg,
     marginVertical: spacing.md,
     padding: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
-  userHandle: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    marginBottom: spacing.xs,
-  },
-  userInfo: {
-    flex: 1,
-    marginLeft: spacing.md,
-  },
+  userHandle: { color: colors.textSecondary, fontSize: 16, marginBottom: 4 },
+  userInfo: { flex: 1, marginLeft: spacing.md },
   userName: {
-    ...typography.subtitle,
     color: colors.text,
+    fontSize: 22,
     fontWeight: 'bold',
+    marginBottom: 2,
   },
+
   versionText: {
     color: colors.textSecondary,
     fontSize: 12,
-    marginBottom: spacing.xl,
+    marginVertical: spacing.xl,
     textAlign: 'center',
   },
 });

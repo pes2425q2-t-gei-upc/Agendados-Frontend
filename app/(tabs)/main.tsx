@@ -1,13 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   ActivityIndicator,
-  StyleSheet,
   TouchableOpacity,
   useWindowDimensions,
-  Alert,
 } from 'react-native';
 import {
   GestureHandlerRootView,
@@ -27,10 +25,7 @@ import Animated, {
 import Card from '@components/cardEvent';
 import EventDetailModal from '@components/EventDetailModal';
 import { Event as EventModal } from '@models/Event';
-import {
-  getEventRecomendations,
-  getEventDetails,
-} from '@services/EventsService';
+import { getEventRecomendations } from '@services/EventsService';
 import { SavedService } from '@services/SavedService';
 import { colors } from '@styles/globalStyles';
 import { styles } from '@styles/mainPageStyles';
@@ -46,7 +41,6 @@ export default function Main() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<EventModal[]>([]);
-  const detailCache = useRef(new Map());
   const { refreshFavorites } = useFavorites();
 
   // Card state
@@ -58,8 +52,7 @@ export default function Main() {
 
   // Event detail modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
-  const [selectedEventDetail, setSelectedEventDetail] =
-    useState<EventModal | null>(null);
+  const [, setSelectedEventDetail] = useState<EventModal | null>(null);
 
   // Values for animations
   const { width: screenWidth } = useWindowDimensions();
@@ -94,6 +87,7 @@ export default function Main() {
 
       const data: EventModal[] = await getEventRecomendations();
       setEvents(data);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       setError('Failed to fetch events. Please try again later.');
     } finally {

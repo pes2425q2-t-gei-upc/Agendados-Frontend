@@ -1,5 +1,6 @@
 import React, { memo, useRef, useEffect } from 'react';
 import { View, FlatList, Animated, Easing, StyleSheet } from 'react-native';
+
 import { Event as EventModel } from '@models/Event';
 import { styles as exploreStyles } from '@styles/Explore'; // Corrected path
 

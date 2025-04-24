@@ -143,10 +143,10 @@ export default function RegisterLoginPage() {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 3) {
       setErrorMessage(
         t('auth.passwordLength') ||
-          'La contraseña debe tener al menos 6 caracteres'
+          'La contraseña debe tener al menos 3 caracteres'
       );
       return;
     }
