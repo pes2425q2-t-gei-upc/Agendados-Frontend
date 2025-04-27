@@ -14,6 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
+  ImageBackground,
 } from 'react-native';
 
 import { colors, spacing } from '@styles/globalStyles';
@@ -172,116 +173,124 @@ export default function ChatScreen() {
       </Text>
     </View>
   );
-
   return (
-    <SafeAreaView style={styles.container}>
-      <Modal
-        animationType='fade'
-        transparent={true}
-        visible={showRules}
-        onRequestClose={handleAcceptRules}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.rulesContainer}>
-            <Text style={styles.rulesTitle}>Normas del Chat</Text>
+    <ImageBackground
+      source={require('@assets/images/FondoXat1.jpg')} // Ruta de tu imagen
+      style={styles.container} // Aseguramos que la imagen cubra el contenedor
+    >
+      <SafeAreaView style={styles.container}>
+        <Modal
+          animationType='fade'
+          transparent={true}
+          visible={showRules}
+          onRequestClose={handleAcceptRules}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.rulesContainer}>
+              <Text style={styles.rulesTitle}>Normas del Chat</Text>
 
-            <View style={styles.rulesList}>
-              <Text style={styles.ruleItem}>
-                • Respeta a todos los participantes
-              </Text>
-              <Text style={styles.ruleItem}>
-                • No insultes ni uses lenguaje ofensivo
-              </Text>
-              <Text style={styles.ruleItem}>• No hagas spam ni publicidad</Text>
-              <Text style={styles.ruleItem}>
-                • No compartas información personal
-              </Text>
-              <Text style={styles.ruleItem}>
-                • Mantén las conversaciones relacionadas con el evento
-              </Text>
+              <View style={styles.rulesList}>
+                <Text style={styles.ruleItem}>
+                  • Respeta a todos los participantes
+                </Text>
+                <Text style={styles.ruleItem}>
+                  • No insultes ni uses lenguaje ofensivo
+                </Text>
+                <Text style={styles.ruleItem}>
+                  • No hagas spam ni publicidad
+                </Text>
+                <Text style={styles.ruleItem}>
+                  • No compartas información personal
+                </Text>
+                <Text style={styles.ruleItem}>
+                  • Mantén las conversaciones relacionadas con el evento
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.acceptButton}
+                onPress={handleAcceptRules}
+              >
+                <Text style={styles.acceptButtonText}>Aceptar</Text>
+              </TouchableOpacity>
             </View>
-
+          </View>
+        </Modal>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+        >
+          <View style={styles.header}>
             <TouchableOpacity
-              style={styles.acceptButton}
-              onPress={handleAcceptRules}
+              onPress={() => router.back()}
+              style={styles.backButton}
             >
-              <Text style={styles.acceptButtonText}>Aceptar</Text>
+              <MaterialIcons name='arrow-back' size={24} color={colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.title}>
+              Chat de{' '}
+              {eventTitle
+                ? `${eventTitle.slice(0, 24)}${eventTitle.length > 24 ? '...' : ''}`
+                : 'Evento'}
+            </Text>
+
+            {!isConnected && <ActivityIndicator style={styles.loading} />}
+          </View>
+
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(_, index) => index.toString()}
+            style={styles.messageList}
+            contentContainerStyle={{ paddingBottom: 80 }}
+            onContentSizeChange={() =>
+              flatListRef.current?.scrollToEnd({ animated: true })
+            }
+            onLayout={() =>
+              flatListRef.current?.scrollToEnd({ animated: true })
+            }
+          />
+
+          <View style={styles.inputContainer}>
+            <TouchableOpacity
+              style={styles.attachButton}
+              onPress={() => console.log('Ficheros')} //Falta posar per afegir fotos, fichers, blablabla
+            >
+              <MaterialIcons
+                name='attach-file'
+                size={24}
+                color={colors.textSecondary}
+              />
+            </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder='Escribe un mensaje...'
+              placeholderTextColor={colors.textSecondary}
+              onSubmitEditing={handleSend}
+              returnKeyType='send'
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                !inputText.trim() && styles.sendButtonDisabled,
+              ]}
+              onPress={handleSend}
+              disabled={!inputText.trim()}
+            >
+              <MaterialIcons
+                name='send'
+                size={24}
+                color={inputText.trim() ? colors.primary : colors.textSecondary}
+              />
             </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <MaterialIcons name='arrow-back' size={24} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={styles.title}>
-            Chat de{' '}
-            {eventTitle
-              ? `${eventTitle.slice(0, 24)}${eventTitle.length > 24 ? '...' : ''}`
-              : 'Evento'}
-          </Text>
-
-          {!isConnected && <ActivityIndicator style={styles.loading} />}
-        </View>
-
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(_, index) => index.toString()}
-          style={styles.messageList}
-          contentContainerStyle={{ paddingBottom: 80 }}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: true })
-          }
-          onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        />
-
-        <View style={styles.inputContainer}>
-          <TouchableOpacity
-            style={styles.attachButton}
-            onPress={() => console.log('Ficheros')} //Falta posar per afegir fotos, fichers, blablabla
-          >
-            <MaterialIcons
-              name='attach-file'
-              size={24}
-              color={colors.textSecondary}
-            />
-          </TouchableOpacity>
-          <TextInput
-            style={styles.input}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder='Escribe un mensaje...'
-            placeholderTextColor={colors.textSecondary}
-            onSubmitEditing={handleSend}
-            returnKeyType='send'
-          />
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              !inputText.trim() && styles.sendButtonDisabled,
-            ]}
-            onPress={handleSend}
-            disabled={!inputText.trim()}
-          >
-            <MaterialIcons
-              name='send'
-              size={24}
-              color={inputText.trim() ? colors.primary : colors.textSecondary}
-            />
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </ImageBackground>
   );
 }
 
@@ -309,7 +318,10 @@ const styles = StyleSheet.create({
     padding: spacing.xs,
   },
   container: {
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
+    backgroundImage: 'url("@assets/images/FondoXat1.jpg")',
+    backgroundPosition: 'center',
+    backgroundSize: 'cover',
     flex: 1,
   },
   header: {
