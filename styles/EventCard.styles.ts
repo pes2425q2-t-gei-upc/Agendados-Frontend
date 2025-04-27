@@ -1,6 +1,7 @@
 /* eslint-disable react-native/sort-styles */
-import { colors, spacing } from '@styles/globalStyles';
 import { StyleSheet } from 'react-native';
+
+import { colors, spacing } from '@styles/globalStyles';
 
 export const styles = StyleSheet.create({
   card: {

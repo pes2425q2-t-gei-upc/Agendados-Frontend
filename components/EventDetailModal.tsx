@@ -1,6 +1,8 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { TFunction } from 'i18next';
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -21,7 +23,6 @@ import { Event } from '@models/Event';
 import { styles } from '@styles/EventDetailModal.styles';
 import { colors } from '@styles/globalStyles';
 import { useFavorites } from 'app/context/FavoritesContext';
-import { TFunction } from 'i18next';
 
 interface EventDetailModalProps {
   event: Event;
@@ -36,6 +37,7 @@ const EventDetailModal = ({
   visible,
   onClose,
 }: EventDetailModalProps) => {
+  const router = useRouter();
   const panY = useRef(new Animated.Value(screenHeight)).current;
   const [modalVisible, setModalVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -433,6 +435,31 @@ const EventDetailModal = ({
                 </View>
               </View>
             )}
+
+            {/* Chat Button */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <MaterialIcons name='chat' size={22} color={colors.primary} />
+                <Text style={styles.sectionTitle}>
+                  {t('eventDetails.chat')}
+                </Text>
+              </View>
+              <View style={styles.sectionContent}>
+                <TouchableOpacity
+                  style={styles.chatButton}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/chat',
+                      params: { eventId: event.id },
+                    })
+                  }
+                >
+                  <Text style={styles.chatButtonText}>
+                    {t('eventDetails.openChat')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
             {/* Ticket Information */}
             {event.info_tickets && (
