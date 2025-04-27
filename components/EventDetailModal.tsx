@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { MaterialIcons } from '@expo/vector-icons';
+import { TFunction } from 'i18next';
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -21,7 +22,6 @@ import { Event } from '@models/Event';
 import { styles } from '@styles/EventDetailModal.styles';
 import { colors } from '@styles/globalStyles';
 import { useFavorites } from 'app/context/FavoritesContext';
-import { TFunction } from 'i18next';
 
 interface EventDetailModalProps {
   event: Event;
@@ -106,6 +106,20 @@ const EventDetailModal = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleChat = () => {
+    // Cerrar el modal primero
+    handleClose();
+
+    // Navegar a la pantalla de chat
+    router.push({
+      pathname: '/(tabs)/chat',
+      params: {
+        eventId: event.id,
+        eventTitle: event.title,
+      },
+    });
   };
 
   const panResponder = useRef(
@@ -236,6 +250,25 @@ const EventDetailModal = ({
     zIndex: 10,
   };
 
+  // Custom styles for the chat button
+  const chatButtonStyle = {
+    position: 'absolute' as const,
+    bottom: -22,
+    right: 80,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'white',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 10,
+  };
+
   return (
     <Modal
       visible={modalVisible}
@@ -326,6 +359,11 @@ const EventDetailModal = ({
                     color={isEventFavorite ? colors.error : colors.primary}
                   />
                 )}
+              </TouchableOpacity>
+
+              {/* Chat button */}
+              <TouchableOpacity style={chatButtonStyle} onPress={handleChat}>
+                <MaterialIcons name='chat' size={28} color={colors.primary} />
               </TouchableOpacity>
             </View>
 
