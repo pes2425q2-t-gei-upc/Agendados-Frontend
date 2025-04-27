@@ -450,7 +450,10 @@ const EventDetailModal = ({
                   onPress={() =>
                     router.push({
                       pathname: '/chat',
-                      params: { eventId: event.id },
+                      params: {
+                        eventId: event.id,
+                        eventTitle: event.title,
+                      },
                     })
                   }
                 >
