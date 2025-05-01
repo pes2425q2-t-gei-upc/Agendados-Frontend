@@ -21,7 +21,6 @@ import { Event } from '@models/Event';
 import { styles } from '@styles/EventDetailModal.styles';
 import { colors } from '@styles/globalStyles';
 import { useFavorites } from 'app/context/FavoritesContext';
-import { TFunction } from 'i18next';
 
 interface EventDetailModalProps {
   event: Event;
