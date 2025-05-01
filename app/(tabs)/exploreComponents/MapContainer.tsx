@@ -1,13 +1,15 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import MapView from 'react-native-map-clustering';
 import type { Region } from 'react-native-maps';
-import { Ionicons } from '@expo/vector-icons';
 
 import { Event as EventModel } from '@models/Event';
 import { styles } from '@styles/Explore'; // Assuming styles are accessible or passed
-import { EventMarker } from './EventMarker';
+
 import { INITIAL_REGION } from '../../constants/exploreConstants';
+
+import { EventMarker } from './EventMarker';
 
 export type MapViewType = MapView & {
   animateToRegion(region: Region, duration: number): void;
@@ -29,7 +31,6 @@ export const MapContainer: React.FC<MapContainerProps> = ({
   mapRef,
   clusteringEnabled,
   locationPermission,
-  userLocation,
   visibleMarkers,
   onRegionChangeComplete,
   onMapReady,
@@ -48,8 +49,8 @@ export const MapContainer: React.FC<MapContainerProps> = ({
         minZoom={10}
         radius={40}
         nodeSize={64}
-        clusterColor="#4285F4"
-        clusterTextColor="#fff"
+        clusterColor='#4285F4'
+        clusterTextColor='#fff'
         removeClippedSubviews
         animationEnabled
         clusteringEnabled={clusteringEnabled}
@@ -60,18 +61,22 @@ export const MapContainer: React.FC<MapContainerProps> = ({
         onMapReady={onMapReady}
         moveOnMarkerPress
         loadingEnabled
-        loadingIndicatorColor="#4285F4"
-        loadingBackgroundColor="rgba(255, 255, 255, 0.7)"
+        loadingIndicatorColor='#4285F4'
+        loadingBackgroundColor='rgba(255, 255, 255, 0.7)'
       >
         {visibleMarkers.map((marker) => (
-          <EventMarker key={marker.id} marker={marker} onPress={onMarkerPress} />
+          <EventMarker
+            key={marker.id}
+            marker={marker}
+            onPress={onMarkerPress}
+          />
         ))}
       </MapView>
       <TouchableOpacity
         style={styles.myLocationButton}
         onPress={onMyLocationPress}
       >
-        <Ionicons name="locate" size={24} color="#4285F4" />
+        <Ionicons name='locate' size={24} color='#4285F4' />
       </TouchableOpacity>
     </>
   );

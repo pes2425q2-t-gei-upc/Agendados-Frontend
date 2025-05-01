@@ -23,7 +23,7 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install
 
       # Eliminar directorio Pods para evitar problemas en el análisis
       - name: Remove Pods directory
