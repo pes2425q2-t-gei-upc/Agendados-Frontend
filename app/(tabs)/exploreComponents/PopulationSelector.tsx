@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { TFunction } from 'i18next';
 import React, { useState } from 'react';
 import {
   Modal,
@@ -8,7 +9,6 @@ import {
   TextInput,
   ScrollView,
 } from 'react-native';
-import { TFunction } from 'i18next';
 
 import { styles } from '@styles/Explore';
 
@@ -25,7 +25,7 @@ interface PopulationSelectorProps {
   onSelect: (populationId: string) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  t: TFunction<"translation", undefined>;
+  t: TFunction<'translation', undefined>;
 }
 
 export const PopulationSelector: React.FC<PopulationSelectorProps> = ({

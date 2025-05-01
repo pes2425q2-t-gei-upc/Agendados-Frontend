@@ -1,10 +1,11 @@
+import type { Ionicons as IoniconsType } from '@expo/vector-icons';
 import React from 'react';
 import { View } from 'react-native';
-import type { Ionicons as IoniconsType } from '@expo/vector-icons';
 
-import { SearchBar } from './SearchBar';
-import { ActiveFilters } from './ActiveFilters';
 import { styles } from '@styles/Explore';
+
+import { ActiveFilters } from './ActiveFilters';
+import { SearchBar } from './SearchBar';
 
 // Define the type for filter categories based on its structure
 interface FilterCategoryItem {
@@ -71,4 +72,3 @@ export const FilterControls: React.FC<FilterControlsProps> = ({
     </View>
   );
 };
-

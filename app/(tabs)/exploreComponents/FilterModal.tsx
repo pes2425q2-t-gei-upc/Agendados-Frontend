@@ -1,8 +1,8 @@
 /* eslint-disable react-native/no-inline-styles */
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import React from 'react';
 import { TFunction } from 'i18next';
+import React from 'react';
 import {
   Modal,
   View,
@@ -12,9 +12,8 @@ import {
   Platform,
 } from 'react-native';
 
-import { DatePickerModal } from 'app/(tabs)/exploreComponents/DatePickerModal';
-
 import { styles } from '@styles/Explore';
+import { DatePickerModal } from 'app/(tabs)/exploreComponents/DatePickerModal';
 
 import { CategoryCarousel, FilterItem } from './CategoryCarousel';
 import { PopulationSelector, PopulationItem } from './PopulationSelector';
@@ -46,7 +45,7 @@ interface FilterModalProps {
   onSelectPopulation: (populationId: string) => void;
   clearFilters: () => void;
   formatDate: (date: Date | null) => string;
-  t: TFunction<"translation", undefined>; // Add t prop
+  t: TFunction<'translation', undefined>; // Add t prop
 }
 
 export const FilterModal: React.FC<FilterModalProps> = ({

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-native/no-inline-styles */
 import { Ionicons } from '@expo/vector-icons';
+import { TFunction } from 'i18next';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Modal,
@@ -15,7 +16,6 @@ import {
   Platform,
   PanResponder,
 } from 'react-native';
-import { TFunction } from 'i18next';
 
 import EventCard from '@components/EventCard';
 import { Event } from '@models/Event'; // Adjust the import path as necessary
@@ -25,7 +25,7 @@ interface EventsModalProps {
   toggleEventsModal: () => void;
   filteredMarkers: any[];
   onEventPress?: (eventId: number) => void; // Keep prop definition if it might be used elsewhere
-  t: TFunction<"translation", undefined>; // Add t prop
+  t: TFunction<'translation', undefined>; // Add t prop
 }
 
 export const EventsModal: React.FC<EventsModalProps> = ({
@@ -172,7 +172,8 @@ export const EventsModal: React.FC<EventsModalProps> = ({
         </View>
 
         <View style={styles.header}>
-          <Text style={styles.title}>{t('explore.events.title')}</Text> {/* Use passed t */}
+          <Text style={styles.title}>{t('explore.events.title')}</Text>{' '}
+          {/* Use passed t */}
           <View style={styles.countBadge}>
             <Text style={styles.countText}>{filteredMarkers.length}</Text>
           </View>
@@ -194,7 +195,10 @@ export const EventsModal: React.FC<EventsModalProps> = ({
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name='calendar-outline' size={60} color='#ccc' />
-              <Text style={styles.emptyText}>{t('explore.events.noEventsFound')}</Text> {/* Use passed t */}
+              <Text style={styles.emptyText}>
+                {t('explore.events.noEventsFound')}
+              </Text>{' '}
+              {/* Use passed t */}
             </View>
           }
         />

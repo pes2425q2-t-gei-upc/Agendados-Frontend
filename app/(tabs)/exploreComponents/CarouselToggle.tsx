@@ -1,7 +1,14 @@
-import React, { memo, useRef, useEffect } from 'react';
-import { TouchableOpacity, View, Text, Animated, Easing, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { memo, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+  TouchableOpacity,
+  View,
+  Text,
+  Animated,
+  Easing,
+  StyleSheet,
+} from 'react-native';
 
 type CarouselToggleProps = {
   onToggle: () => void;
@@ -10,7 +17,7 @@ type CarouselToggleProps = {
 };
 
 export const CarouselToggle = memo(
-  ({ onToggle, isVisible}: CarouselToggleProps) => {
+  ({ onToggle, isVisible }: CarouselToggleProps) => {
     const { t } = useTranslation();
     const rotateAnim = useRef(new Animated.Value(isVisible ? 0 : 1)).current;
 
@@ -41,7 +48,7 @@ export const CarouselToggle = memo(
               : t('explore.events.nearbyEvents') || 'Esdeveniments Propers'}
           </Text>
           <Animated.View style={{ transform: [{ rotate }] }}>
-            <Ionicons name="chevron-up" size={24} color="#4285F4" />
+            <Ionicons name='chevron-up' size={24} color='#4285F4' />
           </Animated.View>
         </View>
       </TouchableOpacity>

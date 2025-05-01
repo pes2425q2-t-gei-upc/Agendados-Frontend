@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { Marker } from 'react-native-maps';
+
 import { Event as EventModel } from '@models/Event';
 
 type EventMarkerProps = {
