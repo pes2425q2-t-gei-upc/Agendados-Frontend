@@ -23,12 +23,7 @@ import {
 } from 'react-native';
 
 import { useAuth } from '@context/authContext';
-import {
-  colors,
-  spacing,
-  typography,
-  globalStyles,
-} from '@styles/globalStyles';
+import { colors, spacing, globalStyles } from '@styles/globalStyles';
 import { changeLanguage } from 'localization/i18n';
 
 import LanguageSelector from '../components/LanguageSelector';
@@ -46,7 +41,7 @@ const STATUS_BAR = Platform.select({
 const Config = () => {
   const router = useRouter();
   const { t } = useTranslation();
-  const { userInfo, updateUserProfile, loading } = useAuth();
+  const { userInfo, loading } = useAuth();
   const scrollY = useRef(new Animated.Value(0)).current;
 
   // ─── Estados ────────────────────────────────────────────────────────────
@@ -189,7 +184,7 @@ const Config = () => {
     );
 
   // ─── Guardar perfil (mock) ───────────────────────────────────────────────
-  const handleSaveProfile = async (data: any) => {
+  const handleSaveProfile = async (_data: any) => {
     try {
       setIsLoading(true);
       await new Promise((r) => setTimeout(r, 1000));

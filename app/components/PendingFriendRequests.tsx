@@ -88,7 +88,7 @@ const PendingFriendRequests: React.FC<PendingFriendRequestsProps> = ({
         return (
           <View key={request.id} style={styles.requestItem}>
             <ProfileAvatar
-              avatar={user.avatar}
+              avatar={user.avatar ?? null}
               size={40}
               showEditButton={false}
               savedEventsCount={0}

@@ -1,9 +1,10 @@
-import React, { memo } from 'react';
-import { FlatList, TouchableOpacity, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { Ionicons as IoniconsType } from '@expo/vector-icons';
-import { styles } from '@styles/Explore'; // Corrected path
+import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { FlatList, TouchableOpacity, Text, View } from 'react-native';
+
+import { styles } from '@styles/Explore'; // Corrected path
 
 type FilterItem = {
   id: string;
@@ -64,7 +65,7 @@ export const ActiveFilters = memo(
                 style={styles.clearFilterChip}
                 onPress={clearFilters}
               >
-                <Ionicons name="close-circle" size={16} color="#fff" />
+                <Ionicons name='close-circle' size={16} color='#fff' />
                 <Text style={styles.clearFilterText}>
                   {t('explore.search.clearFilters')}
                 </Text>
@@ -74,7 +75,7 @@ export const ActiveFilters = memo(
           if (item.type === 'date') {
             return (
               <View style={styles.dateRangeChip}>
-                <Ionicons name="calendar" size={16} color="#666" />
+                <Ionicons name='calendar' size={16} color='#666' />
                 <Text style={styles.filterText}>
                   {startDate
                     ? formatDate(startDate)
@@ -91,14 +92,14 @@ export const ActiveFilters = memo(
                 style={[styles.filterChip, styles.filterButtonActive]}
                 onPress={() => handleCategoryPress(item.id)}
               >
-                <Ionicons name={item.filter.icon} size={16} color="#fff" />
+                <Ionicons name={item.filter.icon} size={16} color='#fff' />
                 <Text style={[styles.filterText, styles.filterTextActive]}>
                   {item.filter.label}
                 </Text>
                 <Ionicons
-                  name="close-circle"
+                  name='close-circle'
                   size={14}
-                  color="#fff"
+                  color='#fff'
                   style={styles.removeFilterIcon}
                 />
               </TouchableOpacity>

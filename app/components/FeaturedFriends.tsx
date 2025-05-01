@@ -1,10 +1,11 @@
 // app/components/FeaturedFriends.tsx
 import { Ionicons } from '@expo/vector-icons';
-import { Friendship } from '@models/Friendship';
 import { useRouter } from 'expo-router';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+
+import { Friendship } from '@models/Friendship';
 
 import { colors, spacing } from '../../styles/globalStyles';
 

@@ -1,8 +1,9 @@
-import React, { memo } from 'react';
-import { View, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next'; // Adjust the import path as necessary
+import { View, TextInput, TouchableOpacity } from 'react-native';
+
 import { styles } from '@styles/Explore'; // Assuming styles are in this path
-import { useTranslation } from 'react-i18next';// Adjust the import path as necessary
 
 type SearchBarProps = {
   inputText: string;
@@ -22,9 +23,9 @@ export const SearchBar = memo(
     return (
       <View style={styles.searchBar}>
         <Ionicons
-          name="search"
+          name='search'
           size={24}
-          color="#666"
+          color='#666'
           style={styles.searchIcon}
         />
         <TextInput
@@ -33,20 +34,20 @@ export const SearchBar = memo(
           value={inputText}
           onChangeText={setInputText}
           onSubmitEditing={() => setSearchQuery(inputText)}
-          returnKeyType="search"
-          placeholderTextColor="#999"
+          returnKeyType='search'
+          placeholderTextColor='#999'
         />
         <TouchableOpacity
           onPress={() => setSearchQuery(inputText)}
           style={styles.searchButton}
         >
-          <Ionicons name="arrow-forward" size={24} color="#666" />
+          <Ionicons name='arrow-forward' size={24} color='#666' />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.filterButton}
           onPress={toggleFilterModal}
         >
-          <Ionicons name="options-outline" size={24} color="#666" />
+          <Ionicons name='options-outline' size={24} color='#666' />
         </TouchableOpacity>
       </View>
     );

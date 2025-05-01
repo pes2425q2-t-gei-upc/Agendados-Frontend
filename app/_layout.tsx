@@ -3,8 +3,7 @@ import { Stack } from 'expo-router';
 import React, { useEffect } from 'react';
 
 import { FavoritesProvider } from '@context/FavoritesContext';
-import { FriendshipProvider } from '@context/FriendshipContext'; // Nuevo import
-import { colors } from '@styles/globalStyles';
+import { FriendshipProvider } from '@context/FriendshipContext';
 import { initializeLanguage } from 'localization/i18n';
 
 import { AuthProvider } from './context/authContext';

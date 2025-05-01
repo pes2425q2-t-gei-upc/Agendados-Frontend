@@ -1,9 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { styles } from '@styles/EventCard.styles';
 import React, { useState } from 'react';
 import { Image, Share, Text, TouchableOpacity, View } from 'react-native';
 
 import { Event } from '@models/Event';
+import { styles } from '@styles/EventCard.styles';
 import { colors } from '@styles/globalStyles';
 
 import EventDetailModal from './EventDetailModal';
