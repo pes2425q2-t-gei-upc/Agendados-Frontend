@@ -1,4 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
@@ -24,6 +25,7 @@ import Animated, {
 
 import Card from '@components/cardEvent';
 import EventDetailModal from '@components/EventDetailModal';
+import { Welcome } from '@components/Welcome';
 import { Event as EventModal } from '@models/Event';
 import { getEventRecomendations } from '@services/EventsService';
 import { SavedService } from '@services/SavedService';
@@ -41,6 +43,7 @@ export default function Main() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<EventModal[]>([]);
+  const [showWelcome, setShowWelcome] = useState(false);
   const { refreshFavorites } = useFavorites();
 
   // Card state
@@ -204,6 +207,18 @@ export default function Main() {
     [openDetailModal]
   );
 
+  useEffect(() => {
+    const checkWelcome = async () => {
+      await AsyncStorage.removeItem('hasSeenWelcome');
+      const hasSeenWelcome = await AsyncStorage.getItem('hasSeenWelcome');
+      if (!hasSeenWelcome) {
+        setShowWelcome(true);
+      }
+    };
+
+    checkWelcome();
+  }, []);
+
   // Show loading screen
   if (loading) {
     return (
@@ -295,6 +310,7 @@ export default function Main() {
           }}
         />
       </View>
+      <Welcome visible={showWelcome} onClose={() => setShowWelcome(false)} />
     </GestureHandlerRootView>
   );
 }
