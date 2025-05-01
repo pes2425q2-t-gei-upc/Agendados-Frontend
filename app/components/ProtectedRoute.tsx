@@ -1,8 +1,9 @@
 // app/components/ProtectedRoute.tsx
-import { colors } from '@styles/globalStyles';
 import { useRouter, Redirect } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, View, Text } from 'react-native';
+
+import { colors } from '@styles/globalStyles';
 
 import { useAuth } from '../context/authContext';
 

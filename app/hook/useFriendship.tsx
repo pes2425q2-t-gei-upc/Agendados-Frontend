@@ -1,11 +1,12 @@
 // app/hooks/useFriendship.tsx
 
-import { Friendship } from '@models/Friendship';
-import { User } from '@models/User';
-import { FriendshipService } from '@services/FriendshipService';
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
+
+import { Friendship } from '@models/Friendship';
+import { User } from '@models/User';
+import { FriendshipService } from '@services/FriendshipService';
 
 /**
  * Hook personalizado para gestionar la lógica relacionada con amistades
