@@ -56,11 +56,12 @@ export const Welcome = ({
   visible: boolean;
   onClose: () => void;
 }) => {
+  const [currentStep, setCurrentStep] = useState(0);
+
   if (!visible) {
     return null;
   }
 
-  const [currentStep, setCurrentStep] = useState(0);
   const step = WELCOME_STEPS[currentStep];
 
   const handleNext = async () => {
@@ -94,7 +95,7 @@ export const Welcome = ({
     const left = index * tabWidth + tabWidth / 2 - iconSize / 2 - 12;
 
     return {
-      position: 'absolute',
+      position: 'absolute' as const,
       bottom: 15,
       left,
       zIndex: 20,

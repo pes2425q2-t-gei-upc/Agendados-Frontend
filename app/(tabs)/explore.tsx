@@ -1,6 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Ionicons } from '@expo/vector-icons';
 import React, {
   useState,
   useEffect,
@@ -20,20 +19,11 @@ import {
 } from 'react-native';
 import type { Region } from 'react-native-maps';
 
-import { Event as EventModel } from '@models/Event';
 import EventDetailModal from '@components/EventDetailModal';
-import { styles } from '@styles/Explore';
 import { useEvents } from '@context/eventsContext';
+import { Event as EventModel } from '@models/Event';
 import { getTowns } from '@services/LocationService';
-
-import { EventCard } from './exploreComponents/ExploreEventCard';
-import { CarouselToggle } from './exploreComponents/CarouselToggle';
-import { AnimatedNearbyEventsList } from './exploreComponents/AnimatedNearbyEventsList';
-import { FilterModal } from './exploreComponents/FilterModal';
-import { PopulationSelector } from './exploreComponents/PopulationSelector';
-import { EventsModal } from './exploreComponents/EventsModal';
-import { MapContainer, MapViewType } from './exploreComponents/MapContainer';
-import { FilterControls } from './exploreComponents/FilterControls';
+import { styles } from '@styles/Explore';
 
 import {
   INITIAL_REGION,
@@ -41,6 +31,15 @@ import {
   ZOOM_THRESHOLD,
   filterCategoryKeys,
 } from '../constants/exploreConstants';
+
+import { AnimatedNearbyEventsList } from './exploreComponents/AnimatedNearbyEventsList';
+import { CarouselToggle } from './exploreComponents/CarouselToggle';
+import { EventsModal } from './exploreComponents/EventsModal';
+import { EventCard } from './exploreComponents/ExploreEventCard';
+import { FilterControls } from './exploreComponents/FilterControls';
+import { FilterModal } from './exploreComponents/FilterModal';
+import { MapContainer, MapViewType } from './exploreComponents/MapContainer';
+import { PopulationSelector } from './exploreComponents/PopulationSelector';
 
 function getZoomFromLatDelta(latitudeDelta: number): number {
   return Math.log2(360 / latitudeDelta);
@@ -61,7 +60,9 @@ export default function Explore() {
   } | null>(null);
   const [locationPermission, setLocationPermission] = useState(false);
 
-  const [region, setRegion] = useState(INITIAL_REGION);
+  //const [region, setRegion] = useState(INITIAL_REGION);
+  const [, setRegion] = useState(INITIAL_REGION);
+
   const prevZoom = useRef(getZoomFromLatDelta(INITIAL_REGION.latitudeDelta));
   const [clusteringEnabled, setClusteringEnabled] = useState(true);
   const previousClusteringState = useRef(true);
@@ -439,7 +440,7 @@ export default function Explore() {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#4285F4" />
+        <ActivityIndicator size='large' color='#4285F4' />
         <Text>{t('explore.loading')}</Text>
       </View>
     );
@@ -455,7 +456,7 @@ export default function Explore() {
 
   return (
     <View style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" />
+      <StatusBar translucent backgroundColor='transparent' />
 
       <MapContainer
         mapRef={mapRef}
@@ -541,8 +542,8 @@ export default function Explore() {
                 month: 'short',
               })
             : currentMode === 'start'
-            ? t('explore.filters.startDate')
-            : t('explore.filters.endDate')
+              ? t('explore.filters.startDate')
+              : t('explore.filters.endDate')
         }
         populationDropdownVisible={populationDropdownVisible}
         searchQuery={searchQuery}
@@ -554,7 +555,7 @@ export default function Explore() {
         visible={populationDropdownVisible}
         onClose={() => setPopulationDropdownVisible(false)}
         selectedPopulation={selectedPopulation}
-        searchQuery=""
+        searchQuery=''
         setSearchQuery={() => {}}
         populations={populationList}
         onSelect={handlePopulationSelect}
