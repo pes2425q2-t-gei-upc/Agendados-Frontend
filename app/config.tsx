@@ -28,11 +28,8 @@ import { changeLanguage } from 'localization/i18n';
 
 import LanguageSelector from '../components/LanguageSelector';
 
-/** Altura máxima del header expandido */
 const HEADER_MAX_HEIGHT = 240;
-/** Altura fija de la navbar compacta */
 const NAV_BAR_HEIGHT = 56;
-/** Status bar (iOS=0, Android=StatusBar.currentHeight) */
 const STATUS_BAR = Platform.select({
   ios: 0,
   android: StatusBar.currentHeight ?? 0,
@@ -41,24 +38,27 @@ const STATUS_BAR = Platform.select({
 const Config = () => {
   const router = useRouter();
   const { t } = useTranslation();
-  const { userInfo, loading } = useAuth();
+  const { userInfo, loading, changePassword } = useAuth();
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  // ─── Estados ────────────────────────────────────────────────────────────
+  // Estados de perfil
   const [username, setUsername] = useState('');
-  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [avatar, setAvatar] = useState<string | null>(null);
 
+  // Edición de username
   const [isEditingUsername, setIsEditingUsername] = useState(false);
-  const [isEditingDisplayName, setIsEditingDisplayName] = useState(false);
+
+  // Cargando (guardado/permisos)
   const [isLoading, setIsLoading] = useState(false);
 
+  // Modal de cambio de contraseña
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  // Notificaciones
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(false);
 
@@ -68,52 +68,43 @@ const Config = () => {
       return;
     }
     setUsername(userInfo.username ?? '');
-    setDisplayName(userInfo.name ?? userInfo.username ?? '');
     setEmail(userInfo.email ?? '');
     setAvatar(userInfo.avatar ?? null);
   }, [userInfo]);
 
-  // ─── Animaciones del header ───────────────────────────────────────────────
+  // Animaciones del header
   const headerHeight = scrollY.interpolate({
     inputRange: [0, 60, 110],
     outputRange: [HEADER_MAX_HEIGHT, 140, 0],
     extrapolate: 'clamp',
   });
-
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 40, 90],
     outputRange: [1, 0.8, 0],
     extrapolate: 'clamp',
   });
-
   const titleScale = scrollY.interpolate({
     inputRange: [0, 60, 120],
     outputRange: [1, 0.9, 0.8],
     extrapolate: 'clamp',
   });
-
   const titleTranslateY = scrollY.interpolate({
     inputRange: [0, 60, 120],
     outputRange: [0, -5, -10],
     extrapolate: 'clamp',
   });
-
   const titleOpacity = scrollY.interpolate({
     inputRange: [0, 50, 100],
     outputRange: [1, 0.8, 0],
     extrapolate: 'clamp',
   });
-
-  // Navbar compacta
   const navBarOpacity = scrollY.interpolate({
     inputRange: [40, 90],
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
 
-  const compactTitleOpacity = navBarOpacity;
-
-  // ─── Handlers UI ─────────────────────────────────────────────────────────
+  // Handlers
   const handleBackPress = () => router.back();
 
   const handleLanguageChange = async (lang: 'es' | 'en' | 'ca') => {
@@ -127,7 +118,7 @@ const Config = () => {
     }
   };
 
-  // ─── Avatar ───────────────────────────────────────────────────────────────
+  // Avatar
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -183,14 +174,12 @@ const Config = () => {
       { cancelable: true }
     );
 
-  // ─── Guardar perfil (mock) ───────────────────────────────────────────────
+  // Guardar perfil (mock)
   const handleSaveProfile = async (_data: any) => {
     try {
       setIsLoading(true);
       await new Promise((r) => setTimeout(r, 1000));
       Alert.alert(t('settings.success'), t('settings.profileUpdated'));
-      // Aquí podrías llamar a updateUserProfile(data);
-      // await updateUserProfile(data);
     } catch {
       Alert.alert(t('settings.error'), t('settings.updateProfileError'));
     } finally {
@@ -210,19 +199,7 @@ const Config = () => {
     setIsEditingUsername(false);
   };
 
-  const handleSaveDisplayName = () => {
-    if (displayName.trim().length < 2) {
-      Alert.alert(
-        t('settings.validationError'),
-        t('settings.displayNameMinLength')
-      );
-      return;
-    }
-    handleSaveProfile({ name: displayName });
-    setIsEditingDisplayName(false);
-  };
-
-  // ─── Cambio de contraseña (mock) ─────────────────────────────────────────
+  // Cambio de contraseña
   const handleChangePassword = async () => {
     if (!currentPassword) {
       Alert.alert(
@@ -247,14 +224,21 @@ const Config = () => {
     }
     try {
       setIsLoading(true);
-      await new Promise((r) => setTimeout(r, 1500));
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setChangePasswordVisible(false);
-      Alert.alert(t('settings.success'), t('settings.passwordUpdated'));
-      // Aquí podrías llamar a updatePassword(currentPassword, newPassword);
-    } catch {
+      const ok = await changePassword(currentPassword, newPassword);
+      if (ok) {
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setChangePasswordVisible(false);
+        Alert.alert(t('settings.success'), t('settings.passwordUpdated'));
+      } else {
+        Alert.alert(
+          t('settings.error'),
+          t('settings.currentPasswordIncorrect')
+        );
+      }
+    } catch (err) {
+      console.error('changePassword error:', err);
       Alert.alert(t('settings.error'), t('settings.passwordChangeError'));
     } finally {
       setIsLoading(false);
@@ -282,6 +266,7 @@ const Config = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.modalContent}>
+            {/** Campos de contraseña */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>
                 {t('settings.currentPassword')}
@@ -338,7 +323,6 @@ const Config = () => {
     </Modal>
   );
 
-  // ─── Loading ──────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <View style={[globalStyles.container, globalStyles.centeredContainer]}>
@@ -348,10 +332,9 @@ const Config = () => {
     );
   }
 
-  // ─── Renderizado ──────────────────────────────────────────────────────────
   return (
     <>
-      {/* HEADER EXPANSIBLE */}
+      {/* HEADER EXPANDIBLE */}
       <Animated.View style={[styles.header, { height: headerHeight }]}>
         <LinearGradient
           colors={[colors.primary, colors.primaryDark]}
@@ -400,7 +383,7 @@ const Config = () => {
             <Ionicons name='arrow-back' size={24} color='white' />
           </TouchableOpacity>
           <Animated.Text
-            style={[styles.navBarTitle, { opacity: compactTitleOpacity }]}
+            style={[styles.navBarTitle, { opacity: navBarOpacity }]}
           >
             {t('settings.title')}
           </Animated.Text>
@@ -426,7 +409,7 @@ const Config = () => {
           )}
           overScrollMode='never'
         >
-          {/* Sección Perfil */}
+          {/* Perfil */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('profile.personalInfo')}</Text>
             <View style={styles.avatarContainer}>
@@ -446,70 +429,8 @@ const Config = () => {
             <View style={styles.profileItem}>
               <View style={styles.profileItemHeader}>
                 <Text style={styles.profileItemLabel}>
-                  {t('settings.displayName')}
-                </Text>
-                {!isEditingDisplayName && (
-                  <TouchableOpacity
-                    onPress={() => setIsEditingDisplayName(true)}
-                  >
-                    <Ionicons
-                      name='create-outline'
-                      size={22}
-                      color={colors.primary}
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
-              {isEditingDisplayName ? (
-                <View style={styles.editContainer}>
-                  <TextInput
-                    style={styles.editInput}
-                    value={displayName}
-                    onChangeText={setDisplayName}
-                    placeholder={t('settings.enterDisplayName')}
-                    autoCapitalize='words'
-                  />
-                  <View style={styles.editActions}>
-                    <TouchableOpacity
-                      style={styles.editButton}
-                      onPress={() => setIsEditingDisplayName(false)}
-                    >
-                      <Ionicons
-                        name='close-outline'
-                        size={22}
-                        color={colors.error}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.editButton}
-                      onPress={handleSaveDisplayName}
-                    >
-                      <Ionicons
-                        name='checkmark-outline'
-                        size={22}
-                        color={colors.success}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : (
-                <Text style={styles.profileItemValue}>{displayName}</Text>
-              )}
-            </View>
-            <View style={styles.profileItem}>
-              <View style={styles.profileItemHeader}>
-                <Text style={styles.profileItemLabel}>
                   {t('settings.username')}
                 </Text>
-                {!isEditingUsername && (
-                  <TouchableOpacity onPress={() => setIsEditingUsername(true)}>
-                    <Ionicons
-                      name='create-outline'
-                      size={22}
-                      color={colors.primary}
-                    />
-                  </TouchableOpacity>
-                )}
               </View>
               {isEditingUsername ? (
                 <View style={styles.editContainer}>
@@ -562,13 +483,13 @@ const Config = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Sección Idioma */}
+          {/* Idioma */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
             <LanguageSelector onLanguageChange={handleLanguageChange} />
           </View>
 
-          {/* Sección Notificaciones */}
+          {/* Notificaciones */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               {t('settings.notifications')}
@@ -587,7 +508,10 @@ const Config = () => {
               <Switch
                 value={pushNotifications}
                 onValueChange={setPushNotifications}
-                trackColor={{ false: colors.border, true: colors.primaryLight }}
+                trackColor={{
+                  false: colors.border,
+                  true: colors.primaryLight,
+                }}
                 thumbColor={pushNotifications ? colors.primary : '#f4f3f4'}
                 ios_backgroundColor={colors.border}
               />
@@ -602,14 +526,17 @@ const Config = () => {
               <Switch
                 value={emailNotifications}
                 onValueChange={setEmailNotifications}
-                trackColor={{ false: colors.border, true: colors.primaryLight }}
+                trackColor={{
+                  false: colors.border,
+                  true: colors.primaryLight,
+                }}
                 thumbColor={emailNotifications ? colors.primary : '#f4f3f4'}
                 ios_backgroundColor={colors.border}
               />
             </View>
           </View>
 
-          {/* Sección Privacidad */}
+          {/* Privacidad */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('settings.privacy')}</Text>
             <TouchableOpacity style={styles.menuItem}>
@@ -684,7 +611,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 100,
   },
-
   backBtn: { padding: spacing.xs },
   changePasswordButton: {
     alignItems: 'center',
@@ -703,7 +629,6 @@ const styles = StyleSheet.create({
   closeButton: { padding: 4 },
   disabledButton: { backgroundColor: colors.disabled },
   editActions: { flexDirection: 'row', marginLeft: spacing.sm },
-
   editButton: { marginLeft: 4, padding: 8 },
   editContainer: { alignItems: 'center', flexDirection: 'row', marginTop: 4 },
   editInput: {
@@ -716,7 +641,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     padding: spacing.sm,
   },
-
   header: {
     backgroundColor: 'transparent',
     left: 0,
@@ -726,7 +650,6 @@ const styles = StyleSheet.create({
     top: 0,
     zIndex: 1,
   },
-
   headerAvatar: {
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderColor: 'white',
@@ -736,7 +659,6 @@ const styles = StyleSheet.create({
     width: 60,
   },
   headerAvatarContainer: { alignItems: 'center', marginBottom: spacing.sm },
-
   headerAvatarPlaceholder: {
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.2)',
@@ -765,7 +687,6 @@ const styles = StyleSheet.create({
     top: 0,
   },
   headerSubtitle: { color: 'rgba(255,255,255,0.8)', fontSize: 14 },
-
   headerTitle: { color: 'white', fontSize: 22, fontWeight: 'bold' },
   headerTitleContainer: { alignItems: 'center', marginBottom: spacing.sm },
   input: {
@@ -778,7 +699,6 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   inputContainer: { marginBottom: spacing.md },
-
   inputLabel: {
     color: colors.textSecondary,
     fontSize: 14,
@@ -804,7 +724,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     width: '90%',
   },
-
   modalContent: { marginBottom: spacing.md },
   modalHeader: {
     alignItems: 'center',
@@ -815,7 +734,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     paddingBottom: spacing.sm,
   },
-
   modalOverlay: {
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -839,7 +757,6 @@ const styles = StyleSheet.create({
     top: 0,
     zIndex: 2,
   },
-
   navBarContent: {
     alignItems: 'center',
     flex: 1,
@@ -848,7 +765,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   navBarTitle: { color: 'white', fontSize: 18, fontWeight: 'bold' },
-
   profileItem: { marginBottom: spacing.md },
   profileItemHeader: {
     alignItems: 'center',
@@ -865,7 +781,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     padding: spacing.md,
   },
-
   saveButtonText: {
     color: colors.lightText,
     fontSize: 16,
@@ -891,7 +806,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     paddingBottom: spacing.xs,
   },
-
   toggleInfo: { alignItems: 'center', flexDirection: 'row' },
   toggleItem: {
     alignItems: 'center',
@@ -902,7 +816,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   toggleLabel: { color: colors.text, fontSize: 16, marginLeft: spacing.sm },
-
   versionText: {
     color: colors.textSecondary,
     fontSize: 14,
