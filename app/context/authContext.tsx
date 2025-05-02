@@ -40,6 +40,8 @@ interface AuthContextType {
     currentPassword: string,
     newPassword: string
   ) => Promise<boolean>;
+  getToken: () => string | null;
+  getUsername: () => string | undefined | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -51,6 +53,8 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   updateUserProfile: async () => false,
   changePassword: async () => false,
+  getToken: () => null,
+  getUsername: () => null,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -166,6 +170,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const getToken = (): string | null => {
+    return userToken;
+  };
+
+  const getUsername = (): string | undefined | null => {
+    return userInfo?.username;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -177,6 +189,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loading,
         updateUserProfile,
         changePassword,
+        getToken,
+        getUsername,
       }}
     >
       {children}
