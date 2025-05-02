@@ -111,6 +111,40 @@ export const register = async (
     throw error;
   }
 };
+const API_BASE =
+  'https://agendados-backend-842309366027.europe-southwest1.run.app';
+
+export const changePassword = async (
+  token: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<boolean> => {
+  try {
+    const response = await fetch(`${API_BASE}/api/users/update-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      // Opcional: leer mensaje de error del servidor para debug
+      const errorData = await response.json().catch(() => null);
+      console.error('Change password failed:', errorData ?? response.status);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Network or unexpected error in changePassword:', error);
+    throw error;
+  }
+};
 
 export const logout = async (): Promise<void> => {
   await removeUserToken();

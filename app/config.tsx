@@ -41,7 +41,7 @@ const STATUS_BAR = Platform.select({
 const Config = () => {
   const router = useRouter();
   const { t } = useTranslation();
-  const { userInfo, loading } = useAuth();
+  const { userInfo, loading, changePassword } = useAuth();
   const scrollY = useRef(new Animated.Value(0)).current;
 
   // ─── Estados ────────────────────────────────────────────────────────────
@@ -247,14 +247,26 @@ const Config = () => {
     }
     try {
       setIsLoading(true);
-      await new Promise((r) => setTimeout(r, 1500));
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setChangePasswordVisible(false);
-      Alert.alert(t('settings.success'), t('settings.passwordUpdated'));
-      // Aquí podrías llamar a updatePassword(currentPassword, newPassword);
-    } catch {
+      // Llamada real a la API
+      const ok = await changePassword(currentPassword, newPassword);
+
+      if (ok) {
+        // éxito: limpiar estados y cerrar modal
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setChangePasswordVisible(false);
+        Alert.alert(t('settings.success'), t('settings.passwordUpdated'));
+      } else {
+        // fallo (p.ej. contraseña actual incorrecta)
+        Alert.alert(
+          t('settings.error'),
+          t('settings.currentPasswordIncorrect') // añade esta clave en tus i18n
+        );
+      }
+    } catch (err) {
+      // error de red u otro
+      console.error('changePassword error:', err);
       Alert.alert(t('settings.error'), t('settings.passwordChangeError'));
     } finally {
       setIsLoading(false);

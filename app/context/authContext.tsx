@@ -11,8 +11,6 @@ import {
   getUserToken,
   getUserInfo,
   removeUserToken,
-  storeUserInfo,
-  updateUserProfile as apiUpdateProfile,
   changePassword as apiChangePassword,
 } from '../Services/AuthService';
 
@@ -35,7 +33,6 @@ interface AuthContextType {
   login: (token: string, userInfo?: UserInfo) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
-  updateUserProfile: (data: Partial<UserInfo>) => Promise<boolean>;
   changePassword: (
     currentPassword: string,
     newPassword: string
@@ -49,7 +46,6 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   logout: async () => {},
   loading: true,
-  updateUserProfile: async () => false,
   changePassword: async () => false,
 });
 
@@ -105,40 +101,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Nueva función para actualizar el perfil
-  const updateUserProfile = async (
-    data: Partial<UserInfo>
-  ): Promise<boolean> => {
-    try {
-      setLoading(true);
-
-      if (!userToken) {
-        throw new Error('No authentication token available');
-      }
-
-      // Llamar a la API para actualizar el perfil
-      const updatedUser = await apiUpdateProfile(userToken, data);
-
-      if (updatedUser) {
-        // Actualizar estado local con la información actualizada
-        const newUserInfo = { ...userInfo, ...updatedUser };
-        setUserInfo(newUserInfo);
-
-        // Guardar en almacenamiento local
-        await storeUserInfo(newUserInfo);
-
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Nueva función para cambiar la contraseña
   const changePassword = async (
     currentPassword: string,
@@ -146,12 +108,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ): Promise<boolean> => {
     try {
       setLoading(true);
-
       if (!userToken) {
         throw new Error('No authentication token available');
       }
 
-      // Llamar a la API para cambiar la contraseña
       const success = await apiChangePassword(
         userToken,
         currentPassword,
@@ -175,7 +135,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         logout,
         loading,
-        updateUserProfile,
         changePassword,
       }}
     >
