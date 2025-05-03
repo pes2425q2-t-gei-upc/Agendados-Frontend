@@ -1,9 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useState, useEffect, useMemo, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Alert,
   View,
   Text,
   StyleSheet,
@@ -13,6 +15,7 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import SavedEventCard from '@components/SavedEventCard';
+import { useWelcome } from '@components/Welcome';
 import { Event } from '@models/Event';
 import {
   colors,
@@ -154,6 +157,8 @@ export default function SavedEvents() {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
 
+  const { showWelcome } = useWelcome();
+
   // Usar el contexto de favoritos
   const { favorites, removeFavorite, refreshFavorites } = useFavorites();
 
@@ -170,6 +175,18 @@ export default function SavedEvents() {
   const groupedEvents = useMemo(
     () => groupEventsByDate(favorites),
     [favorites]
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (showWelcome) {
+        Alert.alert(
+          'Tutorial en progreso',
+          'Completa el tutorial antes de navegar.'
+        );
+        router.replace('/main'); // Redirige de nuevo a la pestaña principal
+      }
+    }, [showWelcome])
   );
 
   // Efecto para cargar los favoritos cuando el componente se monta (solo una vez)

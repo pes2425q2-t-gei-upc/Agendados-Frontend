@@ -2,8 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import {
+  Alert,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 
+import { useWelcome } from '@components/Welcome';
 import { colors } from '@styles/globalStyles';
 
 // Custom Header Component
@@ -25,6 +32,18 @@ function CustomHeader() {
 
 export default function TabLayout() {
   const { t } = useTranslation();
+  const { showWelcome } = useWelcome();
+
+  const preventTabChange = (e: any) => {
+    if (showWelcome) {
+      e.preventDefault();
+      Alert.alert(
+        'Tutorial en progreso',
+        'Completa el tutorial antes de navegar.'
+      );
+    }
+  };
+
   return (
     <Tabs
       screenOptions={{
@@ -52,7 +71,6 @@ export default function TabLayout() {
         tabBarIconStyle: {
           marginBottom: 0,
         },
-        // Add the custom header to all screens
         header: () => <CustomHeader />,
         headerStyle: {
           backgroundColor: colors.background,
@@ -71,12 +89,15 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={{
+          tabPress: preventTabChange,
+        }}
       />
       <Tabs.Screen
         name='explore'
         options={{
           title: t('navigation.explore'),
-          header: () => null, // Esto elimina el header solo para esta pestaña
+          header: () => null,
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'compass' : 'compass-outline'}
@@ -84,6 +105,9 @@ export default function TabLayout() {
               color={color}
             />
           ),
+        }}
+        listeners={{
+          tabPress: preventTabChange,
         }}
       />
       <Tabs.Screen
@@ -98,6 +122,9 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={{
+          tabPress: preventTabChange,
+        }}
       />
       <Tabs.Screen
         name='profile'
@@ -111,12 +138,14 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={{
+          tabPress: preventTabChange,
+        }}
       />
     </Tabs>
   );
 }
 
-// Styles for the Custom Header
 const styles = StyleSheet.create({
   headerContainer: {
     alignItems: 'center',

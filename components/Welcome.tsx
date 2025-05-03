@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import {
   View,
   Text,
@@ -56,6 +56,7 @@ export const Welcome = ({
   visible: boolean;
   onClose: () => void;
 }) => {
+  const { setShowWelcome } = useWelcome();
   const [currentStep, setCurrentStep] = useState(0);
 
   if (!visible) {
@@ -64,12 +65,17 @@ export const Welcome = ({
 
   const step = WELCOME_STEPS[currentStep];
 
+  const handleFinish = async () => {
+    await AsyncStorage.setItem('hasSeenWelcome', 'true');
+    setShowWelcome(false); // Actualiza el estado global
+    onClose();
+  };
+
   const handleNext = async () => {
     if (currentStep < WELCOME_STEPS.length - 1) {
       setCurrentStep((prev) => prev + 1);
     } else {
-      await AsyncStorage.setItem('hasSeenWelcome', 'true');
-      onClose();
+      await handleFinish();
     }
   };
 
@@ -147,6 +153,33 @@ export const Welcome = ({
       )}
     </View>
   );
+};
+
+interface WelcomeContextType {
+  showWelcome: boolean;
+  setShowWelcome: (value: boolean) => void;
+}
+
+const WelcomeContext = createContext<WelcomeContextType | undefined>(undefined);
+
+export const WelcomeProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  return (
+    <WelcomeContext.Provider value={{ showWelcome, setShowWelcome }}>
+      {children}
+    </WelcomeContext.Provider>
+  );
+};
+
+export const useWelcome = () => {
+  const context = useContext(WelcomeContext);
+  if (!context) {
+    throw new Error('useWelcome must be used within a WelcomeProvider');
+  }
+  return context;
 };
 
 const styles = StyleSheet.create({
