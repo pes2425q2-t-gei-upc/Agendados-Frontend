@@ -27,6 +27,14 @@ export default function RootLayout() {
                 options={{ headerShown: false }}
               />
               <Stack.Screen
+                name='chat'
+                options={{
+                  headerShown: false,
+                  animation: 'slide_from_right',
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
                 name='friends'
                 options={{ headerShown: true, title: 'Amigos' }}
               />

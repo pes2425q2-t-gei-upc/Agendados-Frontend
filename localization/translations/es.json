@@ -91,7 +91,9 @@
     "viewOnMap": "Ver en mapa",
     "moreInfo": "Más información",
     "from": "Desde",
-    "to": "Hasta"
+    "to": "Hasta",
+    "chat": "Chat",
+    "openChat": "Abrir Chat"
   },
   "saved": {
     "title": "Eventos guardados",
@@ -225,25 +227,25 @@
     "virtualActivities": "Actividades Virtuales"
   },
   "friends": {
-  "title": "Amigos",
-  "search": "Buscar amigos",
-  "noFriends": "Aún no tienes amigos",
-  "addFriend": "Añadir Amigo",
-  "pendingRequests": "Solicitudes Pendientes",
-  "noPendingRequests": "No hay solicitudes pendientes",
-  "accept": "Aceptar",
-  "reject": "Rechazar",
-  "remove": "Eliminar",
-  "friendEvents": "Eventos del Amigo",
-  "noEvents": "Este amigo aún no ha guardado eventos",
-  "friendAdded": "Solicitud de amistad enviada con éxito",
-  "friendAccepted": "Solicitud de amistad aceptada",
-  "friendRejected": "Solicitud de amistad rechazada",
-  "friendRemoved": "Amigo eliminado",
-  "searchUsers": "Buscar Usuarios",
-  "noUsersFound": "No se encontraron usuarios",
-  "alreadyFriend": "Ya son amigos",
-  "friendRequestSent": "Solicitud enviada",
-  "send": "Enviar Solicitud"
-}
+    "title": "Amigos",
+    "search": "Buscar amigos",
+    "noFriends": "Aún no tienes amigos",
+    "addFriend": "Añadir Amigo",
+    "pendingRequests": "Solicitudes Pendientes",
+    "noPendingRequests": "No hay solicitudes pendientes",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "remove": "Eliminar",
+    "friendEvents": "Eventos del Amigo",
+    "noEvents": "Este amigo aún no ha guardado eventos",
+    "friendAdded": "Solicitud de amistad enviada con éxito",
+    "friendAccepted": "Solicitud de amistad aceptada",
+    "friendRejected": "Solicitud de amistad rechazada",
+    "friendRemoved": "Amigo eliminado",
+    "searchUsers": "Buscar Usuarios",
+    "noUsersFound": "No se encontraron usuarios",
+    "alreadyFriend": "Ya son amigos",
+    "friendRequestSent": "Solicitud enviada",
+    "send": "Enviar Solicitud"
+  }
 }

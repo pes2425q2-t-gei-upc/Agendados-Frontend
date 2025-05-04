@@ -91,7 +91,9 @@
     "viewOnMap": "View on map",
     "moreInfo": "More information",
     "from": "From",
-    "to": "To"
+    "to": "To",
+    "chat": "Chat",
+    "openChat": "Open Chat"
   },
   "saved": {
     "title": "Saved events",

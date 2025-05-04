@@ -92,7 +92,9 @@
     "viewOnMap": "Veure al mapa",
     "moreInfo": "Més informació",
     "from": "Des de",
-    "to": "Fins a"
+    "to": "Fins a",
+    "chat": "Xat",
+    "openChat": "Obrir Xat"
   },
   "saved": {
     "title": "Esdeveniments desats",
