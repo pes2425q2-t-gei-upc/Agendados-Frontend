@@ -104,7 +104,11 @@ export const useFriendship = () => {
           );
           setFriends((prev) => [
             ...prev,
-            { ...acceptedRequest, status: 'accepted' },
+            {
+              ...acceptedRequest,
+              status: 'accepted',
+              isValid: acceptedRequest?.isValid || (() => false),
+            },
           ]);
         }
 
