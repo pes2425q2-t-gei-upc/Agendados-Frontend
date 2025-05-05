@@ -1,5 +1,7 @@
 import { StyleSheet } from 'react-native';
 
+import { colors } from '@styles/globalStyles';
+
 export const styles = StyleSheet.create({
   animatedCard: {
     alignItems: 'center',
@@ -104,6 +106,18 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
+  retryButton: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   tag: {
     alignItems: 'center',
     alignSelf: 'flex-start',

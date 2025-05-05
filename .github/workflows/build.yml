@@ -1,4 +1,5 @@
 name: Build
+
 on:
   push:
     branches:
@@ -7,33 +8,42 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  sonarqube:
-    name: SonarQube
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for better analysis relevancy
+  build:
+    runs-on: ubuntu-latest
 
-      # Remove Pods directory to prevent analysis issues
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Deshabilitar clon superficial para análisis completo
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: yarn install
+
+      # Eliminar directorio Pods para evitar problemas en el análisis
       - name: Remove Pods directory
         run: rm -rf ios/Pods
-        shell: bash  # Ensure this runs correctly on Windows
+        shell: bash
 
-      # Debug sonar-project.properties to confirm exclusions
+      # Ver sonar-project.properties
       - name: Debug SonarQube Config
         run: cat sonar-project.properties
 
-      # Run SonarQube scan with exclusions explicitly set
+      # Ejecutar análisis SonarQube
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.exclusions="ios/Pods/**"
+            -Dsonar.exclusions=ios/Pods/**
 
-      # Clear SonarQube cache (Optional, but useful if issues persist)
+      # Limpiar caché de SonarQube (opcional)
       - name: Clear SonarQube Cache
         run: rm -rf ~/.sonar/cache
         shell: bash

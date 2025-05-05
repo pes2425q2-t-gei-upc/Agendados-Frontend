@@ -1,22 +1,28 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import Constants from 'expo-constants';
-
+// app/Services/SavedService.ts
 import { Event, EventDTO } from '@models/Event';
 
+import { getUserToken } from './AuthService';
+
 export class SavedService {
-  private static baseUrl: string = 'http://localhost:8000/api';
+  private static baseUrl: string =
+    'https://agendados-backend-842309366027.europe-southwest1.run.app/api';
 
   /**
-   * Gets the authentication token from Expo Constants
+   * Gets the authentication token from storage
    * @returns The authentication token
    */
-  private static getAuthToken(): string {
-    const token = Constants.expoConfig?.extra?.Token;
-    // Fallback if token is not defined
-    if (!token) {
-      throw new Error('Authentication token is missing');
+  private static async getAuthToken(): Promise<string> {
+    try {
+      const token = await getUserToken();
+      if (!token) {
+        console.error('No authentication token found in storage');
+        throw new Error('Authentication token is missing');
+      }
+      return token;
+    } catch (error) {
+      console.error('Error retrieving auth token:', error);
+      throw new Error('Authentication token is missing or invalid');
     }
-    return token;
   }
 
   /**
@@ -25,10 +31,11 @@ export class SavedService {
    */
   public static async getFavorites(): Promise<Event[]> {
     try {
+      const token = await this.getAuthToken();
       const response = await fetch(`${this.baseUrl}/events/favorites`, {
         method: 'GET',
         headers: {
-          Authorization: `Token ${this.getAuthToken()}`,
+          Authorization: `Token ${token}`,
           accept: 'application/json',
         },
       });
@@ -38,91 +45,78 @@ export class SavedService {
       const data: EventDTO[] = await response.json();
       return data.map((eventDto) => new Event(eventDto));
     } catch (error) {
+      console.error('Error fetching favorites:', error);
       throw error;
     }
   }
 
-  /**
-   * Adds an event to the user's favorites
-   * @param eventId ID of the event to add to favorites
-   * @returns Promise with the response
-   */
+  // Actualiza los otros métodos de manera similar...
   public static async addFavorite(eventId: number): Promise<any> {
     try {
+      const token = await this.getAuthToken();
       const response = await fetch(
         `${this.baseUrl}/events/${eventId}/favorites`,
         {
           method: 'POST',
           headers: {
-            Authorization: `Token ${this.getAuthToken()}`,
+            Authorization: `Token ${token}`,
             'Content-Type': 'application/json',
           },
         }
       );
-
       if (!response.ok) {
         throw new Error(`Failed to add to favorites: ${response.status}`);
       }
-
       return true;
     } catch (error) {
+      console.error('Error adding to favorites:', error);
       throw error;
     }
   }
 
-  /**
-   * Removes an event from the user's favorites
-   * @param eventId ID of the event to remove from favorites
-   * @returns Promise with the response
-   */
   public static async removeFavorite(eventId: number): Promise<any> {
     try {
+      const token = await this.getAuthToken();
       const response = await fetch(
         `${this.baseUrl}/events/${eventId}/favorites`,
         {
           method: 'DELETE',
           headers: {
-            Authorization: `Token ${this.getAuthToken()}`,
+            Authorization: `Token ${token}`,
             'Content-Type': 'application/json',
           },
         }
       );
-
       if (!response.ok) {
         throw new Error(`Failed to remove from favorites: ${response.status}`);
       }
-
       return true;
     } catch (error) {
+      console.error('Error removing from favorites:', error);
       throw error;
     }
   }
 
-  /**
-   * Checks if an event is in the user's favorites
-   * @param eventId ID of the event to check
-   * @returns Promise with boolean indicating if event is a favorite
-   */
   public static async isFavorite(eventId: number): Promise<boolean> {
     try {
+      const token = await this.getAuthToken();
       const response = await fetch(
         `${this.baseUrl}/events/${eventId}/favorites/check`,
         {
           method: 'GET',
           headers: {
-            Authorization: `Token ${this.getAuthToken()}`,
+            Authorization: `Token ${token}`,
             accept: 'application/json',
           },
         }
       );
-
       if (!response.ok) {
         throw new Error(`Failed to check favorite status: ${response.status}`);
       }
-
       const data = await response.json();
       return !!data.is_favorite;
     } catch (error) {
+      console.error('Error checking favorite status:', error);
       return false;
     }
   }

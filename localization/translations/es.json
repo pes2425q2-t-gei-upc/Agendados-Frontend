@@ -12,7 +12,10 @@
     "delete": "Eliminar",
     "back": "Volver",
     "edit": "Editar",
-    "search": "Buscar"
+    "search": "Buscar",
+    "of": "de",
+    "success": "Éxito",
+    "retry": "Reintentar"
   },
   "navigation": {
     "home": "Inicio",
@@ -36,12 +39,16 @@
     "invalidEmail": "Por favor, introduce un email válido",
     "passwordLength": "La contraseña debe tener al menos 6 caracteres",
     "loginError": "Error al iniciar sesión. Inténtalo de nuevo.",
-    "registerError": "Error al registrar usuario. Inténtalo de nuevo."
+    "registerError": "Error al registrar usuario. Inténtalo de nuevo.",
+    "noAccount": "¿No tienes cuenta?",
+    "registerNow": "Regístrate ahora",
+    "haveAccount": "¿Ya tienes cuenta?",
+    "loginNow": "Inicia sesión ahora"
   },
   "explore": {
     "search": {
       "placeholder": "Barcelona, conciertos...",
-      "clearFilters": "Esborrar filtres"
+      "clearFilters": "Borrar filtros"
     },
     "filters": {
       "title": "Personalización de búsqueda",
@@ -84,7 +91,9 @@
     "viewOnMap": "Ver en mapa",
     "moreInfo": "Más información",
     "from": "Desde",
-    "to": "Hasta"
+    "to": "Hasta",
+    "chat": "Chat",
+    "openChat": "Abrir Chat"
   },
   "saved": {
     "title": "Eventos guardados",
@@ -92,38 +101,53 @@
     "noSavedEvents": "No tienes eventos guardados",
     "today": "Hoy"
   },
-    "days": {
-      "monday": "Lunes",
-      "tuesday": "Martes",
-      "wednesday": "Miércoles",
-      "thursday": "Jueves",
-      "friday": "Viernes",
-      "saturday": "Sábado",
-      "sunday": "Domingo"
-    },
-    "months": {
-      "january": "Enero",
-      "february": "Febrero",
-      "march": "Marzo",
-      "april": "Abril",
-      "may": "Mayo",
-      "june": "Junio",
-      "july": "Julio",
-      "august": "Agosto",
-      "september": "Septiembre",
-      "october": "Octubre",
-      "november": "Noviembre",
-      "december": "Diciembre"
-    },
-    "common": {
-      "of": "de"
-    },
+  "days": {
+    "monday": "Lunes",
+    "tuesday": "Martes",
+    "wednesday": "Miércoles",
+    "thursday": "Jueves",
+    "friday": "Viernes",
+    "saturday": "Sábado",
+    "sunday": "Domingo"
+  },
+  "months": {
+    "january": "Enero",
+    "february": "Febrero",
+    "march": "Marzo",
+    "april": "Abril",
+    "may": "Mayo",
+    "june": "Junio",
+    "july": "Julio",
+    "august": "Agosto",
+    "september": "Septiembre",
+    "october": "Octubre",
+    "november": "Noviembre",
+    "december": "Diciembre"
+  },
   "profile": {
     "welcome": "Bienvenido a tu perfil",
     "goToSettings": "Ir a Configuración",
     "logout": "Cerrar sesión",
     "preferences": "Preferencias",
-    "personalInfo": "Información personal"
+    "personalInfo": "Información personal",
+    "profile": "Perfil",
+    "joinedOn": "Miembro desde {{date}}",
+    "savedEvents": "Guardados",
+    "attendedEvents": "Asistidos",
+    "favoriteCategories": "Categorías Favoritas",
+    "recentlySaved": "Guardados Recientemente",
+    "seeAll": "Ver Todos",
+    "editProfile": "Editar Perfil",
+    "logoutConfirmation": "Confirmación de cierre de sesión",
+    "logoutMessage": "¿Estás seguro de que quieres cerrar sesión?",
+    "badgeLevels": {
+      "basic": "Nivel Plateado",
+      "intermediate": "Nivel Verde",
+      "advanced": "Nivel Azul",
+      "premium": "Nivel Dorado",
+      "badgeTooltip": "¡Guarda más eventos para mejorar tu insignia de perfil!",
+      "nextLevel": "Guarda {{count}} eventos más para alcanzar el siguiente nivel"
+    }
   },
   "settings": {
     "title": "Configuración",
@@ -135,7 +159,44 @@
     "theme": "Tema",
     "privacy": "Privacidad",
     "about": "Acerca de",
-    "help": "Ayuda"
+    "help": "Ayuda",
+    "changePassword": "Cambiar Contraseña",
+    "currentPassword": "Contraseña Actual",
+    "newPassword": "Nueva Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "enterCurrentPassword": "Introduce tu contraseña actual",
+    "enterNewPassword": "Introduce tu nueva contraseña",
+    "confirmNewPassword": "Confirma tu nueva contraseña",
+    "updatePassword": "Actualizar Contraseña",
+    "passwordUpdated": "Tu contraseña ha sido actualizada con éxito",
+    "passwordChangeError": "No se pudo cambiar la contraseña. Por favor, verifica tu contraseña actual.",
+    "username": "Nombre de usuario",
+    "displayName": "Nombre para mostrar",
+    "enterUsername": "Introduce nombre de usuario",
+    "enterDisplayName": "Introduce nombre para mostrar",
+    "email": "Correo electrónico",
+    "changeProfilePhoto": "Cambiar foto de perfil",
+    "takePhoto": "Tomar foto",
+    "chooseFromLibrary": "Elegir de la galería",
+    "validationError": "Error de validación",
+    "usernameMinLength": "El nombre de usuario debe tener al menos 3 caracteres",
+    "displayNameMinLength": "El nombre para mostrar debe tener al menos 2 caracteres",
+    "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "currentPasswordRequired": "Se requiere la contraseña actual",
+    "success": "Éxito",
+    "profileUpdated": "Tu perfil ha sido actualizado con éxito",
+    "updateProfileError": "No se pudo actualizar el perfil. Por favor, inténtalo de nuevo.",
+    "permissionRequired": "Permiso Requerido",
+    "galleryPermissionMessage": "Necesitamos permiso para acceder a tu galería de fotos",
+    "cameraPermissionMessage": "Necesitamos permiso para acceder a tu cámara",
+    "imageSelectionError": "Error al seleccionar la imagen. Por favor, inténtalo de nuevo.",
+    "cameraError": "Error al usar la cámara. Por favor, inténtalo de nuevo.",
+    "languageChangeError": "Error al cambiar el idioma. Por favor, inténtalo de nuevo.",
+    "pushNotifications": "Notificaciones Push",
+    "emailNotifications": "Notificaciones por Email",
+    "termsOfService": "Términos de Servicio",
+    "privacyPolicy": "Política de Privacidad"
   },
   "home": {
     "events": {
@@ -164,5 +225,27 @@
     "circus": "Circo",
     "digitalCulture": "Cultura Digital",
     "virtualActivities": "Actividades Virtuales"
+  },
+  "friends": {
+    "title": "Amigos",
+    "search": "Buscar amigos",
+    "noFriends": "Aún no tienes amigos",
+    "addFriend": "Añadir Amigo",
+    "pendingRequests": "Solicitudes Pendientes",
+    "noPendingRequests": "No hay solicitudes pendientes",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "remove": "Eliminar",
+    "friendEvents": "Eventos del Amigo",
+    "noEvents": "Este amigo aún no ha guardado eventos",
+    "friendAdded": "Solicitud de amistad enviada con éxito",
+    "friendAccepted": "Solicitud de amistad aceptada",
+    "friendRejected": "Solicitud de amistad rechazada",
+    "friendRemoved": "Amigo eliminado",
+    "searchUsers": "Buscar Usuarios",
+    "noUsersFound": "No se encontraron usuarios",
+    "alreadyFriend": "Ya son amigos",
+    "friendRequestSent": "Solicitud enviada",
+    "send": "Enviar Solicitud"
   }
 }

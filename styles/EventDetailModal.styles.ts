@@ -84,6 +84,19 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
+  chatButton: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  chatButtonText: {
+    color: colors.lightText,
+    fontSize: 14,
+    fontWeight: '600',
+  },
   container: {
     backgroundColor: colors.background,
     flex: 1,

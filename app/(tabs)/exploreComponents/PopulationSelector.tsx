@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { TFunction } from 'i18next';
 import React, { useState } from 'react';
 import {
   Modal,
@@ -9,7 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 
-import { styles } from '../../../styles/Explore';
+import { styles } from '@styles/Explore';
 
 export type PopulationItem = {
   id: string;
@@ -24,6 +25,7 @@ interface PopulationSelectorProps {
   onSelect: (populationId: string) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  t: TFunction<'translation', undefined>;
 }
 
 export const PopulationSelector: React.FC<PopulationSelectorProps> = ({
@@ -32,6 +34,7 @@ export const PopulationSelector: React.FC<PopulationSelectorProps> = ({
   selectedPopulation,
   populations,
   onSelect,
+  t,
 }) => {
   // Estado local para la búsqueda de poblaciones
   const [localSearchQuery, setLocalSearchQuery] = useState('');
@@ -57,7 +60,7 @@ export const PopulationSelector: React.FC<PopulationSelectorProps> = ({
         <View style={styles.populationDropdownContainer}>
           <View style={styles.populationDropdownHeader}>
             <Text style={styles.populationDropdownTitle}>
-              Seleccionar població
+              {t('explore.filters.selectPopulation')}
             </Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name='close' size={24} color='#333' />
@@ -72,7 +75,7 @@ export const PopulationSelector: React.FC<PopulationSelectorProps> = ({
             />
             <TextInput
               style={styles.searchPopulationInput}
-              placeholder='Cerca població...'
+              placeholder={t('explore.filters.searchPopulation')}
               value={localSearchQuery}
               onChangeText={setLocalSearchQuery}
               autoCapitalize='none'
@@ -115,7 +118,7 @@ export const PopulationSelector: React.FC<PopulationSelectorProps> = ({
             {filteredPopulations.length === 0 && (
               <View style={styles.noResultsContainer}>
                 <Text style={styles.noResultsText}>
-                  No s&apos;han trobat resultats
+                  {t('explore.filters.noResults')}
                 </Text>
               </View>
             )}
