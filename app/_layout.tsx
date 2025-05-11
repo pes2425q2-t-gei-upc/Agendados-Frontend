@@ -1,7 +1,7 @@
 // app/_layout.tsx
 import { Stack } from 'expo-router';
 import React, { useEffect } from 'react';
-import { SafeAreaView } from 'react-native';
+import { SafeAreaView, StyleSheet } from 'react-native';
 
 import { FavoritesProvider } from '@context/FavoritesContext';
 import { FriendshipProvider } from '@context/FriendshipContext';
@@ -64,3 +64,10 @@ export default function RootLayout() {
     </AuthProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: 'white',
+    flex: 1, // Ajusta según el diseño de tu app
+  },
+});
