@@ -1,4 +1,7 @@
 {
+  "cli": {
+    "version": ">= 16.4.1"
+  },
   "build": {
     "preview": {
       "android": {
