@@ -2,7 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+} from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { colors } from '@styles/globalStyles';
 
@@ -26,93 +33,97 @@ function CustomHeader() {
 export default function TabLayout() {
   const { t } = useTranslation();
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
-        tabBarShowLabel: true,
-        tabBarStyle: {
-          backgroundColor: colors.background,
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: Platform.OS === 'ios' ? 90 : 80,
-          shadowColor: colors.darkBackground,
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 5,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
-          marginTop: 4,
-        },
-        tabBarIconStyle: {
-          marginBottom: 0,
-        },
-        // Add the custom header to all screens
-        header: () => <CustomHeader />,
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name='main'
-        options={{
-          title: t('navigation.home'),
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'home' : 'home-outline'}
-              size={30}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name='explore'
-        options={{
-          title: t('navigation.explore'),
-          header: () => null, // Esto elimina el header solo para esta pestaña
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'compass' : 'compass-outline'}
-              size={30}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name='saved'
-        options={{
-          title: t('navigation.saved'),
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'bookmark' : 'bookmark-outline'}
-              size={30}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name='profile'
-        options={{
-          title: t('navigation.profile'),
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons
-              name={focused ? 'person' : 'person-outline'}
-              size={30}
-              color={color}
-            />
-          ),
-        }}
-      />
-    </Tabs>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeArea}>
+        <Tabs
+          screenOptions={{
+            tabBarActiveTintColor: colors.primary,
+            tabBarInactiveTintColor: colors.textSecondary,
+            tabBarShowLabel: true,
+            tabBarStyle: {
+              backgroundColor: colors.background,
+              borderTopWidth: 1,
+              borderTopColor: colors.border,
+              paddingBottom: 8,
+              paddingTop: 8,
+              height: Platform.OS === 'ios' ? 90 : 80,
+              shadowColor: colors.darkBackground,
+              shadowOffset: { width: 0, height: -2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 5,
+            },
+            tabBarLabelStyle: {
+              fontSize: 12,
+              fontWeight: '500',
+              marginTop: 4,
+            },
+            tabBarIconStyle: {
+              marginBottom: 0,
+            },
+            // Add the custom header to all screens
+            header: () => <CustomHeader />,
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+          }}
+        >
+          <Tabs.Screen
+            name='main'
+            options={{
+              title: t('navigation.home'),
+              tabBarIcon: ({ color, focused }) => (
+                <Ionicons
+                  name={focused ? 'home' : 'home-outline'}
+                  size={30}
+                  color={color}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name='explore'
+            options={{
+              title: t('navigation.explore'),
+              header: () => null, // Esto elimina el header solo para esta pestaña
+              tabBarIcon: ({ color, focused }) => (
+                <Ionicons
+                  name={focused ? 'compass' : 'compass-outline'}
+                  size={30}
+                  color={color}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name='saved'
+            options={{
+              title: t('navigation.saved'),
+              tabBarIcon: ({ color, focused }) => (
+                <Ionicons
+                  name={focused ? 'bookmark' : 'bookmark-outline'}
+                  size={30}
+                  color={color}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name='profile'
+            options={{
+              title: t('navigation.profile'),
+              tabBarIcon: ({ color, focused }) => (
+                <Ionicons
+                  name={focused ? 'person' : 'person-outline'}
+                  size={30}
+                  color={color}
+                />
+              ),
+            }}
+          />
+        </Tabs>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -133,5 +144,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 1,
     paddingTop: Platform.OS === 'ios' ? 40 : 20,
+  },
+  safeArea: {
+    flex: 1,
   },
 });
