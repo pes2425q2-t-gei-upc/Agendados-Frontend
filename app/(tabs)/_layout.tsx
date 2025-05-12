@@ -41,7 +41,7 @@ export default function TabLayout() {
   const { t } = useTranslation();
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.safeArea} edges={['right', 'left', 'bottom']}>
+      <SafeAreaView style={styles.safeArea}>
         <Tabs
           screenOptions={{
             tabBarActiveTintColor: colors.primary,
@@ -88,7 +88,7 @@ export default function TabLayout() {
               tabBarIcon: ({ color, focused }) => (
                 <Ionicons
                   name={focused ? 'home' : 'home-outline'}
-                  size={28}
+                  size={50}
                   color={color}
                 />
               ),
@@ -115,7 +115,7 @@ export default function TabLayout() {
               tabBarIcon: ({ color, focused }) => (
                 <Ionicons
                   name={focused ? 'bookmark' : 'bookmark-outline'}
-                  size={28}
+                  size={50}
                   color={color}
                 />
               ),
