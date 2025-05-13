@@ -7,10 +7,11 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  SafeAreaView,
   Dimensions,
   StatusBar,
 } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { colors } from '@styles/globalStyles';
 
@@ -58,24 +59,25 @@ export default function TabLayout() {
               shadowOpacity: 0.1,
               shadowRadius: 4,
               elevation: 5,
-              // Remove fixed width and let it adapt
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'space-evenly', // Change to space-evenly for better distribution
+              width: SCREEN_WIDTH, // Asegura el ancho completo
+              alignItems: 'center', // Centra los elementos
+              justifyContent: 'space-around', // Distribuye los íconos uniformemente
             },
             tabBarLabelStyle: {
               fontSize: 12,
               fontWeight: '500',
               marginTop: 4,
-              textAlign: 'center',
+              textAlign: 'center', // Asegura que el texto esté centrado
             },
             tabBarIconStyle: {
               marginBottom: 0,
+              alignSelf: 'center', // Centra los íconos
             },
             // Add the custom header to all screens
             header: () => <CustomHeader />,
             headerStyle: {
               backgroundColor: colors.background,
+              width: SCREEN_WIDTH, // Asegura el ancho completo del header
             },
           }}
         >
@@ -149,19 +151,19 @@ const styles = StyleSheet.create({
     height: IS_IOS ? 100 : 70 + STATUSBAR_HEIGHT,
     justifyContent: 'center',
     paddingHorizontal: 16,
-    width: '100%',
+    width: SCREEN_WIDTH, // Asegura que el ancho sea el de la pantalla completa
   },
   headerTitle: {
-    alignSelf: 'center',
+    alignSelf: 'center', // Asegura que el título esté centrado
     color: colors.primary,
     fontSize: 24,
     fontWeight: 'bold',
     letterSpacing: 1,
     paddingTop: IS_IOS ? 40 : STATUSBAR_HEIGHT + 10,
-    textAlign: 'center',
+    textAlign: 'center', // Asegura que el texto esté centrado
   },
   safeArea: {
     flex: 1,
-    width: '100%',
+    width: SCREEN_WIDTH, // Asegura que el ancho sea el de la pantalla completa
   },
 });

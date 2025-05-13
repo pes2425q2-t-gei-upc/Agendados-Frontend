@@ -31,15 +31,14 @@ import {
   ZOOM_THRESHOLD,
   filterCategoryKeys,
 } from '../constants/exploreConstants';
-
-import { AnimatedNearbyEventsList } from './exploreComponents/AnimatedNearbyEventsList';
-import { CarouselToggle } from './exploreComponents/CarouselToggle';
-import { EventsModal } from './exploreComponents/EventsModal';
-import { EventCard } from './exploreComponents/ExploreEventCard';
-import { FilterControls } from './exploreComponents/FilterControls';
-import { FilterModal } from './exploreComponents/FilterModal';
-import { MapContainer, MapViewType } from './exploreComponents/MapContainer';
-import { PopulationSelector } from './exploreComponents/PopulationSelector';
+import { AnimatedNearbyEventsList } from '../exploreComponents/AnimatedNearbyEventsList';
+import { CarouselToggle } from '../exploreComponents/CarouselToggle';
+import { EventsModal } from '../exploreComponents/EventsModal';
+import { EventCard } from '../exploreComponents/ExploreEventCard';
+import { FilterControls } from '../exploreComponents/FilterControls';
+import { FilterModal } from '../exploreComponents/FilterModal';
+import { MapContainer, MapViewType } from '../exploreComponents/MapContainer';
+import { PopulationSelector } from '../exploreComponents/PopulationSelector';
 
 function getZoomFromLatDelta(latitudeDelta: number): number {
   return Math.log2(360 / latitudeDelta);
