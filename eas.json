@@ -4,8 +4,8 @@
   },
   "build": {
     "preview": {
-      "ios": {
-        "buildType": "release"
+      "android": {
+        "buildType": "apk"
       }
     }
   }

@@ -7,11 +7,10 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
   StatusBar,
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@styles/globalStyles';
 
@@ -88,7 +87,7 @@ export default function TabLayout() {
               tabBarIcon: ({ color, focused }) => (
                 <Ionicons
                   name={focused ? 'home' : 'home-outline'}
-                  size={50}
+                  size={28}
                   color={color}
                 />
               ),
@@ -115,7 +114,7 @@ export default function TabLayout() {
               tabBarIcon: ({ color, focused }) => (
                 <Ionicons
                   name={focused ? 'bookmark' : 'bookmark-outline'}
-                  size={50}
+                  size={28}
                   color={color}
                 />
               ),
@@ -163,6 +162,7 @@ const styles = StyleSheet.create({
     textAlign: 'center', // Asegura que el texto esté centrado
   },
   safeArea: {
+    alignItems: 'stretch',
     flex: 1,
     width: SCREEN_WIDTH, // Asegura que el ancho sea el de la pantalla completa
   },
