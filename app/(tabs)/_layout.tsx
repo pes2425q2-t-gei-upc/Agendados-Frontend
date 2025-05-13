@@ -58,25 +58,24 @@ export default function TabLayout() {
               shadowOpacity: 0.1,
               shadowRadius: 4,
               elevation: 5,
-              width: SCREEN_WIDTH, // Asegura el ancho completo
-              alignItems: 'center', // Centra los elementos
-              justifyContent: 'space-around', // Distribuye los íconos uniformemente
+              // Remove fixed width and let it adapt
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'space-evenly', // Change to space-evenly for better distribution
             },
             tabBarLabelStyle: {
               fontSize: 12,
               fontWeight: '500',
               marginTop: 4,
-              textAlign: 'center', // Asegura que el texto esté centrado
+              textAlign: 'center',
             },
             tabBarIconStyle: {
               marginBottom: 0,
-              alignSelf: 'center', // Centra los íconos
             },
             // Add the custom header to all screens
             header: () => <CustomHeader />,
             headerStyle: {
               backgroundColor: colors.background,
-              width: SCREEN_WIDTH, // Asegura el ancho completo del header
             },
           }}
         >
@@ -150,20 +149,19 @@ const styles = StyleSheet.create({
     height: IS_IOS ? 100 : 70 + STATUSBAR_HEIGHT,
     justifyContent: 'center',
     paddingHorizontal: 16,
-    width: SCREEN_WIDTH, // Asegura que el ancho sea el de la pantalla completa
+    width: '100%',
   },
   headerTitle: {
-    alignSelf: 'center', // Asegura que el título esté centrado
+    alignSelf: 'center',
     color: colors.primary,
     fontSize: 24,
     fontWeight: 'bold',
     letterSpacing: 1,
     paddingTop: IS_IOS ? 40 : STATUSBAR_HEIGHT + 10,
-    textAlign: 'center', // Asegura que el texto esté centrado
+    textAlign: 'center',
   },
   safeArea: {
-    alignItems: 'stretch',
     flex: 1,
-    width: SCREEN_WIDTH, // Asegura que el ancho sea el de la pantalla completa
+    width: '100%',
   },
 });
