@@ -24,21 +24,20 @@ import { useEvents } from '@context/eventsContext';
 import { Event as EventModel } from '@models/Event';
 import { getTowns } from '@services/LocationService';
 import { styles } from '@styles/Explore';
-
 import {
   INITIAL_REGION,
   INITIAL_BATCH,
   ZOOM_THRESHOLD,
   filterCategoryKeys,
-} from '../constants/exploreConstants';
-import { AnimatedNearbyEventsList } from '../exploreComponents/AnimatedNearbyEventsList';
-import { CarouselToggle } from '../exploreComponents/CarouselToggle';
-import { EventsModal } from '../exploreComponents/EventsModal';
-import { EventCard } from '../exploreComponents/ExploreEventCard';
-import { FilterControls } from '../exploreComponents/FilterControls';
-import { FilterModal } from '../exploreComponents/FilterModal';
-import { MapContainer, MapViewType } from '../exploreComponents/MapContainer';
-import { PopulationSelector } from '../exploreComponents/PopulationSelector';
+} from 'app/constants/exploreConstants';
+import { AnimatedNearbyEventsList } from 'app/exploreComponents/AnimatedNearbyEventsList';
+import { CarouselToggle } from 'app/exploreComponents/CarouselToggle';
+import { EventsModal } from 'app/exploreComponents/EventsModal';
+import { EventCard } from 'app/exploreComponents/ExploreEventCard';
+import { FilterControls } from 'app/exploreComponents/FilterControls';
+import { FilterModal } from 'app/exploreComponents/FilterModal';
+import { MapContainer, MapViewType } from 'app/exploreComponents/MapContainer';
+import { PopulationSelector } from 'app/exploreComponents/PopulationSelector';
 
 function getZoomFromLatDelta(latitudeDelta: number): number {
   return Math.log2(360 / latitudeDelta);
