@@ -1,7 +1,13 @@
 {
   "expo": {
-    "extra":{
-      "Token":"3a9ecd5d877376903ceee38fefaccc3ae332a896"
+    "extra": {
+      "Token": "3a9ecd5d877376903ceee38fefaccc3ae332a896",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a00173ea-6d16-4be8-8ae0-5379a6e550a1"
+      }
     },
     "name": "Agendados-Front",
     "slug": "Agendados-Front",
@@ -18,7 +24,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.arnau.farran.AgendadosFront"
     },
     "web": {
       "bundler": "metro",

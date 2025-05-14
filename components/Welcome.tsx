@@ -15,7 +15,7 @@ const WELCOME_STEPS = [
   {
     title: '¡Bienvenido a Agendados!',
     description:
-      'Te guiaremos a través de las principales características de la app.',
+      'Te guiaremos a través de las principales características de la app',
     icon: 'information-circle',
     position: { top: '40%', left: '10%' },
   },

@@ -48,10 +48,10 @@ export default function RootLayout() {
               <Stack.Screen
                 name='config'
                 options={{
-                  headerShown: false, // Ocultamos el header por defecto
-                  title: 'Configuración', // Este título no se verá porque headerShown es false
-                  animation: 'slide_from_right', // Animación lateral
-                  presentation: 'card', // Presentación normal de tipo tarjeta
+                  headerShown: false,
+                  title: 'Configuración',
+                  animation: 'slide_from_right',
+                  presentation: 'card',
                 }}
               />
             </Stack>

@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 
 import { styles } from '@styles/Explore';
-import { DatePickerModal } from 'app/(tabs)/exploreComponents/DatePickerModal';
 
 import { CategoryCarousel, FilterItem } from './CategoryCarousel';
+import { DatePickerModal } from './DatePickerModal';
 import { PopulationSelector, PopulationItem } from './PopulationSelector';
 
 interface FilterModalProps {

@@ -5,9 +5,9 @@ import MapView from 'react-native-map-clustering';
 import type { Region } from 'react-native-maps';
 
 import { Event as EventModel } from '@models/Event';
-import { styles } from '@styles/Explore'; // Assuming styles are accessible or passed
+import { styles } from '@styles/Explore';
 
-import { INITIAL_REGION } from '../../constants/exploreConstants';
+import { INITIAL_REGION } from '../constants/exploreConstants';
 
 import { EventMarker } from './EventMarker';
 

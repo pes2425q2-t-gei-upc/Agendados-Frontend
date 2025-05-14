@@ -4,7 +4,7 @@ import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FlatList, TouchableOpacity, Text, View } from 'react-native';
 
-import { styles } from '@styles/Explore'; // Corrected path
+import { styles } from '@styles/Explore';
 
 type FilterItem = {
   id: string;
