@@ -26,6 +26,7 @@ import Animated, {
 
 import { useAuth } from '@context/authContext';
 import { login, register } from '@services/AuthService';
+import { GoogleSignInButton } from './components/GoogleSignInButton';
 import { colors, spacing } from '@styles/globalStyles';
 
 export default function RegisterLoginPage() {
@@ -298,6 +299,17 @@ export default function RegisterLoginPage() {
                     </Text>
                   )}
                 </TouchableOpacity>
+
+                <View style={styles.dividerContainer}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>{t('auth.orContinueWith') || 'O continúa con'}</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                <GoogleSignInButton
+                  onSuccess={() => router.replace('/(tabs)/main')}
+                  onError={(error: any) => setErrorMessage(error?.message || 'Error al iniciar sesión con Google')}
+                />
               </Animated.View>
 
               {/* Formulario de Registro */}
@@ -391,6 +403,17 @@ export default function RegisterLoginPage() {
                     </Text>
                   )}
                 </TouchableOpacity>
+
+                <View style={styles.dividerContainer}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>{t('auth.orContinueWith') || 'O continúa con'}</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                <GoogleSignInButton
+                  onSuccess={() => router.replace('/(tabs)/main')}
+                  onError={(error: any) => setErrorMessage(error?.message || 'Error al registrarse con Google')}
+                />
               </Animated.View>
             </View>
 
@@ -544,11 +567,26 @@ const styles = StyleSheet.create({
     fontWeight: 'semibold',
   },
   switchContainer: {
+    marginTop: spacing.lg,
+    flexDirection: 'row',
     alignItems: 'center',
-    flexDirection: 'column',
     justifyContent: 'center',
-    marginTop: spacing.xl * 2,
-    width: '85%',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.md,
+    width: '100%',
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  dividerText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginHorizontal: spacing.sm,
+    fontSize: 14,
   },
   switchText: {
     color: 'white',
