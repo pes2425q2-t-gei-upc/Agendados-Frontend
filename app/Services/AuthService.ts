@@ -152,5 +152,56 @@ export const logout = async (): Promise<void> => {
 
 export const isAuthenticated = async (): Promise<boolean> => {
   const token = await getUserToken();
-  return token !== null;
+  return !!token;
+};
+
+export const loginWithGoogle = async (idToken: string): Promise<any> => {
+  try {
+    const response = await fetch(
+      'https://agendados-backend-842309366027.europe-southwest1.run.app/api/auth/google',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idToken }),
+      }
+    );
+
+    let data: any;
+    if (!response.ok) {
+      // Try to parse error as JSON, if fails, log raw text
+      let errorText = await response.text();
+      try {
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.message || 'Error al iniciar sesión con Google');
+      } catch (jsonErr) {
+        // If parsing fails, log the raw response
+        console.error('Google login error - non-JSON response:', errorText);
+        throw new Error('Error al iniciar sesión con Google: respuesta inesperada del servidor');
+      }
+    }
+
+    // Try to parse success as JSON, else log raw
+    let rawText = await response.text();
+    try {
+      data = JSON.parse(rawText);
+    } catch (jsonErr) {
+      console.error('Google login success - non-JSON response:', rawText);
+      throw new Error('Error al procesar la respuesta del servidor de Google.');
+    }
+
+    if (data.token) {
+      await storeUserToken(data.token);
+      if (data.user) {
+        await storeUserInfo(data.user);
+      }
+      return data;
+    } else {
+      throw new Error('No se recibió el token de autenticación');
+    }
+  } catch (error) {
+    console.error('Error en login con Google:', error);
+    throw error;
+  }
 };

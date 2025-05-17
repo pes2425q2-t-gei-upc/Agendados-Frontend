@@ -1,6 +1,10 @@
 // app/_layout.tsx
-import { Stack } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
+//  └─ esto debe ejecutarse antes de cualquier AuthSession
+WebBrowser.maybeCompleteAuthSession();
+
 import React, { useEffect } from 'react';
+import { Stack } from 'expo-router';
 
 import { FavoritesProvider } from '@context/FavoritesContext';
 import { FriendshipProvider } from '@context/FriendshipContext';
@@ -21,37 +25,34 @@ export default function RootLayout() {
         <FavoritesProvider>
           <FriendshipProvider>
             <Stack>
-              <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)"        options={{ headerShown: false }} />
+              <Stack.Screen name="registerLogin" options={{ headerShown: false }} />
               <Stack.Screen
-                name='registerLogin'
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name='chat'
+                name="chat"
                 options={{
-                  headerShown: false,
-                  animation: 'slide_from_right',
-                  presentation: 'card',
+                  headerShown:   false,
+                  animation:     'slide_from_right',
+                  presentation:  'card',
                 }}
               />
               <Stack.Screen
-                name='friends'
+                name="friends"
                 options={{ headerShown: true, title: 'Amigos' }}
               />
               <Stack.Screen
-                name='friendEvents'
+                name="friendEvents"
                 options={{
-                  headerShown: true,
-                  title: 'Eventos guardados por amigo',
+                  headerShown:  true,
+                  title:        'Eventos guardados por amigo',
                 }}
               />
               <Stack.Screen
-                name='config'
+                name="config"
                 options={{
-                  headerShown: false,
-                  title: 'Configuración',
-                  animation: 'slide_from_right',
-                  presentation: 'card',
+                  headerShown:   false,
+                  title:         'Configuración',
+                  animation:     'slide_from_right',
+                  presentation:  'card',
                 }}
               />
             </Stack>
