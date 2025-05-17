@@ -112,7 +112,59 @@ export const register = async (
   }
 };
 const API_BASE =
-  'https://agendados-backend-842309366027.europe-southwest1.run.app';
+  'https://agendados-backend-842309366027.europe-south1.run.app';
+
+export const requestPasswordReset = async (email: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await fetch(`${API_BASE}/api/users/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al solicitar el restablecimiento de contraseña');
+    }
+
+    return { success: true, message: data.message || 'Se ha enviado un correo con las instrucciones' };
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Error al procesar la solicitud' 
+    };
+  }
+};
+
+export const resetPassword = async (token: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await fetch(`${API_BASE}/api/users/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token, newPassword }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al restablecer la contraseña');
+    }
+
+    return { success: true, message: 'Contraseña actualizada correctamente' };
+  } catch (error) {
+    console.error('Password reset error:', error);
+    return { 
+      success: false, 
+      message: error instanceof Error ? error.message : 'Error al procesar la solicitud' 
+    };
+  }
+};
 
 export const changePassword = async (
   token: string,

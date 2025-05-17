@@ -27,6 +27,7 @@ import Animated, {
 
 import { useAuth } from '@context/authContext';
 import { login, register } from '@services/AuthService';
+import { PasswordResetForm } from './components/PasswordResetForm';
 import { GoogleSignInButton } from './components/GoogleSignInButton';
 import { colors, spacing } from '@styles/globalStyles';
 
@@ -41,6 +42,12 @@ export default function RegisterLoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+
+  const toggleResetPassword = () => {
+    setShowResetPassword(!showResetPassword);
+    setErrorMessage('');
+  };
 
   // Improved animated styles
   const loginFormStyle = useAnimatedStyle(() => {
@@ -187,9 +194,26 @@ export default function RegisterLoginPage() {
     setErrorMessage('');
   };
 
+  if (showResetPassword) {
+    return (
+      <View style={[styles.container, { backgroundColor: '#f5f5f5', justifyContent: 'center', alignItems: 'center' }]}>
+        <PasswordResetForm onBackToLogin={toggleResetPassword} />
+      </View>
+    );
+  }
+
   const renderErrorMessage = () => {
     if (!errorMessage) return null;
-    
+    if (showResetPassword) {
+      return (
+        <View style={[styles.container, { backgroundColor: '#f5f5f5' }]}>
+          <View style={{ width: '100%', maxWidth: 400, padding: spacing.lg }}>
+            <PasswordResetForm onBackToLogin={toggleResetPassword} />
+          </View>
+        </View>
+      );
+    }
+
     return (
       <View style={styles.errorContainer}>
         <Ionicons
@@ -301,8 +325,11 @@ export default function RegisterLoginPage() {
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity style={styles.forgotPassword}>
-                  <Text style={styles.forgotPasswordText}>
+                <TouchableOpacity 
+                  style={styles.forgotPassword}
+                  onPress={toggleResetPassword}
+                >
+                  <Text style={[styles.forgotPasswordText, { textAlign: 'center' }]}>
                     {t('auth.forgotPassword') || '¿Olvidaste tu contraseña?'}
                   </Text>
                 </TouchableOpacity>
