@@ -3,7 +3,7 @@
     "version": ">= 16.4.1"
   },
   "build": {
-    "production": {
+    "preview": {
       "android": {
         "buildType": "apk"
       }

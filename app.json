@@ -1,14 +1,5 @@
 {
   "expo": {
-    "extra": {
-      "Token": "3a9ecd5d877376903ceee38fefaccc3ae332a896",
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "a00173ea-6d16-4be8-8ae0-5379a6e550a1"
-      }
-    },
     "name": "Agendados-Front",
     "slug": "Agendados-Front",
     "version": "1.0.0",
@@ -21,11 +12,16 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.arnau.farran.AgendadosFront",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.arnau.farran.AgendadosFront"
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyD_zbbpCNtXBXiJll83yQ6mvLYi9_AObJk"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -45,6 +41,15 @@
       ],
       ["react-native-maps"]
     ],
+    "extra": {
+      "Token": "3a9ecd5d877376903ceee38fefaccc3ae332a896",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a00173ea-6d16-4be8-8ae0-5379a6e550a1"
+      }
+    },
     "experiments": {
       "typedRoutes": true
     },
