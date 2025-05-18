@@ -22,7 +22,8 @@
     "explore": "Explorar",
     "saved": "Guardados",
     "profile": "Perfil",
-    "settings": "Configuración"
+    "settings": "Configuración",
+    "chats": "Chats"
   },
   "auth": {
     "login": "Iniciar Sesión",

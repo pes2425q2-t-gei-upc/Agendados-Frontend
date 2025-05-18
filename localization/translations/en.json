@@ -22,7 +22,8 @@
     "explore": "Explore",
     "saved": "Saved",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "chats": "Chats"
   },
   "auth": {
     "login": "Login",
