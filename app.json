@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Agendados-Front",
+    "name": "Agendados",
     "slug": "Agendados-Front",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/AgendadosIcono.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,7 +14,7 @@
     "android": {
       "package": "com.arnau.farran.AgendadosFront",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/AgendadosIcono.png",
         "backgroundColor": "#ffffff"
       },
       "config": {
