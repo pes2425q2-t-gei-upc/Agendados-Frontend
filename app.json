@@ -38,8 +38,7 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ],
-      ["react-native-maps"]
+      ]
     ],
     "extra": {
       "Token": "3a9ecd5d877376903ceee38fefaccc3ae332a896",
