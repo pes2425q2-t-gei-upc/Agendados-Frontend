@@ -12,6 +12,7 @@ import { initializeLanguage } from 'localization/i18n';
 
 import { AuthProvider } from './context/authContext';
 import { EventsProvider } from './context/eventsContext';
+import { RootSiblingParent } from 'react-native-root-siblings';
 
 export default function RootLayout() {
   useEffect(() => {
@@ -20,11 +21,12 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <AuthProvider>
-      <EventsProvider>
-        <FavoritesProvider>
-          <FriendshipProvider>
-            <Stack>
+    <RootSiblingParent>
+      <AuthProvider>
+        <EventsProvider>
+          <FavoritesProvider>
+            <FriendshipProvider>
+              <Stack>
               <Stack.Screen name="(tabs)"        options={{ headerShown: false }} />
               <Stack.Screen name="registerLogin" options={{ headerShown: false }} />
               <Stack.Screen
@@ -56,9 +58,10 @@ export default function RootLayout() {
                 }}
               />
             </Stack>
-          </FriendshipProvider>
-        </FavoritesProvider>
-      </EventsProvider>
-    </AuthProvider>
+            </FriendshipProvider>
+          </FavoritesProvider>
+        </EventsProvider>
+      </AuthProvider>
+    </RootSiblingParent>
   );
 }

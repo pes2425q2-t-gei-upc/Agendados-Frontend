@@ -7,7 +7,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>Agendados-Front</string>
+    <string>Agendados</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -39,7 +39,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>exp+agendados-front</string>
+          <string>exp+agendados</string>
         </array>
       </dict>
     </array>

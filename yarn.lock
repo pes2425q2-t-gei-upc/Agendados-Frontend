@@ -5659,6 +5659,11 @@ expo-router@~5.0.7:
     server-only "^0.0.1"
     shallowequal "^1.1.0"
 
+expo-secure-store@~14.2.3:
+  version "14.2.3"
+  resolved "https://registry.yarnpkg.com/expo-secure-store/-/expo-secure-store-14.2.3.tgz#8e74da512e671cec5f7b88679def3d54b59cd49d"
+  integrity sha512-hYBbaAD70asKTFd/eZBKVu+9RTo9OSTMMLqXtzDF8ndUGjpc6tmRCoZtrMHlUo7qLtwL5jm+vpYVBWI8hxh/1Q==
+
 expo-splash-screen@~0.30.8:
   version "0.30.8"
   resolved "https://registry.yarnpkg.com/expo-splash-screen/-/expo-splash-screen-0.30.8.tgz#2e960ccff053bc8ace85eb56f7d6745e4ddfc6b6"
@@ -9502,6 +9507,18 @@ react-native-reanimated@~3.17.4:
     convert-source-map "^2.0.0"
     invariant "^2.2.4"
     react-native-is-edge-to-edge "1.1.7"
+
+react-native-root-siblings@^5.0.0:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/react-native-root-siblings/-/react-native-root-siblings-5.0.1.tgz#97e050e5155228f65810fb1c466ff8e769c5272c"
+  integrity sha512-Ay3k/fBj6ReUkWX5WNS+oEAcgPLEGOK8n7K/L7D85mf3xvd8rm/b4spsv26E4HlFzluVx5HKbxEt9cl0wQ1u3g==
+
+react-native-root-toast@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/react-native-root-toast/-/react-native-root-toast-4.0.1.tgz#ee367d0af7af832c1a3dd618e6a38551b5564d10"
+  integrity sha512-Zpz+EMKfcCAO/+KuarPeJ/BkmMrXYWRPyTeBhvUondykqUOkQqQO8DEbxqwoUv+ax7MbS3cDJW94L4qTbOFtBw==
+  dependencies:
+    react-native-root-siblings "^5.0.0"
 
 react-native-safe-area-context@5.4.0:
   version "5.4.0"

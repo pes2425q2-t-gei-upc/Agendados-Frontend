@@ -1,9 +1,10 @@
+// app/components/GoogleSignInButton.tsx
 import React, { useState } from 'react';
-import { TouchableOpacity, Text, StyleSheet, Alert, ActivityIndicator, View } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useGoogleAuth } from '../Services/GoogleAuthService';
-import { loginWithGoogle } from '../Services/AuthService';
-import { useAuth } from '../context/authContext';
+import { useGoogleAuth } from '@services/GoogleAuthService';
+import { loginWithGoogle } from '@services/AuthService';
+import { useAuth } from '@context/authContext';
 
 interface GoogleSignInButtonProps {
   onSuccess?: () => void;
@@ -14,44 +15,63 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   onSuccess,
   onError,
 }) => {
-  const { signInWithGoogle } = useGoogleAuth();
+  const googleAuth = useGoogleAuth();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
+    // Prevent multiple simultaneous sign-in attempts
+    if (isLoading) return;
+    
     try {
       setIsLoading(true);
       
-      // Iniciar sesión con Google
-      const userInfo = await signInWithGoogle();
-      console.log('User info from Google sign-in:', userInfo);
+      console.log('[GoogleSignInButton] Starting Google sign-in process');
       
-      if (userInfo?.idToken) {
-        // Enviar el token a tu backend
-        const authResponse = await loginWithGoogle(userInfo.idToken);
-        
-        // Actualizar el estado de autenticación
-        if (authResponse?.token) {
-          await login(authResponse.token, authResponse.user);
-          onSuccess?.();
-        } else {
-          throw new Error('No se pudo obtener el token de autenticación del servidor');
-        }
-      } else {
-        throw new Error('No se pudo obtener el token de Google');
+      // Get Google authentication data
+      const googleAuthResult = await googleAuth.signInWithGoogle();
+      
+      if (!googleAuthResult || !googleAuthResult.idToken) {
+        throw new Error('No se pudo completar la autenticación con Google');
       }
-    } catch (error: any) {
-      console.error('Error en el inicio de sesión con Google:', error);
       
-      // Mostrar mensaje de error al usuario
+      console.log('[GoogleSignInButton] Google authentication successful, sending to backend');
+      
+      // Send the ID token to our backend
+      const authResponse = await loginWithGoogle(googleAuthResult.idToken);
+      
+      // Validate backend response
+      if (!authResponse?.token) {
+        throw new Error('El servidor no devolvió un token válido');
+      }
+      
+      console.log('[GoogleSignInButton] Backend authentication successful');
+      
+      // Update authentication context
+      await login(authResponse.token, authResponse.user);
+      
+      // Call success callback
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+    } catch (error) {
+      console.error('[GoogleSignInButton] Error:', error);
+      
+      // Format error message
       let errorMessage = 'Error al iniciar sesión con Google';
       
-      if (error.message) {
+      if (error instanceof Error) {
         errorMessage = error.message;
       }
       
-      Alert.alert('Error', errorMessage);
-      onError?.(error);
+      // Show error to user
+      Alert.alert('Error de autenticación', errorMessage);
+      
+      // Call error callback
+      if (onError) {
+        onError(error);
+      }
     } finally {
       setIsLoading(false);
     }

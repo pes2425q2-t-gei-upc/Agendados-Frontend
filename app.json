@@ -2,7 +2,10 @@
   "expo": {
     "extra": {
       "googleSignIn": {
-        "scopes": ["profile", "email"]
+        "scopes": [
+          "profile",
+          "email"
+        ]
       },
       "googleWebClientId": "259177311342-jpmq68ro7s6jq1hs84o84pv2u1baebu9.apps.googleusercontent.com",
       "googleIosClientId": "259177311342-m3as7g1cidrdtf7r858i285atqljusnq.apps.googleusercontent.com",
@@ -16,7 +19,7 @@
         "projectId": "a00173ea-6d16-4be8-8ae0-5379a6e550a1"
       }
     },
-    "name": "Agendados-Front",
+    "name": "Agendados",
     "slug": "Agendados-Front",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -98,7 +101,8 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
