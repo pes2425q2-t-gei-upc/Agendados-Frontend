@@ -39,11 +39,14 @@
     "invalidEmail": "Por favor, introduce un email válido",
     "passwordLength": "La contraseña debe tener al menos 6 caracteres",
     "loginError": "Error al iniciar sesión. Inténtalo de nuevo.",
+    "usernameRequired": "El usuario es obligatorio.",
+    "passwordRequired": "La contraseña es obligatoria.",
     "registerError": "Error al registrar usuario. Inténtalo de nuevo.",
     "noAccount": "¿No tienes cuenta?",
     "registerNow": "Regístrate ahora",
     "haveAccount": "¿Ya tienes cuenta?",
-    "loginNow": "Inicia sesión ahora"
+    "loginNow": "Inicia sesión ahora",
+    "orContinuewith": "o continúa con"
   },
   "explore": {
     "search": {
