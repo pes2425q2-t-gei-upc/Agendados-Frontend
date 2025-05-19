@@ -24,29 +24,20 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     if (isLoading) return;
     
     try {
-      setIsLoading(true);
-      
-      console.log('[GoogleSignInButton] Starting Google sign-in process');
-      
+      setIsLoading(true);      
       // Get Google authentication data
       const googleAuthResult = await googleAuth.signInWithGoogle();
       
       if (!googleAuthResult || !googleAuthResult.idToken) {
         throw new Error('No se pudo completar la autenticación con Google');
-      }
-      
-      console.log('[GoogleSignInButton] Google authentication successful, sending to backend');
-      
+      }      
       // Send the ID token to our backend
       const authResponse = await loginWithGoogle(googleAuthResult.idToken);
       
       // Validate backend response
       if (!authResponse?.token) {
         throw new Error('El servidor no devolvió un token válido');
-      }
-      
-      console.log('[GoogleSignInButton] Backend authentication successful');
-      
+      }      
       // Update authentication context
       await login(authResponse.token, authResponse.user);
       

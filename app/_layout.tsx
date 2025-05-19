@@ -1,6 +1,5 @@
 // app/_layout.tsx
 import * as WebBrowser from 'expo-web-browser';
-//  └─ esto debe ejecutarse antes de cualquier AuthSession
 WebBrowser.maybeCompleteAuthSession();
 
 import React, { useEffect } from 'react';
