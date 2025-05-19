@@ -1,24 +1,5 @@
 {
   "expo": {
-    "extra": {
-      "googleSignIn": {
-        "scopes": [
-          "profile",
-          "email"
-        ]
-      },
-      "googleWebClientId": "259177311342-jpmq68ro7s6jq1hs84o84pv2u1baebu9.apps.googleusercontent.com",
-      "googleIosClientId": "259177311342-m3as7g1cidrdtf7r858i285atqljusnq.apps.googleusercontent.com",
-      "googleAndroidClientId": "259177311342-m226u0jikrh0oeipt6i3mar912i5ilo3.apps.googleusercontent.com",
-      "redirectUrl": "https://agendados-app.com/auth/google-redirect",
-      "Token": "3a9ecd5d877376903ceee38fefaccc3ae332a896",
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "a00173ea-6d16-4be8-8ae0-5379a6e550a1"
-      }
-    },
     "name": "Agendados",
     "slug": "Agendados-Front",
     "version": "1.0.0",
@@ -45,11 +26,16 @@
       }
     },
     "android": {
+      "package": "com.arnau.farran.AgendadosFront",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/AgendadosIcono.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.arnau.farran.AgendadosFront",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyD_zbbpCNtXBXiJll83yQ6mvLYi9_AObJk"
+        }
+      },
       "intentFilters": [
         {
           "action": "VIEW",
@@ -104,6 +90,25 @@
       "expo-web-browser",
       "expo-secure-store"
     ],
+    "extra": {
+      "googleSignIn": {
+        "scopes": [
+          "profile",
+          "email"
+        ]
+      },
+      "googleWebClientId": "259177311342-jpmq68ro7s6jq1hs84o84pv2u1baebu9.apps.googleusercontent.com",
+      "googleIosClientId": "259177311342-m3as7g1cidrdtf7r858i285atqljusnq.apps.googleusercontent.com",
+      "googleAndroidClientId": "259177311342-m226u0jikrh0oeipt6i3mar912i5ilo3.apps.googleusercontent.com",
+      "redirectUrl": "https://agendados-app.com/auth/google-redirect",
+      "Token": "3a9ecd5d877376903ceee38fefaccc3ae332a896",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a00173ea-6d16-4be8-8ae0-5379a6e550a1"
+      }
+    },
     "experiments": {
       "typedRoutes": true
     },
