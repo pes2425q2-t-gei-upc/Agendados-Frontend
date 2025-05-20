@@ -21,7 +21,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.arnau.farran.AgendadosFront",
       "config": {
-        "usesNonExemptEncryption": false
+        "usesNonExemptEncryption": false,
+        "googleMapsApiKey": "AIzaSyD_zbbpCNtXBXiJll83yQ6mvLYi9_AObJk"
       },
       "infoPlist": {
         "CFBundleURLTypes": [
