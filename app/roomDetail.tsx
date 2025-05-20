@@ -127,10 +127,14 @@ export default function RoomDetailScreen() {
       setIsStarting(false);
 
       // Navigate to matching screen
-      router.push({
-        pathname: '/roomMatching',
-        params: { roomId: id, name: room.name },
-      });
+      try {
+        router.push({
+          pathname: '/roomMatching',
+          params: { roomId: id, name: room?.name },
+        });
+      } catch (error) {
+        console.error('Error navigating to room matching:', error);
+      }
     }, 1500);
   };
 
