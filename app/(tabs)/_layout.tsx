@@ -17,7 +17,7 @@ import { colors } from '@styles/globalStyles';
 
 // Constantes para dimensiones consistentes entre desarrollo y producción
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const STATUSBAR_HEIGHT = StatusBar.currentHeight ?? 0;
+const STATUSBAR_HEIGHT = StatusBar.currentHeight || 0;
 const IS_IOS = Platform.OS === 'ios';
 
 // Custom Header Component
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
     elevation: 3,
-    height: IS_IOS ? 70 : 60 + STATUSBAR_HEIGHT,
+    height: IS_IOS ? 100 : 70 + STATUSBAR_HEIGHT,
     justifyContent: 'center',
     paddingHorizontal: 16,
     width: SCREEN_WIDTH, // Asegura que el ancho sea el de la pantalla completa
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     letterSpacing: 1,
-    paddingTop: IS_IOS ? 20 : STATUSBAR_HEIGHT + 5,
+    paddingTop: IS_IOS ? 40 : STATUSBAR_HEIGHT + 10,
     textAlign: 'center', // Asegura que el texto esté centrado
   },
   safeArea: {

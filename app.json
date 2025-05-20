@@ -1,6 +1,15 @@
 {
   "expo": {
-    "name": "Agendados",
+    "extra": {
+      "Token": "3a9ecd5d877376903ceee38fefaccc3ae332a896",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a00173ea-6d16-4be8-8ae0-5379a6e550a1"
+      }
+    },
+    "name": "Agendados-Front",
     "slug": "Agendados-Front",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -26,9 +35,8 @@
       }
     },
     "android": {
-      "package": "com.arnau.farran.AgendadosFront",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/AgendadosIcono.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "config": {
@@ -111,7 +119,6 @@
     },
     "experiments": {
       "typedRoutes": true
-    },
-    "owner": "agendados"
+    }
   }
 }
