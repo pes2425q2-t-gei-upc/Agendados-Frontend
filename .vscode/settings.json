@@ -31,5 +31,9 @@
     "**/node_modules": true,
     "**/dist": true,
     "**/*.lock": true
+  },
+  "sonarlint.connectedMode.project": {
+    "connectionId": "pes2425q2-t-gei-upc",
+    "projectKey": "pes2425q2-t-gei-upc_Agendados-Frontend"
   }
 }
