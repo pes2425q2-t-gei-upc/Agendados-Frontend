@@ -4,3 +4,4 @@ node_modules/*
 *.config.ts
 metro.config.js
 babel.config.js
+node_modules
