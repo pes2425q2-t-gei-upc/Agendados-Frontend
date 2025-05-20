@@ -97,7 +97,14 @@ export default function CreateRoomScreen() {
     // In a real app, this would create the room via an API call
     // For now, we'll just navigate back to the rooms list
     Alert.alert('Success', 'Room created successfully!', [
-      { text: 'OK', onPress: () => router.back() },
+      {
+        text: 'OK',
+        onPress: () =>
+          router.push({
+            pathname: '/roomDetail',
+            params: { code: 1 },
+          }),
+      },
     ]);
   };
 
