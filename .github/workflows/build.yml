@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Disable shallow clone for full analysis
+          fetch-depth: 0  # Deshabilitar clon superficial para análisis completo
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -25,23 +25,16 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
+      # Eliminar directorio Pods para evitar problemas en el análisis
       - name: Remove Pods directory
         run: rm -rf ios/Pods
         shell: bash
 
-      - name: Install Build Tools
-        run: sudo apt-get install -y cmake
-
-      - name: Generate compile_commands.json
-        run: |
-          mkdir -p build
-          cd build
-          cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-          cd ..
-
+      # Ver sonar-project.properties
       - name: Debug SonarQube Config
         run: cat sonar-project.properties
 
+      # Ejecutar análisis SonarQube
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
@@ -49,8 +42,8 @@ jobs:
         with:
           args: >
             -Dsonar.exclusions=ios/Pods/**
-            -Dsonar.cfamily.compile-commands=build/compile_commands.json
 
+      # Limpiar caché de SonarQube (opcional)
       - name: Clear SonarQube Cache
         run: rm -rf ~/.sonar/cache
         shell: bash
