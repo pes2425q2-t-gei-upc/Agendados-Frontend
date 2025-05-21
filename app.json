@@ -9,7 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyD_zbbpCNtXBXiJll83yQ6mvLYi9_AObJk"
+        }
+      }
     },
     "android": {
       "package": "com.arnau.farran.AgendadosFront",
@@ -19,7 +24,7 @@
       },
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyD_zbbpCNtXBXiJll83yQ6mvLYi9_AObJk"
+          "apiKey": "AIzaSyDKXfuH_8bLhC6ZlJAfEilHRVq9RVJIXhY"
         }
       }
     },
