@@ -28,6 +28,9 @@ import { useAuth } from '@context/authContext';
 import { login, register } from '@services/AuthService';
 import { colors, spacing } from '@styles/globalStyles';
 
+import { GoogleSignInButton } from './components/GoogleSignInButton';
+import { PasswordResetForm } from './components/PasswordResetForm';
+
 export default function RegisterLoginPage() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -39,22 +42,29 @@ export default function RegisterLoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
-  // Animated styles - Corregido para mostrar ambos formularios
+  const toggleResetPassword = () => {
+    setShowResetPassword(!showResetPassword);
+    setErrorMessage('');
+  };
+
+  // Improved animated styles
   const loginFormStyle = useAnimatedStyle(() => {
     return {
       opacity: withTiming(showLogin ? 1 : 0, {
-        duration: 350,
+        duration: 300,
         easing: Easing.bezier(0.25, 1, 0.5, 1),
       }),
       transform: [
         {
-          translateY: withTiming(showLogin ? 0 : 20, {
-            duration: 350,
+          translateX: withTiming(showLogin ? 0 : -50, {
+            duration: 300,
             easing: Easing.bezier(0.25, 1, 0.5, 1),
           }),
         },
       ],
+      position: 'absolute',
       display: showLogin ? 'flex' : 'none',
       width: '100%',
       alignItems: 'center',
@@ -64,17 +74,18 @@ export default function RegisterLoginPage() {
   const registerFormStyle = useAnimatedStyle(() => {
     return {
       opacity: withTiming(showLogin ? 0 : 1, {
-        duration: 350,
+        duration: 300,
         easing: Easing.bezier(0.25, 1, 0.5, 1),
       }),
       transform: [
         {
-          translateY: withTiming(showLogin ? 20 : 0, {
-            duration: 350,
+          translateX: withTiming(showLogin ? 50 : 0, {
+            duration: 300,
             easing: Easing.bezier(0.25, 1, 0.5, 1),
           }),
         },
       ],
+      position: 'absolute',
       display: showLogin ? 'none' : 'flex',
       width: '100%',
       alignItems: 'center',
@@ -109,11 +120,11 @@ export default function RegisterLoginPage() {
           t('auth.noTokenReceived') || 'No se recibió un token de autenticación'
         );
       }
-    } catch (error: any) {
-      if (error.response?.data?.message) {
-        setErrorMessage(error.response.data.message);
-      } else if (error.message) {
-        setErrorMessage(error.message);
+    } catch (error) {
+      if ((error as any).response?.data?.message) {
+        setErrorMessage((error as any).response.data.message);
+      } else if ((error as any).message) {
+        setErrorMessage((error as any).message);
       } else {
         setErrorMessage(
           t('auth.loginError') || 'Error al iniciar sesión. Inténtalo de nuevo.'
@@ -160,9 +171,9 @@ export default function RegisterLoginPage() {
       }
 
       router.replace('/(tabs)/main');
-    } catch (error: any) {
-      if (error.response?.data?.message) {
-        setErrorMessage(error.response.data.message);
+    } catch (error) {
+      if ((error as any).response?.data?.message) {
+        setErrorMessage((error as any).response.data.message);
       } else {
         setErrorMessage(
           t('auth.registerError') ||
@@ -183,6 +194,45 @@ export default function RegisterLoginPage() {
     setErrorMessage('');
   };
 
+  if (showResetPassword) {
+    return (
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: '#f5f5f5',
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        ]}
+      >
+        <PasswordResetForm onBackToLogin={toggleResetPassword} />
+      </View>
+    );
+  }
+
+  const renderErrorMessage = () => {
+    if (!errorMessage) {
+      return null;
+    }
+    if (showResetPassword) {
+      return (
+        <View style={[styles.container, { backgroundColor: '#f5f5f5' }]}>
+          <View style={{ width: '100%', maxWidth: 400, padding: spacing.lg }}>
+            <PasswordResetForm onBackToLogin={toggleResetPassword} />
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.errorContainer}>
+        <Ionicons name='alert-circle-outline' size={18} color={colors.error} />
+        <Text style={styles.errorText}>{errorMessage}</Text>
+      </View>
+    );
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -199,50 +249,62 @@ export default function RegisterLoginPage() {
         resizeMode='cover'
       >
         <LinearGradient
-          colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.7)']}
+          colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.5)', colors.primaryDark]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={styles.overlay}
         >
           <ScrollView
             contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps='handled'
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.logoContainer}>
               <Text style={styles.logoText}>Agendados</Text>
             </View>
 
-            {/* Título diferente según el formulario activo */}
-            <Text style={styles.title}>
-              {showLogin
-                ? t('auth.login') || 'Iniciar Sesión'
-                : t('auth.register') || 'Crear Cuenta'}
-            </Text>
+            {/* Título animado según el formulario activo */}
+            <Animated.Text
+              style={[
+                styles.title,
+                {
+                  opacity: showLogin ? 1 : 0,
+                  display: showLogin ? 'flex' : 'none',
+                },
+              ]}
+            >
+              {t('auth.login') || 'Iniciar Sesión'}
+            </Animated.Text>
+
+            <Animated.Text
+              style={[
+                styles.title,
+                {
+                  opacity: showLogin ? 0 : 1,
+                  display: showLogin ? 'none' : 'flex',
+                },
+              ]}
+            >
+              {t('auth.register') || 'Crear Cuenta'}
+            </Animated.Text>
 
             {/* Contenedor de formularios */}
             <View style={styles.formsContainer}>
               {/* Formulario de Login */}
-              <Animated.View style={[styles.formContent, loginFormStyle]}>
-                {errorMessage && showLogin ? (
-                  <View style={styles.errorContainer}>
-                    <Ionicons
-                      name='alert-circle-outline'
-                      size={18}
-                      color={colors.error}
-                    />
-                    <Text style={styles.errorText}>{errorMessage}</Text>
-                  </View>
-                ) : null}
+              <Animated.View style={[styles.formCard, loginFormStyle]}>
+                {renderErrorMessage()}
 
                 <View style={styles.inputContainer}>
                   <Ionicons
                     name='person-outline'
                     size={22}
-                    color='#666'
+                    color={colors.primary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.input}
                     placeholder={t('auth.username') || 'Nombre de usuario'}
-                    placeholderTextColor='#666'
+                    placeholderTextColor='#999'
                     value={username}
                     onChangeText={setUsername}
                     autoCapitalize='none'
@@ -253,13 +315,13 @@ export default function RegisterLoginPage() {
                   <Ionicons
                     name='lock-closed-outline'
                     size={22}
-                    color='#666'
+                    color={colors.primary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={[styles.input, { paddingRight: 40 }]}
                     placeholder={t('auth.password') || 'Contraseña'}
-                    placeholderTextColor='#666'
+                    placeholderTextColor='#999'
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
@@ -271,22 +333,24 @@ export default function RegisterLoginPage() {
                     <Ionicons
                       name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                       size={22}
-                      color='#666'
+                      color='#999'
                     />
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity style={styles.forgotPassword}>
-                  <Text style={styles.forgotPasswordText}>
+                <TouchableOpacity
+                  style={styles.forgotPassword}
+                  onPress={toggleResetPassword}
+                >
+                  <Text
+                    style={[styles.forgotPasswordText, { textAlign: 'center' }]}
+                  >
                     {t('auth.forgotPassword') || '¿Olvidaste tu contraseña?'}
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[
-                    styles.button,
-                    loading && { backgroundColor: colors.disabled },
-                  ]}
+                  style={[styles.button, loading && { opacity: 0.7 }]}
                   onPress={handleLogin}
                   disabled={loading}
                 >
@@ -298,70 +362,85 @@ export default function RegisterLoginPage() {
                     </Text>
                   )}
                 </TouchableOpacity>
+
+                <View style={styles.dividerContainer}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>
+                    {t('auth.orContinueWith') || 'O continúa con'}
+                  </Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                <GoogleSignInButton
+                  onSuccess={() => router.replace('/(tabs)/main')}
+                  onError={(error) =>
+                    setErrorMessage(
+                      error?.message ?? 'Error al iniciar sesión con Google'
+                    )
+                  }
+                />
               </Animated.View>
 
               {/* Formulario de Registro */}
-              <Animated.View style={[styles.formContent, registerFormStyle]}>
-                {errorMessage && !showLogin ? (
-                  <View style={styles.errorContainer}>
-                    <Ionicons
-                      name='alert-circle-outline'
-                      size={18}
-                      color={colors.error}
-                    />
-                    <Text style={styles.errorText}>{errorMessage}</Text>
-                  </View>
-                ) : null}
+              <Animated.View style={[styles.formCard, registerFormStyle]}>
+                {renderErrorMessage()}
 
+                {/* Username Input */}
                 <View style={styles.inputContainer}>
                   <Ionicons
                     name='person-outline'
                     size={22}
-                    color='#666'
+                    color={colors.primary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.input}
                     placeholder={t('auth.username') || 'Nombre de usuario'}
-                    placeholderTextColor='#666'
+                    placeholderTextColor='#999'
+                    autoCapitalize='none'
                     value={username}
                     onChangeText={setUsername}
-                    autoCapitalize='none'
+                    editable={!loading}
                   />
                 </View>
 
+                {/* Email Input */}
                 <View style={styles.inputContainer}>
                   <Ionicons
                     name='mail-outline'
                     size={22}
-                    color='#666'
+                    color={colors.primary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.input}
                     placeholder={t('auth.email') || 'Correo electrónico'}
-                    placeholderTextColor='#666'
+                    placeholderTextColor='#999'
+                    autoCapitalize='none'
                     keyboardType='email-address'
                     value={email}
                     onChangeText={setEmail}
-                    autoCapitalize='none'
+                    editable={!loading}
                   />
                 </View>
 
+                {/* Password Input */}
                 <View style={styles.inputContainer}>
                   <Ionicons
                     name='lock-closed-outline'
                     size={22}
-                    color='#666'
+                    color={colors.primary}
                     style={styles.inputIcon}
                   />
                   <TextInput
-                    style={[styles.input, { paddingRight: 40 }]}
+                    style={styles.input}
                     placeholder={t('auth.password') || 'Contraseña'}
-                    placeholderTextColor='#666'
+                    placeholderTextColor='#999'
+                    autoCapitalize='none'
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
+                    editable={!loading}
                   />
                   <TouchableOpacity
                     style={styles.passwordToggle}
@@ -370,58 +449,46 @@ export default function RegisterLoginPage() {
                     <Ionicons
                       name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                       size={22}
-                      color='#666'
+                      color='#999'
                     />
                   </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity
-                  style={[
-                    styles.button,
-                    loading && { backgroundColor: colors.disabled },
-                  ]}
+                  style={styles.button}
                   onPress={handleRegister}
                   disabled={loading}
+                  activeOpacity={0.85}
                 >
                   {loading ? (
-                    <ActivityIndicator size='small' color='#fff' />
+                    <ActivityIndicator color='#fff' />
                   ) : (
                     <Text style={styles.buttonText}>
-                      {t('auth.registerButton') || 'Registrar'}
+                      {t('auth.register') || 'Registrarse'}
                     </Text>
                   )}
                 </TouchableOpacity>
               </Animated.View>
             </View>
 
-            {/* Contenedor del switch entre Login y Register */}
-            <View style={styles.switchContainer}>
-              <Text style={styles.switchText}>
+            {/* Toggle Container */}
+            <View style={styles.toggleContainer}>
+              <Text style={styles.toggleText}>
                 {showLogin
                   ? t('auth.noAccount') || '¿No tienes cuenta?'
                   : t('auth.haveAccount') || '¿Ya tienes cuenta?'}
               </Text>
-              {showLogin ? (
-                <TouchableOpacity
-                  style={styles.switchButton}
-                  onPress={toggleForm}
-                  disabled={loading}
-                >
-                  <Text style={styles.switchButtonText}>
-                    {t('auth.registerNow') || 'Regístrate'}
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={styles.switchButton}
-                  onPress={toggleForm}
-                  disabled={loading}
-                >
-                  <Text style={styles.switchButtonText}>
-                    {t('auth.loginNow') || 'Inicia sesión'}
-                  </Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                style={styles.toggleButton}
+                onPress={toggleForm}
+                disabled={loading}
+              >
+                <Text style={styles.toggleButtonText}>
+                  {showLogin
+                    ? t('auth.registerNow') || 'Regístrate'
+                    : t('auth.loginNow') || 'Inicia sesión'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </LinearGradient>
@@ -431,32 +498,68 @@ export default function RegisterLoginPage() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: '100%',
+  },
   background: {
     flex: 1,
     width: '100%',
   },
-  button: {
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 25,
-    elevation: 2,
-    height: 50,
-    justifyContent: 'center',
-    marginTop: spacing.xl,
-    shadowColor: colors.primaryDark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    width: '100%',
-  },
-  buttonText: {
-    color: colors.lightText,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  container: {
+  overlay: {
     flex: 1,
     width: '100%',
+  },
+  scrollContainer: {
+    alignItems: 'center',
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingBottom: spacing.xl * 2,
+    paddingHorizontal: spacing.lg,
+    paddingTop: Platform.OS === 'ios' ? 60 : spacing.xl * 2,
+    width: '100%',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  logoText: {
+    color: 'white',
+    fontSize: 42,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
+  },
+  title: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 50,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  formsContainer: {
+    position: 'relative',
+    width: '90%',
+    height: 350, // Fixed height to avoid layout shifts
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formCard: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 20,
+    padding: spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 8,
+    alignItems: 'center',
   },
   errorContainer: {
     alignItems: 'center',
@@ -473,109 +576,98 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 5,
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginTop: spacing.xs,
-  },
-  forgotPasswordText: {
-    color: colors.secondary,
-    fontSize: 14,
-  },
-  formsContainer: {
-    position: 'relative',
-    width: '85%',
-  },
-  formContent: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  input: {
-    color: '#333',
-    flex: 1,
-    fontSize: 16,
-    height: '100%',
-  },
   inputContainer: {
-    alignItems: 'center',
-    backgroundColor: '#f0f0fa',
-    borderRadius: 25,
     flexDirection: 'row',
-    height: 54,
-    marginBottom: spacing.md,
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 245, 245, 0.9)',
+    borderRadius: 12,
     paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
     width: '100%',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+    height: 55,
   },
   inputIcon: {
     marginRight: spacing.sm,
   },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    marginTop: spacing.xl * 2,
-  },
-  logoText: {
-    color: 'white',
-    fontSize: 48,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    textShadowColor: 'rgba(0, 0, 0, 0.15)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-  },
-  overlay: {
+  input: {
     flex: 1,
-    width: '100%',
+    fontSize: 16,
+    color: '#333',
+    paddingVertical: spacing.sm,
+    height: 55,
   },
   passwordToggle: {
-    position: 'absolute',
-    right: spacing.md,
+    padding: spacing.xs,
   },
-  scrollContainer: {
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginTop: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  forgotPasswordText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  button: {
     alignItems: 'center',
-    flexGrow: 1,
-    justifyContent: 'flex-start',
-    paddingBottom: spacing.xl * 2,
-    paddingHorizontal: spacing.lg,
-    paddingTop: Platform.OS === 'ios' ? 60 : spacing.xl,
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    elevation: 4,
+    height: 55,
+    justifyContent: 'center',
+    marginTop: spacing.md,
+    shadowColor: colors.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
     width: '100%',
   },
-  switchButtonText: {
-    color: 'white',
-    fontWeight: 'semibold',
+  buttonText: {
+    color: colors.lightText,
+    fontSize: 16,
+    fontWeight: '600',
   },
-  switchContainer: {
+  dividerContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    marginTop: spacing.xl * 2,
-    width: '85%',
+    marginVertical: spacing.lg,
+    width: '100%',
   },
-  switchText: {
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  dividerText: {
+    color: 'rgba(0, 0, 0, 0.5)',
+    marginHorizontal: spacing.sm,
+    fontSize: 14,
+  },
+  toggleContainer: {
+    marginTop: 50,
+    alignItems: 'center',
+  },
+  toggleText: {
     color: 'white',
+    fontSize: 15,
     marginBottom: spacing.sm,
   },
-  // Nuevo estilo para el botón del switch
-  switchButton: {
-    alignItems: 'center',
-    borderColor: colors.primary,
+  toggleButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
     borderRadius: 25,
     borderWidth: 1,
-    justifyContent: 'center',
-    marginTop: spacing.sm,
-    paddingHorizontal: 24,
-    paddingVertical: 6,
-    width: '70%',
-    backgroundColor: colors.primary, // Fondo blanco con 80% de opacidad
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    minWidth: 150,
+    alignItems: 'center',
   },
-
-  title: {
+  toggleButtonText: {
     color: 'white',
-    fontSize: 30,
-    fontWeight: 'bold',
-    marginBottom: spacing.xl, // Se aumenta el margen inferior para separar mejor del formulario
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    fontWeight: '600',
+    fontSize: 15,
   },
 });

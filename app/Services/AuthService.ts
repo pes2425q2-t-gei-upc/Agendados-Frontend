@@ -1,5 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // app/Services/AuthService.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Consistent API base URL
+const API_BASE =
+  'https://agendados-backend-842309366027.europe-southwest1.run.app';
 
 // Token storage keys
 const TOKEN_KEY = 'user_auth_token';
@@ -34,41 +39,83 @@ export const login = async (
   password: string
 ): Promise<any> => {
   try {
-    const response = await fetch(
-      'https://agendados-backend-842309366027.europe-southwest1.run.app/api/users/login',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      }
-    );
+    console.log('[Login] Attempting login with username');
 
-    if (!response.ok) {
-      // Manejo de errores...
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+
+    const response = await fetch(`${API_BASE}/api/users/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ username, password }),
+      signal: controller.signal,
+    });
+
+    // Clear the timeout
+    clearTimeout(timeoutId);
+
+    console.log('[Login] Server response status:', response.status);
+
+    // Read response as text first to safely handle any response format
+    const responseText = await response.text();
+
+    // Try to parse it as JSON if possible
+    let data: any;
+    try {
+      data = JSON.parse(responseText);
+      console.log('[Login] Response parsed successfully as JSON');
+    } catch (e) {
+      console.error(
+        '[Login] Response is not valid JSON:',
+        responseText.substring(0, 200)
+      );
+      throw new Error('La respuesta del servidor no es un formato JSON válido');
     }
 
-    const data = await response.json();
-
-    // Añade logs para depuración
-    console.log('Login response:', data);
+    // Check if the response was successful
+    if (!response.ok) {
+      console.error('[Login] Error response:', data);
+      throw new Error(
+        data?.message ?? `Error del servidor: ${response.status}`
+      );
+    }
 
     // Verifica que el token exista en la respuesta
     if (data.token) {
       await storeUserToken(data.token);
-      console.log('Token stored successfully');
+      console.log('[Login] Token stored successfully');
 
       if (data.user) {
         await storeUserInfo(data.user);
+        console.log('[Login] User info stored successfully');
       }
       return data;
     } else {
-      console.error('No token received from server');
-      throw new Error('No authentication token received');
+      console.error('[Login] No token received from server');
+      throw new Error('No se recibió token de autenticación');
     }
   } catch (error) {
-    console.error('Login error:', error);
+    const isTimeoutError =
+      error instanceof Error && error.name === 'AbortError';
+
+    if (isTimeoutError) {
+      console.error('[Login] Request timed out');
+      throw new Error(
+        'La solicitud ha tomado demasiado tiempo. Por favor, inténtalo de nuevo.'
+      );
+    }
+
+    // Better error logging
+    if (error instanceof Error) {
+      console.error('[Login] Error:', error.message);
+      console.error('[Login] Stack:', error.stack);
+    } else {
+      console.error('[Login] Unknown error:', error);
+    }
+
     throw error;
   }
 };
@@ -79,40 +126,249 @@ export const register = async (
   password: string
 ): Promise<any> => {
   try {
-    const response = await fetch(
-      'https://agendados-backend-842309366027.europe-southwest1.run.app/api/users/signup',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, email, password }),
-      }
-    );
+    console.log('[Register] Attempting registration');
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message ?? 'Failed to register');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+
+    const response = await fetch(`${API_BASE}/api/users/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ username, email, password }),
+      signal: controller.signal,
+    });
+
+    // Clear the timeout
+    clearTimeout(timeoutId);
+
+    console.log('[Register] Server response status:', response.status);
+
+    // Read response as text first to safely handle any response format
+    const responseText = await response.text();
+
+    // Try to parse it as JSON if possible
+    let data: any;
+    try {
+      data = JSON.parse(responseText);
+      console.log('[Register] Response parsed successfully as JSON');
+    } catch (e) {
+      console.error(
+        '[Register] Response is not valid JSON:',
+        responseText.substring(0, 200)
+      );
+      throw new Error('La respuesta del servidor no es un formato JSON válido');
     }
 
-    const data = await response.json();
+    // Check if the response was successful
+    if (!response.ok) {
+      console.error('[Register] Error response:', data);
+      throw new Error(
+        data?.message ?? `Error del servidor: ${response.status}`
+      );
+    }
 
     // Si el registro también devuelve un token, lo guardamos
     if (data.token) {
       await storeUserToken(data.token);
+      console.log('[Register] Token stored successfully');
 
       if (data.user) {
         await storeUserInfo(data.user);
+        console.log('[Register] User info stored successfully');
       }
     }
 
     return data;
   } catch (error) {
+    const isTimeoutError =
+      error instanceof Error && error.name === 'AbortError';
+
+    if (isTimeoutError) {
+      console.error('[Register] Request timed out');
+      throw new Error(
+        'La solicitud ha tomado demasiado tiempo. Por favor, inténtalo de nuevo.'
+      );
+    }
+
+    // Better error logging
+    if (error instanceof Error) {
+      console.error('[Register] Error:', error.message);
+      console.error('[Register] Stack:', error.stack);
+    } else {
+      console.error('[Register] Unknown error:', error);
+    }
+
     throw error;
   }
 };
-const API_BASE =
-  'https://agendados-backend-842309366027.europe-southwest1.run.app';
+
+export const requestPasswordReset = async (
+  email: string
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    console.log('[PasswordReset] Requesting password reset');
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+
+    const response = await fetch(`${API_BASE}/api/users/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ email }),
+      signal: controller.signal,
+    });
+
+    // Clear the timeout
+    clearTimeout(timeoutId);
+
+    console.log('[PasswordReset] Server response status:', response.status);
+
+    // Read response as text first to safely handle any response format
+    const responseText = await response.text();
+
+    // Try to parse it as JSON if possible
+    let data: any;
+    try {
+      data = JSON.parse(responseText);
+      console.log('[PasswordReset] Response parsed successfully as JSON');
+    } catch (e) {
+      console.error(
+        '[PasswordReset] Response is not valid JSON:',
+        responseText.substring(0, 200)
+      );
+      throw new Error('La respuesta del servidor no es un formato JSON válido');
+    }
+
+    // Check if the response was successful
+    if (!response.ok) {
+      console.error('[PasswordReset] Error response:', data);
+      throw new Error(
+        data?.message ?? 'Error al solicitar el restablecimiento de contraseña'
+      );
+    }
+
+    return {
+      success: true,
+      message: data.message ?? 'Se ha enviado un correo con las instrucciones',
+    };
+  } catch (error) {
+    const isTimeoutError =
+      error instanceof Error && error.name === 'AbortError';
+
+    if (isTimeoutError) {
+      console.error('[PasswordReset] Request timed out');
+      return {
+        success: false,
+        message:
+          'La solicitud ha tomado demasiado tiempo. Por favor, inténtalo de nuevo.',
+      };
+    }
+
+    // Better error logging
+    if (error instanceof Error) {
+      console.error('[PasswordReset] Error:', error.message);
+      console.error('[PasswordReset] Stack:', error.stack);
+      return {
+        success: false,
+        message: error.message || 'Error al procesar la solicitud',
+      };
+    } else {
+      console.error('[PasswordReset] Unknown error:', error);
+      return {
+        success: false,
+        message: 'Error desconocido al procesar la solicitud',
+      };
+    }
+  }
+};
+
+export const resetPassword = async (
+  token: string,
+  newPassword: string
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    console.log('[ResetPassword] Resetting password with token');
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+
+    const response = await fetch(`${API_BASE}/api/users/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ token, newPassword }),
+      signal: controller.signal,
+    });
+
+    // Clear the timeout
+    clearTimeout(timeoutId);
+
+    console.log('[ResetPassword] Server response status:', response.status);
+
+    // Read response as text first to safely handle any response format
+    const responseText = await response.text();
+
+    // Try to parse it as JSON if possible
+    let data: any;
+    try {
+      data = JSON.parse(responseText);
+      console.log('[ResetPassword] Response parsed successfully as JSON');
+    } catch (e) {
+      console.error(
+        '[ResetPassword] Response is not valid JSON:',
+        responseText.substring(0, 200)
+      );
+      throw new Error('La respuesta del servidor no es un formato JSON válido');
+    }
+
+    // Check if the response was successful
+    if (!response.ok) {
+      console.error('[ResetPassword] Error response:', data);
+      throw new Error(data?.message ?? 'Error al restablecer la contraseña');
+    }
+
+    return {
+      success: true,
+      message: 'Contraseña actualizada correctamente',
+    };
+  } catch (error) {
+    const isTimeoutError =
+      error instanceof Error && error.name === 'AbortError';
+
+    if (isTimeoutError) {
+      console.error('[ResetPassword] Request timed out');
+      return {
+        success: false,
+        message:
+          'La solicitud ha tomado demasiado tiempo. Por favor, inténtalo de nuevo.',
+      };
+    }
+
+    // Better error logging
+    if (error instanceof Error) {
+      console.error('[ResetPassword] Error:', error.message);
+      console.error('[ResetPassword] Stack:', error.stack);
+      return {
+        success: false,
+        message: error.message || 'Error al procesar la solicitud',
+      };
+    } else {
+      console.error('[ResetPassword] Unknown error:', error);
+      return {
+        success: false,
+        message: 'Error desconocido al procesar la solicitud',
+      };
+    }
+  }
+};
 
 export const changePassword = async (
   token: string,
@@ -120,37 +376,164 @@ export const changePassword = async (
   newPassword: string
 ): Promise<boolean> => {
   try {
+    console.log('[ChangePassword] Changing user password');
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+
     const response = await fetch(`${API_BASE}/api/users/update-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json',
         Authorization: `Token ${token}`,
       },
       body: JSON.stringify({
         current_password: currentPassword,
         new_password: newPassword,
       }),
+      signal: controller.signal,
     });
 
+    // Clear the timeout
+    clearTimeout(timeoutId);
+
+    console.log('[ChangePassword] Server response status:', response.status);
+
     if (!response.ok) {
-      // Opcional: leer mensaje de error del servidor para debug
+      // Try to read error data for debugging
       const errorData = await response.json().catch(() => null);
-      console.error('Change password failed:', errorData ?? response.status);
+      console.error(
+        '[ChangePassword] Error response:',
+        errorData ?? response.status
+      );
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Network or unexpected error in changePassword:', error);
+    const isTimeoutError =
+      error instanceof Error && error.name === 'AbortError';
+
+    if (isTimeoutError) {
+      console.error('[ChangePassword] Request timed out');
+      throw new Error(
+        'La solicitud ha tomado demasiado tiempo. Por favor, inténtalo de nuevo.'
+      );
+    }
+
+    // Better error logging
+    if (error instanceof Error) {
+      console.error('[ChangePassword] Error:', error.message);
+      console.error('[ChangePassword] Stack:', error.stack);
+    } else {
+      console.error('[ChangePassword] Unknown error:', error);
+    }
+
     throw error;
   }
 };
 
 export const logout = async (): Promise<void> => {
+  console.log('[Logout] Removing user authentication data');
   await removeUserToken();
 };
 
 export const isAuthenticated = async (): Promise<boolean> => {
   const token = await getUserToken();
-  return token !== null;
+  return !!token;
+};
+
+export const loginWithGoogle = async (idToken: string): Promise<any> => {
+  try {
+    console.log('[GoogleLogin] Sending idToken to backend');
+
+    // Make sure we're not sending undefined or null
+    if (!idToken) {
+      throw new Error('Token de ID de Google no válido');
+    }
+
+    // Create request with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+
+    // This is the corrected URL with a trailing slash!
+    const response = await fetch(`${API_BASE}/api/users/auth/google/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ idToken }),
+      signal: controller.signal,
+    });
+
+    // Clear the timeout
+    clearTimeout(timeoutId);
+
+    console.log('[GoogleLogin] Server response status:', response.status);
+
+    // Read response as text first to safely handle any response format
+    const responseText = await response.text();
+
+    // Try to parse it as JSON if possible
+    let data: any;
+    try {
+      data = JSON.parse(responseText);
+      console.log('[GoogleLogin] Response parsed successfully as JSON');
+    } catch (e) {
+      console.error(
+        '[GoogleLogin] Response is not valid JSON:',
+        responseText.substring(0, 200)
+      );
+      throw new Error('La respuesta del servidor no es un formato JSON válido');
+    }
+
+    // Check if the response was successful
+    if (!response.ok) {
+      console.error('[GoogleLogin] Error response:', data);
+      throw new Error(
+        data?.message ?? `Error del servidor: ${response.status}`
+      );
+    }
+
+    console.log('[GoogleLogin] Authentication successful');
+
+    // Store user data if authentication was successful
+    if (data.token) {
+      await storeUserToken(data.token);
+      console.log('[GoogleLogin] Token stored successfully');
+
+      if (data.user) {
+        await storeUserInfo(data.user);
+        console.log('[GoogleLogin] User info stored successfully');
+      }
+    } else {
+      console.error('[GoogleLogin] No token in response');
+      throw new Error('No se recibió un token de autenticación');
+    }
+
+    return data;
+  } catch (error) {
+    // Fixed error handling for React Native environment
+    const isTimeoutError =
+      error instanceof Error && error.name === 'AbortError';
+
+    if (isTimeoutError) {
+      console.error('[GoogleLogin] Request timed out');
+      throw new Error(
+        'La solicitud ha tomado demasiado tiempo. Por favor, inténtalo de nuevo.'
+      );
+    }
+
+    // Better error logging
+    if (error instanceof Error) {
+      console.error('[GoogleLogin] Error:', error.message);
+      console.error('[GoogleLogin] Stack:', error.stack);
+    } else {
+      console.error('[GoogleLogin] Unknown error:', error);
+    }
+
+    throw error;
+  }
 };

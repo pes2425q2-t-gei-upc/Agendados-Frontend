@@ -40,11 +40,14 @@
     "invalidEmail": "Si us plau, introdueix un email vàlid",
     "passwordLength": "La contrasenya ha de tenir almenys 6 caràcters",
     "loginError": "Error a l'iniciar sessió. Torna-ho a provar.",
+    "usernameRequired": "El nom d'usuari és obligatori.",
+    "passwordRequired": "La contrasenya és obligatòria.",
     "registerError": "Error al registrar usuari. Torna-ho a provar.",
     "noAccount": "No tens compte?",
     "registerNow": "Registra't ara",
     "haveAccount": "Ja tens compte?",
-    "loginNow": "Inicia sessió ara"
+    "loginNow": "Inicia sessió ara",
+    "orContinuewith": "o continua amb"
   },
   "explore": {
     "search": {

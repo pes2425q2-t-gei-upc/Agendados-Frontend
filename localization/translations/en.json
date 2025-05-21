@@ -38,12 +38,15 @@
     "completeFields": "Please complete all fields",
     "invalidEmail": "Please enter a valid email",
     "passwordLength": "Password must be at least 6 characters",
-    "loginError": "Error logging in. Please try again.",
+    "loginError": "Login error. Please try again.",
+    "usernameRequired": "Username is required.",
+    "passwordRequired": "Password is required.",
     "registerError": "Error registering user. Please try again.",
     "noAccount": "Don't have an account?",
     "registerNow": "Register now",
     "haveAccount": "Already have an account?",
-    "loginNow": "Login now"
+    "loginNow": "Login now",
+    "orContinuewith": "or continue with"
   },
   "explore": {
     "search": {
