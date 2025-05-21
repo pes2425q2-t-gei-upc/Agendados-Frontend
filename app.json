@@ -4,7 +4,7 @@
     "slug": "Agendados-Front",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon2.png",
     "scheme": "com.arnau.farran.agendados",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -28,12 +28,12 @@
     "android": {
       "package": "com.arnau.farran.AgendadosFront",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/AgendadosIcono.png",
+        "foregroundImage": "./assets/images/agendadosbg.png",
         "backgroundColor": "#ffffff"
       },
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyD_zbbpCNtXBXiJll83yQ6mvLYi9_AObJk"
+          "apiKey": "AIzaSyDKXfuH_8bLhC6ZlJAfEilHRVq9RVJIXhY"
         }
       },
       "intentFilters": [
