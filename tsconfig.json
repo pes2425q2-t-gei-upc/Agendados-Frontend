@@ -3,7 +3,11 @@
   "compilerOptions": {
     "jsx": "react",
     "strict": true,
-    "baseUrl": ".", 
+    "baseUrl": ".",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "paths": {
       "@localization/*": ["./src/localization/*"],
       "@styles/*": ["./styles/*"],
@@ -11,7 +15,7 @@
       "@assets/*": ["./assets/*"],
       "@models/*": ["./app/Models/*"],
       "@context/*": ["./app/context/*"],
-      "@services/*": ["./app/Services/*"],
+      "@services/*": ["./app/Services/*"]
     }
   },
   "include": [
