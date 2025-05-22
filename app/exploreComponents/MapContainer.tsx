@@ -1,13 +1,21 @@
 // app/exploreComponents/MapContainer.tsx
 import { Ionicons } from '@expo/vector-icons';
+import debounce from 'lodash.debounce';
 import React, {
   forwardRef,
   useCallback,
   useEffect,
   useRef,
   useState,
+  useMemo,
 } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  InteractionManager,
+} from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import Supercluster from 'supercluster';
 
@@ -16,7 +24,6 @@ import { INITIAL_REGION } from 'app/constants/exploreConstants';
 
 import { EventMarker } from './EventMarker';
 
-/** Tipo que el padre puede usar para su ref */
 export type MapViewType = MapView & {
   animateToRegion(region: Region, duration?: number): void;
 };
@@ -30,7 +37,7 @@ export interface MapContainerProps {
   onMyLocationPress: () => void;
 }
 
-export const MapContainer = forwardRef<MapView, MapContainerProps>(
+export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
   (props, forwardedRef) => {
     const {
       locationPermission,
@@ -41,23 +48,22 @@ export const MapContainer = forwardRef<MapView, MapContainerProps>(
       onMyLocationPress,
     } = props;
 
-    // Ref al MapView para animaciones
-    const mapRef = useRef<MapView | null>(null);
+    // Ref interno al MapView para animaciones
+    const mapRef = useRef<MapViewType | null>(null);
     const handleMapInstance = useCallback(
-      (instance: MapView | null) => {
-        // Forward ref
+      (instance: MapViewType | null) => {
+        mapRef.current = instance;
         if (typeof forwardedRef === 'function') {
           forwardedRef(instance);
         } else if (forwardedRef && 'current' in forwardedRef) {
-          (forwardedRef as React.MutableRefObject<MapView | null>).current =
+          (forwardedRef as React.MutableRefObject<MapViewType | null>).current =
             instance;
         }
-        mapRef.current = instance;
       },
       [forwardedRef]
     );
 
-    // Índice de Supercluster
+    // Creamos el idx sólo una vez
     const indexRef = useRef(
       new Supercluster({
         radius: 40,
@@ -68,61 +74,75 @@ export const MapContainer = forwardRef<MapView, MapContainerProps>(
     const [clusters, setClusters] = useState<any[]>([]);
     const [region, setRegion] = useState<Region>(INITIAL_REGION);
 
-    // Cada vez que cambian los marcadores, recargamos el índice y re-clusterizamos
-    const updateClusters = useCallback((reg: Region) => {
-      // BBox should be [westLng, southLat, eastLng, northLat]
-      const bbox: [number, number, number, number] = [
-        reg.longitude - reg.longitudeDelta / 2,
-        reg.latitude - reg.latitudeDelta / 2,
-        reg.longitude + reg.longitudeDelta / 2,
-        reg.latitude + reg.latitudeDelta / 2,
-      ];
-      const zoom = Math.round(Math.log2(360 / reg.longitudeDelta));
-      const newClusters = indexRef.current.getClusters(bbox, zoom);
-      setClusters(newClusters);
-    }, []);
+    // 1️⃣ Debounce de actualización de clusters tras mover mapa
+    const debouncedUpdate = useMemo(
+      () =>
+        debounce((reg: Region) => {
+          const bbox: [number, number, number, number] = [
+            reg.longitude - reg.longitudeDelta / 2,
+            reg.latitude - reg.latitudeDelta / 2,
+            reg.longitude + reg.longitudeDelta / 2,
+            reg.latitude + reg.latitudeDelta / 2,
+          ];
+          const zoom = Math.round(Math.log2(360 / reg.longitudeDelta));
+          const newClusters = indexRef.current.getClusters(bbox, zoom);
+          setClusters(newClusters);
+        }, 200),
+      []
+    );
 
+    // 2️⃣ Cuando cambian los markers, recargamos el índice (sólo aquí)
     useEffect(() => {
-      if (!visibleMarkers || visibleMarkers.length === 0) {
-        console.warn('No visibleMarkers provided to MapContainer');
+      if (!visibleMarkers.length) {
         setClusters([]);
         return;
       }
       const points = visibleMarkers
         .filter(
-          (m): m is EventModel & { location: { latitude: number; longitude: number } } =>
+          (
+            m
+          ): m is EventModel & {
+            location: { latitude: number; longitude: number };
+          } =>
             !!m.location &&
-            typeof m.location.longitude === 'number' &&
-            typeof m.location.latitude === 'number'
+            typeof m.location.latitude === 'number' &&
+            typeof m.location.longitude === 'number'
         )
         .map((m) => ({
-          type: "Feature" as const,
+          type: 'Feature' as const,
           properties: { marker: m },
           geometry: {
-            type: "Point" as const,
-            coordinates: [m.location.longitude, m.location.latitude] as [number, number],
+            type: 'Point' as const,
+            coordinates: [m.location.longitude, m.location.latitude] as [
+              number,
+              number,
+            ],
           },
         }));
+
       if (points.length === 0) {
-        console.warn('No valid marker locations in visibleMarkers');
         setClusters([]);
         return;
       }
       indexRef.current.load(points);
-      updateClusters(region);
-    }, [visibleMarkers]);
+      // tras recargar, recalc con la región actual
+      debouncedUpdate(region);
+    }, [visibleMarkers, region, debouncedUpdate]);
 
-    // Cuando el usuario cambia la región en el mapa
+    // 3️⃣ Al cambiar la región, throttle + InteractionManager
     const handleRegionChangeComplete = useCallback(
       (newRegion: Region) => {
         setRegion(newRegion);
-        updateClusters(newRegion);
         onRegionChangeComplete(newRegion);
+        // Dejamos el cálculo de clusters para después de la animación/gesto
+        InteractionManager.runAfterInteractions(() => {
+          debouncedUpdate(newRegion);
+        });
       },
-      [onRegionChangeComplete, updateClusters]
+      [onRegionChangeComplete, debouncedUpdate]
     );
 
-    // Renderizado de clusters y marcadores
+    // 4️⃣ Renderizamos clusters o markers individuales
     const renderClusters = () =>
       clusters.map((cluster) => {
         const [longitude, latitude] = cluster.geometry.coordinates;
@@ -178,7 +198,6 @@ export const MapContainer = forwardRef<MapView, MapContainerProps>(
         >
           {renderClusters()}
         </MapView>
-
         <TouchableOpacity
           style={localStyles.myLocationButton}
           onPress={onMyLocationPress}
