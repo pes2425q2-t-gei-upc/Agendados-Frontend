@@ -80,7 +80,7 @@ const mockRooms = [
 export default function RoomDetailScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { id, name } = useLocalSearchParams();
 
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -129,8 +129,8 @@ export default function RoomDetailScreen() {
       // Navigate to matching screen
       try {
         router.push({
-          pathname: '/roomMatching',
-          params: { roomId: id, name: room?.name },
+          pathname: '/matchingRoom',
+          params: { roomId: id, RoomName: name },
         });
       } catch (error) {
         console.error('Error navigating to room matching:', error);
@@ -228,9 +228,6 @@ export default function RoomDetailScreen() {
                         source={{ uri: participant.avatar }}
                         style={styles.avatar}
                       />
-                      {participant.online && (
-                        <View style={styles.onlineIndicator} />
-                      )}
                     </View>
                     <Text style={styles.participantName} numberOfLines={1}>
                       {participant.name}

@@ -6,8 +6,14 @@ import { getUserToken } from './AuthService';
 
 export const getEventsWithLocations = async (): Promise<Event[]> => {
   try {
+    const token = await getUserToken();
     const response = await fetch(
-      'https://agendados-backend-842309366027.europe-southwest1.run.app/api/events'
+      'https://agendados-backend-842309366027.europe-southwest1.run.app/api/events',
+      {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      }
     );
     if (!response.ok) {
       throw new Error('Error al cargar los eventos');

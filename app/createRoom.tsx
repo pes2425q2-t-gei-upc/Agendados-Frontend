@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { use } from 'i18next';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -10,67 +11,56 @@ import {
   TextInput,
   FlatList,
   Image,
-  Switch,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 
+import { Friendship } from '@models/Friendship';
+import { FriendshipService } from '@services/FriendshipService';
+import RoomService from '@services/RoomService';
 import { colors, spacing } from '@styles/globalStyles';
 
 import ProtectedRoute from './components/ProtectedRoute';
-
-// Mock data for friends
-const mockFriends = [
-  {
-    id: 1,
-    name: 'Alex',
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-    online: true,
-  },
-  {
-    id: 2,
-    name: 'Maria',
-    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-    online: true,
-  },
-  {
-    id: 3,
-    name: 'John',
-    avatar: 'https://randomuser.me/api/portraits/men/22.jpg',
-    online: false,
-  },
-  {
-    id: 4,
-    name: 'Sara',
-    avatar: 'https://randomuser.me/api/portraits/women/29.jpg',
-    online: true,
-  },
-  {
-    id: 5,
-    name: 'Mike',
-    avatar: 'https://randomuser.me/api/portraits/men/86.jpg',
-    online: true,
-  },
-];
 
 export default function CreateRoomScreen() {
   const { t } = useTranslation();
   const router = useRouter();
 
   const [roomName, setRoomName] = useState('');
-  const [selectedFriends, setSelectedFriends] = useState([]);
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [Friends, setFriends] = useState<Friendship[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [loadingCreateRoom, setLoadingCreateRoom] = useState(false);
+
+  //Fetching friends from the API
+  useEffect(() => {
+    fetchFriends();
+  }, []);
+
+  const fetchFriends = async () => {
+    try {
+      const response = await FriendshipService.getFriends();
+      setFriends(response);
+    } catch (error) {
+      console.error('Error fetching friends:', error);
+      setError('Error fetching friends');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredFriends = searchText
-    ? mockFriends.filter((friend) =>
-        friend.name.toLowerCase().includes(searchText.toLowerCase())
+    ? Friends.filter((friend) =>
+        friend.user?.username.toLowerCase().includes(searchText.toLowerCase())
       )
-    : mockFriends;
+    : Friends;
 
-  const toggleFriendSelection = (friendId) => {
+  const toggleFriendSelection = (friendId: number) => {
     setSelectedFriends((prev) => {
       if (prev.includes(friendId)) {
         return prev.filter((id) => id !== friendId);
@@ -80,34 +70,32 @@ export default function CreateRoomScreen() {
     });
   };
 
-  const handleCreateRoom = () => {
+  const handleCreateRoom = async () => {
+    setLoadingCreateRoom(true);
     if (!roomName.trim()) {
       Alert.alert('Error', 'Please enter a room name');
+      setLoadingCreateRoom(false);
       return;
     }
 
-    if (selectedFriends.length === 0) {
-      Alert.alert(
-        'Error',
-        'Please select at least one friend to create a room'
-      );
-      return;
+    try {
+      //await RoomService.createRoom(roomName, selectedFriends);
+      Alert.alert('Success', 'Room created successfully!', [
+        {
+          text: 'OK',
+          onPress: () =>
+            router.push({
+              pathname: '/roomDetail',
+              params: { id: 1, name: roomName }, // Replace with actual room code
+            }),
+        },
+      ]);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to create room');
+    } finally {
+      setLoadingCreateRoom(false);
     }
-
-    // In a real app, this would create the room via an API call
-    // For now, we'll just navigate back to the rooms list
-    Alert.alert('Success', 'Room created successfully!', [
-      {
-        text: 'OK',
-        onPress: () =>
-          router.push({
-            pathname: '/roomDetail',
-            params: { code: 1 },
-          }),
-      },
-    ]);
   };
-
   return (
     <ProtectedRoute>
       <KeyboardAvoidingView
@@ -138,16 +126,6 @@ export default function CreateRoomScreen() {
             />
           </View>
 
-          <View style={styles.toggleContainer}>
-            <Text style={styles.label}>Private Room</Text>
-            <Switch
-              value={isPrivate}
-              onValueChange={setIsPrivate}
-              trackColor={{ false: colors.border, true: colors.primaryLight }}
-              thumbColor={isPrivate ? colors.primary : '#f4f3f4'}
-            />
-          </View>
-
           <View style={styles.friendsSection}>
             <Text style={styles.label}>
               Invite Friends ({selectedFriends.length} selected)
@@ -169,40 +147,51 @@ export default function CreateRoomScreen() {
                 clearButtonMode='always'
               />
             </View>
-
-            <FlatList
-              data={filteredFriends}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.friendItem,
-                    selectedFriends.includes(item.id) &&
-                      styles.selectedFriendItem,
-                  ]}
-                  onPress={() => toggleFriendSelection(item.id)}
-                >
-                  <View style={styles.friendAvatarContainer}>
-                    <Image
-                      source={{ uri: item.avatar }}
-                      style={styles.friendAvatar}
-                    />
-                    {item.online && <View style={styles.onlineIndicator} />}
-                  </View>
-                  <Text style={styles.friendName}>{item.name}</Text>
-                  <View style={styles.checkboxContainer}>
-                    {selectedFriends.includes(item.id) && (
-                      <Ionicons
-                        name='checkmark-circle'
-                        size={24}
-                        color={colors.primary}
+            {loading && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size='large' color={colors.primary} />
+                <Text style={styles.loadingText}>Loading friends...</Text>
+              </View>
+            )}
+            {error && (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.loadingText}>{error}</Text>
+              </View>
+            )}
+            {!loading && !error && (
+              <FlatList
+                data={filteredFriends}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.friendItem,
+                      selectedFriends.includes(item.id) &&
+                        styles.selectedFriendItem,
+                    ]}
+                    onPress={() => toggleFriendSelection(item.id)}
+                  >
+                    <View style={styles.friendAvatarContainer}>
+                      <Image
+                        source={{ uri: item.user?.avatar }}
+                        style={styles.friendAvatar}
                       />
-                    )}
-                  </View>
-                </TouchableOpacity>
-              )}
-              scrollEnabled={false}
-            />
+                    </View>
+                    <Text style={styles.friendName}>{item.user?.name}</Text>
+                    <View style={styles.checkboxContainer}>
+                      {selectedFriends.includes(item.id) && (
+                        <Ionicons
+                          name='checkmark-circle'
+                          size={24}
+                          color={colors.primary}
+                        />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )}
+                scrollEnabled={false}
+              />
+            )}
           </View>
         </ScrollView>
 
@@ -210,11 +199,10 @@ export default function CreateRoomScreen() {
           <TouchableOpacity
             style={[
               styles.createButton,
-              (!roomName.trim() || selectedFriends.length === 0) &&
-                styles.disabledButton,
+              !roomName.trim() && styles.disabledButton,
             ]}
             onPress={handleCreateRoom}
-            disabled={!roomName.trim() || selectedFriends.length === 0}
+            disabled={loading || loadingCreateRoom}
           >
             <Text style={styles.createButtonText}>Create Room</Text>
           </TouchableOpacity>
@@ -319,16 +307,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: spacing.sm,
   },
-  onlineIndicator: {
-    backgroundColor: '#4CAF50',
-    borderColor: colors.backgroundAlt,
-    borderRadius: 5,
-    borderWidth: 1.5,
-    bottom: 0,
-    height: 10,
-    position: 'absolute',
-    right: 0,
-    width: 10,
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  loadingText: {
+    color: colors.text,
+    fontSize: 16,
+    marginTop: spacing.md,
   },
   searchContainer: {
     alignItems: 'center',
@@ -352,14 +339,5 @@ const styles = StyleSheet.create({
   selectedFriendItem: {
     backgroundColor: colors.primaryLight + '20',
     borderColor: colors.primary, // Adding transparency
-  },
-  toggleContainer: {
-    alignItems: 'center',
-    backgroundColor: colors.backgroundAlt,
-    borderRadius: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.lg,
-    padding: spacing.md,
   },
 });

@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
   animatedCard: {
     alignItems: 'center',
     flex: 1,
-    height: '70%',
+    height: '60%',
     justifyContent: 'center',
     width: '95%',
   },
