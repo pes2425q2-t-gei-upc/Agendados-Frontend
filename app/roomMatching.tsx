@@ -1,4 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
@@ -25,7 +26,6 @@ import Animated, {
   interpolate,
   Easing,
 } from 'react-native-reanimated';
-import Icon from 'react-native-vector-icons/Ionicons';
 
 import Card from '@components/cardEvent';
 import EventDetailModal from '@components/EventDetailModal';
@@ -47,14 +47,8 @@ const SIMULATED_USERS = 4; // Total users in room including current user
 
 export default function RoomMatching() {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [events, setEvents] = useState<EventModal[]>([]);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [currentEvent, setCurrentEvent] = useState<EventModal | null>(null);
   const { refreshFavorites } = useFavorites();
-
-  // Card state
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextIndex, setNextIndex] = useState(1);
 
   // Group voting state
   const [timeRemaining, setTimeRemaining] = useState(VOTING_TIME);
@@ -67,11 +61,8 @@ export default function RoomMatching() {
   const [showResults, setShowResults] = useState(false);
   const [userVoted, setUserVoted] = useState(false);
   const [nextCardCountdown, setNextCardCountdown] = useState(3);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const resultsTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Store current event ID for UI thread
-  const currentEventId = useSharedValue<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const resultsTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Event detail modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -82,20 +73,6 @@ export default function RoomMatching() {
   const hiddenTranslateX = 2 * screenWidth;
   const translateX = useSharedValue(0);
   const progressWidth = useSharedValue(100);
-
-  // Get current event from index (defined early to avoid reference error)
-  const currentEvent = events[currentIndex];
-  // Get next event from index
-  const nextEvent = events[nextIndex];
-
-  // Update current event ID when currentIndex or events change
-  useEffect(() => {
-    if (events[currentIndex]) {
-      currentEventId.value = events[currentIndex].id;
-    } else {
-      currentEventId.value = null;
-    }
-  }, [currentIndex, events]);
 
   // Start the voting countdown timer
   useEffect(() => {
@@ -128,7 +105,7 @@ export default function RoomMatching() {
     if (timeRemaining === 0 && votingActive) {
       endVoting();
     }
-  }, [timeRemaining]);
+  }, [timeRemaining, votingActive]);
 
   // Simulate random votes from other users during the countdown
   useEffect(() => {
@@ -197,17 +174,12 @@ export default function RoomMatching() {
           progressWidth.value = 100;
           setNextCardCountdown(3);
           setVotesCount({ yes: 0, no: 0, total: SIMULATED_USERS });
-
-          // Move to next card if we're showing results
-          if (currentIndex < events.length - 1) {
-            setCurrentIndex((prev) => prev + 1);
-          }
-          return 0;
+          setCurrentEvent(null);
         }
         return prev - 1;
       });
     }, 1000);
-  }, [currentIndex, events.length]);
+  }, []);
 
   // Clean up timers
   useEffect(() => {
@@ -226,37 +198,6 @@ export default function RoomMatching() {
     setSelectedEventDetail(event);
     setDetailModalVisible(true);
   }, []);
-
-  // Fetch recommended events from backend
-  const fetchRecommendedEvents = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const data: EventModal[] = await getEventRecomendations();
-      setEvents(data);
-    } catch (err) {
-      setError('Failed to fetch events. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchRecommendedEvents();
-  }, [fetchRecommendedEvents]);
-
-  // Handle adding event to favorites when swiping right
-  const handleSwipeRight = useCallback(
-    async (eventId: number) => {
-      try {
-        await SavedService.addFavorite(eventId);
-        // Refrescar la lista de favoritos
-        await refreshFavorites();
-      } catch (err) {}
-    },
-    [refreshFavorites]
-  );
 
   const handleVote = useCallback(
     (isRight: boolean) => {
@@ -294,24 +235,6 @@ export default function RoomMatching() {
     ],
   }));
 
-  // Animations for the next card
-  const nextCardStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: interpolate(
-          translateX.value,
-          [-hiddenTranslateX, 0, hiddenTranslateX],
-          [1, 0.8, 1]
-        ),
-      },
-    ],
-    opacity: interpolate(
-      translateX.value,
-      [-hiddenTranslateX, 0, hiddenTranslateX],
-      [1, 0.6, 1]
-    ),
-  }));
-
   // Progress bar animation
   const progressBarStyle = useAnimatedStyle(() => {
     return {
@@ -344,10 +267,6 @@ export default function RoomMatching() {
         isSwipeRight ? hiddenTranslateX : -hiddenTranslateX,
         {},
         () => {
-          if (isSwipeRight && currentEventId.value !== null) {
-            // Add to favorites on right swipe
-            runOnJS(handleSwipeRight)(currentEventId.value);
-          }
           runOnJS(handleVote)(isSwipeRight);
         }
       );
@@ -357,8 +276,7 @@ export default function RoomMatching() {
   // Reset card position when moving to next card
   useEffect(() => {
     translateX.value = 0;
-    setNextIndex(currentIndex + 1);
-  }, [currentIndex, translateX]);
+  }, [translateX]);
 
   // Like/dislike overlay animations
   const likeStyle = useAnimatedStyle(() => ({
@@ -395,61 +313,14 @@ export default function RoomMatching() {
     router.back();
   };
 
-  useEffect(() => {
-    const checkWelcome = async () => {
-      await AsyncStorage.removeItem('hasSeenWelcome');
-      const hasSeenWelcome = await AsyncStorage.getItem('hasSeenWelcome');
-      if (!hasSeenWelcome) {
-        setShowWelcome(true);
-      }
-    };
-
-    checkWelcome();
-  }, []);
-
   // Show loading screen
   if (loading) {
     return (
       <View style={styles.pageContainer}>
         <ActivityIndicator size='large' color={colors.primary} />
         <Text style={{ marginTop: 20, color: colors.text }}>
-          Loading recommendations...
+          Loading Event...
         </Text>
-      </View>
-    );
-  }
-
-  // Show error screen
-  if (error) {
-    return (
-      <View style={styles.pageContainer}>
-        <Text style={{ color: colors.error, marginBottom: 20 }}>{error}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={fetchRecommendedEvents}
-        >
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  // No more events to show
-  if (currentIndex >= events.length) {
-    return (
-      <View style={styles.pageContainer}>
-        <Text style={{ fontSize: 18, textAlign: 'center', margin: 20 }}>
-          No more events to display!
-        </Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => {
-            setCurrentIndex(0);
-            fetchRecommendedEvents();
-          }}
-        >
-          <Text style={styles.retryButtonText}>Find more events</Text>
-        </TouchableOpacity>
       </View>
     );
   }
@@ -459,7 +330,7 @@ export default function RoomMatching() {
       <View style={styles.pageContainer}>
         {/* Leave Room Button */}
         <TouchableOpacity style={styles.leaveButton} onPress={handleLeaveRoom}>
-          <Icon name='close' size={24} color='white' />
+          <Ionicons name='close' size={24} color='white' />
         </TouchableOpacity>
 
         {/* Countdown Timer */}
@@ -470,18 +341,6 @@ export default function RoomMatching() {
           <Text style={styles.timeText}>
             {timeRemaining}s remaining to vote
           </Text>
-        </View>
-
-        {/* Next card (shown behind current) */}
-        <View style={styles.nextCardContainer}>
-          {nextEvent && (
-            <Animated.View style={[styles.animatedCard, nextCardStyle]}>
-              <Card
-                event={nextEvent}
-                onInfoPress={() => handleInfoButtonPress(nextEvent)}
-              />
-            </Animated.View>
-          )}
         </View>
 
         {/* Current card with swipe gestures */}
@@ -498,8 +357,8 @@ export default function RoomMatching() {
               resizeMode='stretch'
             />
             <Card
-              event={currentEvent}
-              onInfoPress={() => handleInfoButtonPress(currentEvent)}
+              event={currentEvent!}
+              onInfoPress={() => handleInfoButtonPress(currentEvent!)}
             />
           </Animated.View>
         </PanGestureHandler>
@@ -507,7 +366,7 @@ export default function RoomMatching() {
         {/* Event detail modal */}
         <EventDetailModal
           visible={detailModalVisible}
-          event={currentEvent}
+          event={currentEvent!}
           onClose={() => {
             setSelectedEventDetail(null);
             setDetailModalVisible(false);
@@ -519,7 +378,7 @@ export default function RoomMatching() {
           <View style={styles.resultsModal}>
             <View style={styles.resultsContainer}>
               {votesCount.yes === SIMULATED_USERS ? (
-                <Text style={styles.matchText}>It's a Match!</Text>
+                <Text style={styles.matchText}>It&apos;s a Match!</Text>
               ) : (
                 <>
                   <Text style={styles.resultsTitle}>Voting Results</Text>
@@ -541,7 +400,6 @@ export default function RoomMatching() {
           </View>
         </Modal>
       </View>
-      <Welcome visible={showWelcome} onClose={() => setShowWelcome(false)} />
     </GestureHandlerRootView>
   );
 }
