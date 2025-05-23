@@ -17,12 +17,14 @@ import {
   ImageBackground,
   StatusBar,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
 
 import { useAuth } from '@context/authContext';
 import { login, register } from '@services/AuthService';
@@ -30,6 +32,8 @@ import { colors, spacing } from '@styles/globalStyles';
 
 import { GoogleSignInButton } from './components/GoogleSignInButton';
 import { PasswordResetForm } from './components/PasswordResetForm';
+
+const { height: screenHeight } = Dimensions.get('window');
 
 export default function RegisterLoginPage() {
   const router = useRouter();
@@ -40,13 +44,57 @@ export default function RegisterLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
 
   const toggleResetPassword = () => {
     setShowResetPassword(!showResetPassword);
-    setErrorMessage('');
+  };
+
+  const showErrorToast = (message: string) => {
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: message,
+      visibilityTime: 4000,
+      autoHide: true,
+      topOffset: Platform.OS === 'ios' ? 60 : 40,
+      position: 'top',
+      text1Style: {
+        fontSize: 18,
+        fontWeight: 'bold',
+      },
+      text2Style: {
+        fontSize: 12, // Slightly smaller font
+        fontWeight: '500',
+        lineHeight: 18, // Better line spacing
+        textAlign: 'left', // Ensure proper alignment
+      },
+      swipeable: true, // Allow swipe to dismiss
+    });
+  };
+
+  const showSuccessToast = (message: string) => {
+    Toast.show({
+      type: 'success',
+      text1: 'Éxito',
+      text2: message,
+      visibilityTime: 3000,
+      autoHide: true,
+      topOffset: Platform.OS === 'ios' ? 60 : 40,
+      position: 'top',
+      text1Style: {
+        fontSize: 18,
+        fontWeight: 'bold',
+      },
+      text2Style: {
+        fontSize: 12, // Slightly smaller font
+        fontWeight: '500',
+        lineHeight: 18, // Better line spacing
+        textAlign: 'left', // Ensure proper alignment
+      },
+      swipeable: true, // Allow swipe to dismiss
+    });
   };
 
   // Improved animated styles
@@ -98,11 +146,10 @@ export default function RegisterLoginPage() {
     return re.test(email);
   };
 
+  // ...existing code...
   const handleLogin = async () => {
-    setErrorMessage('');
-
     if (!username || !password) {
-      setErrorMessage(
+      showErrorToast(
         t('auth.completeFields') || 'Por favor, completa todos los campos'
       );
       return;
@@ -114,47 +161,67 @@ export default function RegisterLoginPage() {
 
       if (response.token) {
         await auth.login(response.token, response.user);
+        showSuccessToast('Sesión iniciada correctamente');
         router.replace('/(tabs)/main');
       } else {
-        setErrorMessage(
+        showErrorToast(
           t('auth.noTokenReceived') || 'No se recibió un token de autenticación'
         );
       }
     } catch (error) {
-      if ((error as any).response?.data?.message) {
-        setErrorMessage((error as any).response.data.message);
-      } else if ((error as any).message) {
-        setErrorMessage((error as any).message);
+      // Handle errors from AuthService - these are plain Error objects
+      if (error instanceof Error) {
+        // Check if it's a 404 error based on the message
+        if (error.message.includes('404')) {
+          showErrorToast(
+            t('auth.userNotFound') || 'Usuario o contraseña incorrectos'
+          );
+        } else if (error.message.includes('401')) {
+          showErrorToast(
+            t('auth.invalidCredentials') || 'Credenciales inválidas'
+          );
+        } else if (error.message.includes('403')) {
+          showErrorToast(
+            t('auth.accountBlocked') || 'Cuenta bloqueada o sin permisos'
+          );
+        } else if (error.message.includes('500')) {
+          showErrorToast(
+            t('auth.serverError') || 'Error del servidor. Inténtalo más tarde'
+          );
+        } else {
+          // Use the actual error message from the server
+          showErrorToast(error.message);
+        }
       } else {
-        setErrorMessage(
+        // Fallback for unknown error types
+        showErrorToast(
           t('auth.loginError') || 'Error al iniciar sesión. Inténtalo de nuevo.'
         );
       }
-      console.error(error);
+      console.error('Login error:', error);
     } finally {
       setLoading(false);
     }
   };
+  // ...existing code...
 
   const handleRegister = async () => {
-    setErrorMessage('');
-
     if (!username || !email || !password) {
-      setErrorMessage(
+      showErrorToast(
         t('auth.completeFields') || 'Por favor, completa todos los campos'
       );
       return;
     }
 
     if (!validateEmail(email)) {
-      setErrorMessage(
+      showErrorToast(
         t('auth.invalidEmail') || 'Por favor, introduce un email válido'
       );
       return;
     }
 
     if (password.length < 3) {
-      setErrorMessage(
+      showErrorToast(
         t('auth.passwordLength') ||
           'La contraseña debe tener al menos 3 caracteres'
       );
@@ -170,17 +237,29 @@ export default function RegisterLoginPage() {
         await auth.login(response.token, response.user);
       }
 
+      showSuccessToast('Cuenta creada exitosamente');
       router.replace('/(tabs)/main');
     } catch (error) {
-      if ((error as any).response?.data?.message) {
-        setErrorMessage((error as any).response.data.message);
+      // Manejo específico para errores de registro
+      if ((error as any).response?.status === 409) {
+        showErrorToast(t('auth.userExists') || 'El usuario o email ya existe');
+      } else if ((error as any).response?.status === 400) {
+        showErrorToast(
+          t('auth.badRequest') || 'Datos inválidos. Verifica la información'
+        );
+      } else if ((error as any).response?.status === 500) {
+        showErrorToast(
+          t('auth.serverError') || 'Error del servidor. Inténtalo más tarde'
+        );
+      } else if ((error as any).response?.data?.message) {
+        showErrorToast((error as any).response.data.message);
       } else {
-        setErrorMessage(
+        showErrorToast(
           t('auth.registerError') ||
             'Error al registrar usuario. Inténtalo de nuevo.'
         );
       }
-      console.error(error);
+      console.error('Register error:', error);
     } finally {
       setLoading(false);
     }
@@ -191,7 +270,6 @@ export default function RegisterLoginPage() {
     setUsername('');
     setEmail('');
     setPassword('');
-    setErrorMessage('');
   };
 
   if (showResetPassword) {
@@ -207,37 +285,13 @@ export default function RegisterLoginPage() {
         ]}
       >
         <PasswordResetForm onBackToLogin={toggleResetPassword} />
+        <Toast />
       </View>
     );
   }
 
-  const renderErrorMessage = () => {
-    if (!errorMessage) {
-      return null;
-    }
-    if (showResetPassword) {
-      return (
-        <View style={[styles.container, { backgroundColor: '#f5f5f5' }]}>
-          <View style={{ width: '100%', maxWidth: 400, padding: spacing.lg }}>
-            <PasswordResetForm onBackToLogin={toggleResetPassword} />
-          </View>
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.errorContainer}>
-        <Ionicons name='alert-circle-outline' size={18} color={colors.error} />
-        <Text style={styles.errorText}>{errorMessage}</Text>
-      </View>
-    );
-  };
-
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <StatusBar
         barStyle='light-content'
         translucent
@@ -254,246 +308,257 @@ export default function RegisterLoginPage() {
           end={{ x: 1, y: 1 }}
           style={styles.overlay}
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContainer}
-            keyboardShouldPersistTaps='handled'
-            showsVerticalScrollIndicator={false}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardContainer}
           >
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>Agendados</Text>
-            </View>
-
-            {/* Título animado según el formulario activo */}
-            <Animated.Text
-              style={[
-                styles.title,
-                {
-                  opacity: showLogin ? 1 : 0,
-                  display: showLogin ? 'flex' : 'none',
-                },
-              ]}
+            <ScrollView
+              contentContainerStyle={styles.scrollContainer}
+              keyboardShouldPersistTaps='handled'
+              showsVerticalScrollIndicator={false}
+              bounces={false}
             >
-              {t('auth.login') || 'Iniciar Sesión'}
-            </Animated.Text>
+              <View style={styles.logoContainer}>
+                <Text style={styles.logoText}>Agendados</Text>
+              </View>
 
-            <Animated.Text
-              style={[
-                styles.title,
-                {
-                  opacity: showLogin ? 0 : 1,
-                  display: showLogin ? 'none' : 'flex',
-                },
-              ]}
-            >
-              {t('auth.register') || 'Crear Cuenta'}
-            </Animated.Text>
-
-            {/* Contenedor de formularios */}
-            <View style={styles.formsContainer}>
-              {/* Formulario de Login */}
-              <Animated.View style={[styles.formCard, loginFormStyle]}>
-                {renderErrorMessage()}
-
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name='person-outline'
-                    size={22}
-                    color={colors.primary}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('auth.username') || 'Nombre de usuario'}
-                    placeholderTextColor='#999'
-                    value={username}
-                    onChangeText={setUsername}
-                    autoCapitalize='none'
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name='lock-closed-outline'
-                    size={22}
-                    color={colors.primary}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={[styles.input, { paddingRight: 40 }]}
-                    placeholder={t('auth.password') || 'Contraseña'}
-                    placeholderTextColor='#999'
-                    secureTextEntry={!showPassword}
-                    value={password}
-                    onChangeText={setPassword}
-                  />
-                  <TouchableOpacity
-                    style={styles.passwordToggle}
-                    onPress={() => setShowPassword(!showPassword)}
-                  >
-                    <Ionicons
-                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                      size={22}
-                      color='#999'
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.forgotPassword}
-                  onPress={toggleResetPassword}
-                >
-                  <Text
-                    style={[styles.forgotPasswordText, { textAlign: 'center' }]}
-                  >
-                    {t('auth.forgotPassword') || '¿Olvidaste tu contraseña?'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.button, loading && { opacity: 0.7 }]}
-                  onPress={handleLogin}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator size='small' color='#fff' />
-                  ) : (
-                    <Text style={styles.buttonText}>
-                      {t('auth.loginButton') || 'Entrar'}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-
-                <View style={styles.dividerContainer}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>
-                    {t('auth.orContinueWith') || 'O continúa con'}
-                  </Text>
-                  <View style={styles.dividerLine} />
-                </View>
-
-                <GoogleSignInButton
-                  onSuccess={() => router.replace('/(tabs)/main')}
-                  onError={(error) =>
-                    setErrorMessage(
-                      error?.message ?? 'Error al iniciar sesión con Google'
-                    )
-                  }
-                />
-              </Animated.View>
-
-              {/* Formulario de Registro */}
-              <Animated.View style={[styles.formCard, registerFormStyle]}>
-                {renderErrorMessage()}
-
-                {/* Username Input */}
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name='person-outline'
-                    size={22}
-                    color={colors.primary}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('auth.username') || 'Nombre de usuario'}
-                    placeholderTextColor='#999'
-                    autoCapitalize='none'
-                    value={username}
-                    onChangeText={setUsername}
-                    editable={!loading}
-                  />
-                </View>
-
-                {/* Email Input */}
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name='mail-outline'
-                    size={22}
-                    color={colors.primary}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('auth.email') || 'Correo electrónico'}
-                    placeholderTextColor='#999'
-                    autoCapitalize='none'
-                    keyboardType='email-address'
-                    value={email}
-                    onChangeText={setEmail}
-                    editable={!loading}
-                  />
-                </View>
-
-                {/* Password Input */}
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name='lock-closed-outline'
-                    size={22}
-                    color={colors.primary}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('auth.password') || 'Contraseña'}
-                    placeholderTextColor='#999'
-                    autoCapitalize='none'
-                    secureTextEntry={!showPassword}
-                    value={password}
-                    onChangeText={setPassword}
-                    editable={!loading}
-                  />
-                  <TouchableOpacity
-                    style={styles.passwordToggle}
-                    onPress={() => setShowPassword(!showPassword)}
-                  >
-                    <Ionicons
-                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                      size={22}
-                      color='#999'
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={handleRegister}
-                  disabled={loading}
-                  activeOpacity={0.85}
-                >
-                  {loading ? (
-                    <ActivityIndicator color='#fff' />
-                  ) : (
-                    <Text style={styles.buttonText}>
-                      {t('auth.register') || 'Registrarse'}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
-            </View>
-
-            {/* Toggle Container */}
-            <View style={styles.toggleContainer}>
-              <Text style={styles.toggleText}>
-                {showLogin
-                  ? t('auth.noAccount') || '¿No tienes cuenta?'
-                  : t('auth.haveAccount') || '¿Ya tienes cuenta?'}
-              </Text>
-              <TouchableOpacity
-                style={styles.toggleButton}
-                onPress={toggleForm}
-                disabled={loading}
+              {/* Título animado según el formulario activo */}
+              <Animated.Text
+                style={[
+                  styles.title,
+                  {
+                    opacity: showLogin ? 1 : 0,
+                    display: showLogin ? 'flex' : 'none',
+                  },
+                ]}
               >
-                <Text style={styles.toggleButtonText}>
+                {t('auth.login') || 'Iniciar Sesión'}
+              </Animated.Text>
+
+              <Animated.Text
+                style={[
+                  styles.title,
+                  {
+                    opacity: showLogin ? 0 : 1,
+                    display: showLogin ? 'none' : 'flex',
+                  },
+                ]}
+              >
+                {t('auth.register') || 'Crear Cuenta'}
+              </Animated.Text>
+
+              {/* Contenedor de formularios */}
+              <View style={styles.formsContainer}>
+                {/* Formulario de Login */}
+                <Animated.View style={[styles.formCard, loginFormStyle]}>
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name='person-outline'
+                      size={22}
+                      color={colors.primary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder={t('auth.username') || 'Nombre de usuario'}
+                      placeholderTextColor='#999'
+                      value={username}
+                      onChangeText={setUsername}
+                      autoCapitalize='none'
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name='lock-closed-outline'
+                      size={22}
+                      color={colors.primary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={[styles.input, { paddingRight: 40 }]}
+                      placeholder={t('auth.password') || 'Contraseña'}
+                      placeholderTextColor='#999'
+                      secureTextEntry={!showPassword}
+                      value={password}
+                      onChangeText={setPassword}
+                    />
+                    <TouchableOpacity
+                      style={styles.passwordToggle}
+                      onPress={() => setShowPassword(!showPassword)}
+                    >
+                      <Ionicons
+                        name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                        size={22}
+                        color='#999'
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.forgotPassword}
+                    onPress={toggleResetPassword}
+                  >
+                    <Text
+                      style={[
+                        styles.forgotPasswordText,
+                        { textAlign: 'center' },
+                      ]}
+                    >
+                      {t('auth.forgotPassword') || '¿Olvidaste tu contraseña?'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.button, loading && { opacity: 0.7 }]}
+                    onPress={handleLogin}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size='small' color='#fff' />
+                    ) : (
+                      <Text style={styles.buttonText}>
+                        {t('auth.loginButton') || 'Entrar'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  <View style={styles.dividerContainer}>
+                    <View style={styles.dividerLine} />
+                    <Text style={styles.dividerText}>
+                      {t('auth.orContinueWith') || 'O continúa con'}
+                    </Text>
+                    <View style={styles.dividerLine} />
+                  </View>
+
+                  <GoogleSignInButton
+                    onSuccess={() => {
+                      showSuccessToast('Sesión iniciada con Google');
+                      router.replace('/(tabs)/main');
+                    }}
+                    onError={(error) =>
+                      showErrorToast(
+                        error?.message ?? 'Error al iniciar sesión con Google'
+                      )
+                    }
+                  />
+                </Animated.View>
+
+                {/* Formulario de Registro */}
+                <Animated.View style={[styles.formCard, registerFormStyle]}>
+                  {/* Username Input */}
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name='person-outline'
+                      size={22}
+                      color={colors.primary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder={t('auth.username') || 'Nombre de usuario'}
+                      placeholderTextColor='#999'
+                      autoCapitalize='none'
+                      value={username}
+                      onChangeText={setUsername}
+                      editable={!loading}
+                    />
+                  </View>
+
+                  {/* Email Input */}
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name='mail-outline'
+                      size={22}
+                      color={colors.primary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder={t('auth.email') || 'Correo electrónico'}
+                      placeholderTextColor='#999'
+                      autoCapitalize='none'
+                      keyboardType='email-address'
+                      value={email}
+                      onChangeText={setEmail}
+                      editable={!loading}
+                    />
+                  </View>
+
+                  {/* Password Input */}
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name='lock-closed-outline'
+                      size={22}
+                      color={colors.primary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder={t('auth.password') || 'Contraseña'}
+                      placeholderTextColor='#999'
+                      autoCapitalize='none'
+                      secureTextEntry={!showPassword}
+                      value={password}
+                      onChangeText={setPassword}
+                      editable={!loading}
+                    />
+                    <TouchableOpacity
+                      style={styles.passwordToggle}
+                      onPress={() => setShowPassword(!showPassword)}
+                    >
+                      <Ionicons
+                        name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                        size={22}
+                        color='#999'
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleRegister}
+                    disabled={loading}
+                    activeOpacity={0.85}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color='#fff' />
+                    ) : (
+                      <Text style={styles.buttonText}>
+                        {t('auth.register') || 'Registrarse'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </Animated.View>
+              </View>
+
+              {/* Toggle Container */}
+              <View style={styles.toggleContainer}>
+                <Text style={styles.toggleText}>
                   {showLogin
-                    ? t('auth.registerNow') || 'Regístrate'
-                    : t('auth.loginNow') || 'Inicia sesión'}
+                    ? t('auth.noAccount') || '¿No tienes cuenta?'
+                    : t('auth.haveAccount') || '¿Ya tienes cuenta?'}
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
+                <TouchableOpacity
+                  style={styles.toggleButton}
+                  onPress={toggleForm}
+                  disabled={loading}
+                >
+                  <Text style={styles.toggleButtonText}>
+                    {showLogin
+                      ? t('auth.registerNow') || 'Regístrate'
+                      : t('auth.loginNow') || 'Inicia sesión'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </LinearGradient>
       </ImageBackground>
-    </KeyboardAvoidingView>
+
+      {/* Toast Component */}
+      <Toast />
+    </View>
   );
 }
 
@@ -505,10 +570,20 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     width: '100%',
+    height: screenHeight,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   overlay: {
     flex: 1,
     width: '100%',
+    height: '100%',
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   scrollContainer: {
     alignItems: 'center',
@@ -518,6 +593,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: Platform.OS === 'ios' ? 60 : spacing.xl * 2,
     width: '100%',
+    minHeight: screenHeight,
   },
   logoContainer: {
     alignItems: 'center',
@@ -545,7 +621,7 @@ const styles = StyleSheet.create({
   formsContainer: {
     position: 'relative',
     width: '90%',
-    height: 350, // Fixed height to avoid layout shifts
+    height: 350,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -560,21 +636,6 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
     elevation: 8,
     alignItems: 'center',
-  },
-  errorContainer: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(209, 17, 73, 0.1)',
-    borderRadius: 8,
-    flexDirection: 'row',
-    marginBottom: spacing.md,
-    padding: spacing.sm,
-    width: '100%',
-  },
-  errorText: {
-    color: colors.error,
-    flex: 1,
-    fontSize: 14,
-    marginLeft: 5,
   },
   inputContainer: {
     flexDirection: 'row',

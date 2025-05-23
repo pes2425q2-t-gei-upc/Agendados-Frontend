@@ -1,4 +1,3 @@
-// app/friends/index.tsx
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState, useEffect } from 'react';
@@ -12,6 +11,8 @@ import {
   Alert,
   RefreshControl,
   FlatList,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 
 import { colors, spacing } from '../../styles/globalStyles';
@@ -39,7 +40,6 @@ export default function FriendsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [processingIds, setProcessingIds] = useState<number[]>([]);
 
-  // Efecto para depuración
   useEffect(() => {
     console.log('FriendsScreen: Amigos actuales:', friends.length);
     console.log(
@@ -48,7 +48,6 @@ export default function FriendsScreen() {
     );
   }, [friends, pendingRequests]);
 
-  // Función para refrescar los datos
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
@@ -60,12 +59,10 @@ export default function FriendsScreen() {
     }
   };
 
-  // Navegar a la pantalla de añadir amigos
   const navigateToAddFriend = () => {
     router.push('/friends/add');
   };
 
-  // Manejar la eliminación de un amigo
   const handleRemoveFriend = async (friendshipId: number) => {
     try {
       const success = await removeFriend(friendshipId);
@@ -78,12 +75,10 @@ export default function FriendsScreen() {
     }
   };
 
-  // Aceptar una solicitud de amistad
   const handleAcceptRequest = async (friendshipId: number) => {
     if (processingIds.includes(friendshipId)) {
       return;
     }
-
     setProcessingIds((prev) => [...prev, friendshipId]);
     try {
       const success = await acceptFriendRequest(friendshipId);
@@ -98,12 +93,10 @@ export default function FriendsScreen() {
     }
   };
 
-  // Rechazar una solicitud de amistad
   const handleRejectRequest = async (friendshipId: number) => {
     if (processingIds.includes(friendshipId)) {
       return;
     }
-
     setProcessingIds((prev) => [...prev, friendshipId]);
     try {
       const success = await rejectFriendRequest(friendshipId);
@@ -118,14 +111,11 @@ export default function FriendsScreen() {
     }
   };
 
-  // Renderizar una solicitud pendiente
   const renderRequestItem = ({ item }: { item: Friendship }) => {
-    // Asegurarse de que haya un usuario remitente
     if (!item.user) {
       console.log('Solicitud sin usuario remitente:', item);
       return null;
     }
-
     const friendInfo = item.user;
     const friendName = friendInfo.name ?? friendInfo.username ?? 'Usuario';
     const isProcessing = processingIds.includes(item.id);
@@ -168,110 +158,135 @@ export default function FriendsScreen() {
     );
   };
 
+  // Header personalizado
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name='chevron-back' size={24} color={colors.text} />
+      </TouchableOpacity>
+      <View style={styles.headerTitleContainer}>
+        <Text style={styles.headerTitle}>
+          {showingRequests ? t('friends.pendingRequests') : t('friends.title')}
+        </Text>
+        <Text style={styles.headerSubtitle}>
+          {showingRequests
+            ? `${pendingRequests.length} ${t('friends.pending')}`
+            : `${friends.length} ${t('friends.total')}`}
+        </Text>
+      </View>
+      <TouchableOpacity
+        style={styles.headerActionButton}
+        onPress={navigateToAddFriend}
+      >
+        <Ionicons name='person-add' size={24} color={colors.primary} />
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <ProtectedRoute>
-      <View style={styles.container}>
-        {/* Tab selector para Amigos/Solicitudes */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, !showingRequests && styles.activeTab]}
-            onPress={() => setShowingRequests(false)}
-          >
-            <Text
-              style={[styles.tabText, !showingRequests && styles.activeTabText]}
-            >
-              {t('friends.title')}
-            </Text>
-            {friends.length > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{friends.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, showingRequests && styles.activeTab]}
-            onPress={() => setShowingRequests(true)}
-          >
-            <Text
-              style={[styles.tabText, showingRequests && styles.activeTabText]}
-            >
-              {t('friends.pendingRequests')}
-            </Text>
-            {pendingRequests.length > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{pendingRequests.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Botón Añadir Amigo */}
-        <TouchableOpacity
-          style={styles.addFriendButton}
-          onPress={navigateToAddFriend}
-        >
-          <Ionicons
-            name='person-add-outline'
-            size={20}
-            color={colors.lightText}
-          />
-          <Text style={styles.addFriendText}>{t('friends.addFriend')}</Text>
-        </TouchableOpacity>
-
-        {errorMessage ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{errorMessage}</Text>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar
+          barStyle='dark-content'
+          backgroundColor={colors.background}
+        />
+        {renderHeader()}
+        <View style={styles.container}>
+          <View style={styles.tabContainer}>
             <TouchableOpacity
-              style={styles.retryButton}
-              onPress={refreshFriends}
+              style={[styles.tab, !showingRequests && styles.activeTab]}
+              onPress={() => setShowingRequests(false)}
             >
-              <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  !showingRequests && styles.activeTabText,
+                ]}
+              >
+                {t('friends.friends')}
+              </Text>
+              {friends.length > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{friends.length}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, showingRequests && styles.activeTab]}
+              onPress={() => setShowingRequests(true)}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  showingRequests && styles.activeTabText,
+                ]}
+              >
+                {t('friends.requests')}
+              </Text>
+              {pendingRequests.length > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{pendingRequests.length}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
-        ) : showingRequests ? (
-          // Lista de solicitudes pendientes
-          <FlatList
-            data={pendingRequests}
-            renderItem={renderRequestItem}
-            keyExtractor={(item) => item.id.toString()}
-            ListEmptyComponent={
-              loadingFriends ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size='large' color={colors.primary} />
-                  <Text style={styles.loadingText}>{t('common.loading')}</Text>
-                </View>
-              ) : (
-                <View style={styles.emptyContainer}>
-                  <Ionicons
-                    name='people-outline'
-                    size={60}
-                    color={colors.border}
-                  />
-                  <Text style={styles.emptyText}>
-                    {t('friends.noPendingRequests')}
-                  </Text>
-                </View>
-              )
-            }
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-          />
-        ) : (
-          // Lista de amigos usando el componente FriendsList
-          <FriendsList
-            friends={friends}
-            isLoading={loadingFriends}
-            isRefreshing={refreshing}
-            onRefresh={handleRefresh}
-            onRemoveFriend={handleRemoveFriend}
-            emptyMessage={t('friends.noFriends')}
-          />
-        )}
-      </View>
+          {errorMessage ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{errorMessage}</Text>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={refreshFriends}
+              >
+                <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : showingRequests ? (
+            <FlatList
+              data={pendingRequests}
+              renderItem={renderRequestItem}
+              keyExtractor={(item) => item.id.toString()}
+              ListEmptyComponent={
+                loadingFriends ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size='large' color={colors.primary} />
+                    <Text style={styles.loadingText}>
+                      {t('common.loading')}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.emptyContainer}>
+                    <Ionicons
+                      name='people-outline'
+                      size={60}
+                      color={colors.border}
+                    />
+                    <Text style={styles.emptyText}>
+                      {t('friends.noPendingRequests')}
+                    </Text>
+                  </View>
+                )
+              }
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                />
+              }
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContainer}
+            />
+          ) : (
+            <FriendsList
+              friends={friends}
+              isLoading={loadingFriends}
+              isRefreshing={refreshing}
+              onRefresh={handleRefresh}
+              onRemoveFriend={handleRemoveFriend}
+              emptyMessage={t('friends.noFriends')}
+            />
+          )}
+        </View>
+      </SafeAreaView>
     </ProtectedRoute>
   );
 }
@@ -286,20 +301,10 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: colors.lightText,
   },
-  addFriendButton: {
-    alignItems: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-    paddingVertical: 12,
-  },
-  addFriendText: {
-    color: colors.lightText,
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
+  backButton: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 20,
+    padding: 8,
   },
   badge: {
     backgroundColor: colors.error,
@@ -316,7 +321,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.background,
     flex: 1,
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -355,6 +361,44 @@ const styles = StyleSheet.create({
   friendUsername: {
     color: colors.textSecondary,
     fontSize: 14,
+  },
+  header: {
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    elevation: 2,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  headerActionButton: {
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 20,
+    padding: 8,
+  },
+  headerSubtitle: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  headerTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  headerTitleContainer: {
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: spacing.md,
+  },
+  listContainer: {
+    flexGrow: 1,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -412,6 +456,10 @@ const styles = StyleSheet.create({
     color: colors.lightText,
     fontSize: 14,
     fontWeight: '500',
+  },
+  safeArea: {
+    backgroundColor: colors.background,
+    flex: 1,
   },
   tab: {
     alignItems: 'center',
