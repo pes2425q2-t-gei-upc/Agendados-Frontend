@@ -46,7 +46,13 @@
     "registerNow": "Register now",
     "haveAccount": "Already have an account?",
     "loginNow": "Login now",
-    "orContinuewith": "or continue with"
+    "orContinueWith": "or continue with",
+    "userNotFound": "Usuario o contraseña incorrectos",
+    "invalidCredentials": "Credenciales inválidas",
+    "accountBlocked": "Cuenta bloqueada o sin permisos",
+    "serverError": "Error del servidor. Inténtalo más tarde",
+    "userExists": "El usuario o email ya existe",
+    "badRequest": "Datos inválidos. Verifica la información"
   },
   "explore": {
     "search": {

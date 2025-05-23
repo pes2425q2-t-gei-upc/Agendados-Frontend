@@ -19,9 +19,7 @@ import {
 import MapView, { Marker, Region } from 'react-native-maps';
 import Supercluster from 'supercluster';
 
-
 import type { Event as EventModel } from '@models/Event';
-
 import { INITIAL_REGION } from 'app/constants/exploreConstants';
 
 import { EventMarker } from './EventMarker';

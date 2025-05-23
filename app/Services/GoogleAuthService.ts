@@ -131,7 +131,7 @@ export const useGoogleAuth = () => {
               'Google Play Services no está disponible o actualizado';
             break;
           default:
-            errorMessage = `Error en la autenticación de Google (${error.code})`;
+            errorMessage = 'Error en la autenticación de Google';
         }
       } else if (error.message) {
         errorMessage = error.message;
