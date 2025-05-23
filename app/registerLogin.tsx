@@ -22,14 +22,14 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
-  interpolate,
 } from 'react-native-reanimated';
 
 import { useAuth } from '@context/authContext';
 import { login, register } from '@services/AuthService';
-import { PasswordResetForm } from './components/PasswordResetForm';
-import { GoogleSignInButton } from './components/GoogleSignInButton';
 import { colors, spacing } from '@styles/globalStyles';
+
+import { GoogleSignInButton } from './components/GoogleSignInButton';
+import { PasswordResetForm } from './components/PasswordResetForm';
 
 export default function RegisterLoginPage() {
   const router = useRouter();
@@ -156,7 +156,7 @@ export default function RegisterLoginPage() {
     if (password.length < 3) {
       setErrorMessage(
         t('auth.passwordLength') ||
-        'La contraseña debe tener al menos 3 caracteres'
+          'La contraseña debe tener al menos 3 caracteres'
       );
       return;
     }
@@ -177,7 +177,7 @@ export default function RegisterLoginPage() {
       } else {
         setErrorMessage(
           t('auth.registerError') ||
-          'Error al registrar usuario. Inténtalo de nuevo.'
+            'Error al registrar usuario. Inténtalo de nuevo.'
         );
       }
       console.error(error);
@@ -196,14 +196,25 @@ export default function RegisterLoginPage() {
 
   if (showResetPassword) {
     return (
-      <View style={[styles.container, { backgroundColor: '#f5f5f5', justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: '#f5f5f5',
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        ]}
+      >
         <PasswordResetForm onBackToLogin={toggleResetPassword} />
       </View>
     );
   }
 
   const renderErrorMessage = () => {
-    if (!errorMessage) return null;
+    if (!errorMessage) {
+      return null;
+    }
     if (showResetPassword) {
       return (
         <View style={[styles.container, { backgroundColor: '#f5f5f5' }]}>
@@ -216,11 +227,7 @@ export default function RegisterLoginPage() {
 
     return (
       <View style={styles.errorContainer}>
-        <Ionicons
-          name="alert-circle-outline"
-          size={18}
-          color={colors.error}
-        />
+        <Ionicons name='alert-circle-outline' size={18} color={colors.error} />
         <Text style={styles.errorText}>{errorMessage}</Text>
       </View>
     );
@@ -232,14 +239,14 @@ export default function RegisterLoginPage() {
       style={styles.container}
     >
       <StatusBar
-        barStyle="light-content"
+        barStyle='light-content'
         translucent
-        backgroundColor="transparent"
+        backgroundColor='transparent'
       />
       <ImageBackground
         source={require('@assets/images/agendadosbg.png')}
         style={styles.background}
-        resizeMode="cover"
+        resizeMode='cover'
       >
         <LinearGradient
           colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.5)', colors.primaryDark]}
@@ -249,7 +256,7 @@ export default function RegisterLoginPage() {
         >
           <ScrollView
             contentContainerStyle={styles.scrollContainer}
-            keyboardShouldPersistTaps="handled"
+            keyboardShouldPersistTaps='handled'
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.logoContainer}>
@@ -257,19 +264,25 @@ export default function RegisterLoginPage() {
             </View>
 
             {/* Título animado según el formulario activo */}
-            <Animated.Text 
+            <Animated.Text
               style={[
-                styles.title, 
-                { opacity: showLogin ? 1 : 0, display: showLogin ? 'flex' : 'none' }
+                styles.title,
+                {
+                  opacity: showLogin ? 1 : 0,
+                  display: showLogin ? 'flex' : 'none',
+                },
               ]}
             >
               {t('auth.login') || 'Iniciar Sesión'}
             </Animated.Text>
-            
-            <Animated.Text 
+
+            <Animated.Text
               style={[
-                styles.title, 
-                { opacity: showLogin ? 0 : 1, display: showLogin ? 'none' : 'flex' }
+                styles.title,
+                {
+                  opacity: showLogin ? 0 : 1,
+                  display: showLogin ? 'none' : 'flex',
+                },
               ]}
             >
               {t('auth.register') || 'Crear Cuenta'}
@@ -283,7 +296,7 @@ export default function RegisterLoginPage() {
 
                 <View style={styles.inputContainer}>
                   <Ionicons
-                    name="person-outline"
+                    name='person-outline'
                     size={22}
                     color={colors.primary}
                     style={styles.inputIcon}
@@ -291,16 +304,16 @@ export default function RegisterLoginPage() {
                   <TextInput
                     style={styles.input}
                     placeholder={t('auth.username') || 'Nombre de usuario'}
-                    placeholderTextColor="#999"
+                    placeholderTextColor='#999'
                     value={username}
                     onChangeText={setUsername}
-                    autoCapitalize="none"
+                    autoCapitalize='none'
                   />
                 </View>
 
                 <View style={styles.inputContainer}>
                   <Ionicons
-                    name="lock-closed-outline"
+                    name='lock-closed-outline'
                     size={22}
                     color={colors.primary}
                     style={styles.inputIcon}
@@ -308,7 +321,7 @@ export default function RegisterLoginPage() {
                   <TextInput
                     style={[styles.input, { paddingRight: 40 }]}
                     placeholder={t('auth.password') || 'Contraseña'}
-                    placeholderTextColor="#999"
+                    placeholderTextColor='#999'
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
@@ -320,30 +333,29 @@ export default function RegisterLoginPage() {
                     <Ionicons
                       name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                       size={22}
-                      color="#999"
+                      color='#999'
                     />
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.forgotPassword}
                   onPress={toggleResetPassword}
                 >
-                  <Text style={[styles.forgotPasswordText, { textAlign: 'center' }]}>
+                  <Text
+                    style={[styles.forgotPasswordText, { textAlign: 'center' }]}
+                  >
                     {t('auth.forgotPassword') || '¿Olvidaste tu contraseña?'}
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[
-                    styles.button,
-                    loading && { opacity: 0.7 },
-                  ]}
+                  style={[styles.button, loading && { opacity: 0.7 }]}
                   onPress={handleLogin}
                   disabled={loading}
                 >
                   {loading ? (
-                    <ActivityIndicator size="small" color="#fff" />
+                    <ActivityIndicator size='small' color='#fff' />
                   ) : (
                     <Text style={styles.buttonText}>
                       {t('auth.loginButton') || 'Entrar'}
@@ -353,13 +365,19 @@ export default function RegisterLoginPage() {
 
                 <View style={styles.dividerContainer}>
                   <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>{t('auth.orContinueWith') || 'O continúa con'}</Text>
+                  <Text style={styles.dividerText}>
+                    {t('auth.orContinueWith') || 'O continúa con'}
+                  </Text>
                   <View style={styles.dividerLine} />
                 </View>
 
                 <GoogleSignInButton
                   onSuccess={() => router.replace('/(tabs)/main')}
-                  onError={(error) => setErrorMessage(error?.message || 'Error al iniciar sesión con Google')}
+                  onError={(error) =>
+                    setErrorMessage(
+                      error?.message ?? 'Error al iniciar sesión con Google'
+                    )
+                  }
                 />
               </Animated.View>
 
@@ -370,7 +388,7 @@ export default function RegisterLoginPage() {
                 {/* Username Input */}
                 <View style={styles.inputContainer}>
                   <Ionicons
-                    name="person-outline"
+                    name='person-outline'
                     size={22}
                     color={colors.primary}
                     style={styles.inputIcon}
@@ -378,8 +396,8 @@ export default function RegisterLoginPage() {
                   <TextInput
                     style={styles.input}
                     placeholder={t('auth.username') || 'Nombre de usuario'}
-                    placeholderTextColor="#999"
-                    autoCapitalize="none"
+                    placeholderTextColor='#999'
+                    autoCapitalize='none'
                     value={username}
                     onChangeText={setUsername}
                     editable={!loading}
@@ -389,7 +407,7 @@ export default function RegisterLoginPage() {
                 {/* Email Input */}
                 <View style={styles.inputContainer}>
                   <Ionicons
-                    name="mail-outline"
+                    name='mail-outline'
                     size={22}
                     color={colors.primary}
                     style={styles.inputIcon}
@@ -397,9 +415,9 @@ export default function RegisterLoginPage() {
                   <TextInput
                     style={styles.input}
                     placeholder={t('auth.email') || 'Correo electrónico'}
-                    placeholderTextColor="#999"
-                    autoCapitalize="none"
-                    keyboardType="email-address"
+                    placeholderTextColor='#999'
+                    autoCapitalize='none'
+                    keyboardType='email-address'
                     value={email}
                     onChangeText={setEmail}
                     editable={!loading}
@@ -409,7 +427,7 @@ export default function RegisterLoginPage() {
                 {/* Password Input */}
                 <View style={styles.inputContainer}>
                   <Ionicons
-                    name="lock-closed-outline"
+                    name='lock-closed-outline'
                     size={22}
                     color={colors.primary}
                     style={styles.inputIcon}
@@ -417,8 +435,8 @@ export default function RegisterLoginPage() {
                   <TextInput
                     style={styles.input}
                     placeholder={t('auth.password') || 'Contraseña'}
-                    placeholderTextColor="#999"
-                    autoCapitalize="none"
+                    placeholderTextColor='#999'
+                    autoCapitalize='none'
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
@@ -431,7 +449,7 @@ export default function RegisterLoginPage() {
                     <Ionicons
                       name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                       size={22}
-                      color="#999"
+                      color='#999'
                     />
                   </TouchableOpacity>
                 </View>
@@ -443,7 +461,7 @@ export default function RegisterLoginPage() {
                   activeOpacity={0.85}
                 >
                   {loading ? (
-                    <ActivityIndicator color="#fff" />
+                    <ActivityIndicator color='#fff' />
                   ) : (
                     <Text style={styles.buttonText}>
                       {t('auth.register') || 'Registrarse'}
