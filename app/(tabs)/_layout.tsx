@@ -55,6 +55,7 @@ export default function TabLayout() {
             width: SCREEN_WIDTH,
             alignItems: 'center',
             justifyContent: 'space-around',
+            paddingTop: 5,
           },
           tabBarLabelStyle: {
             fontSize: 12,

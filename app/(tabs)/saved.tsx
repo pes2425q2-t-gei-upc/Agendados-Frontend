@@ -189,9 +189,8 @@ export default function SavedEvents() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={globalStyles.container}>
-        <Text style={typography.title}>{t('saved.title')}</Text>
+    <GestureHandlerRootView style={styles.rootContainer}>
+      <View style={styles.container}>
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size='large' color={colors.primary} />
@@ -203,8 +202,9 @@ export default function SavedEvents() {
             renderItem={({ item }) => (
               <DateGroup group={item} onDeleteEvent={handleDeleteEvent} />
             )}
-            keyExtractor={(item, index) => `${item.date}-${index}`} // Unique key using date and index
+            keyExtractor={(item, index) => `${item.date}-${index}`}
             style={styles.scrollContainer}
+            contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             removeClippedSubviews={true}
             initialNumToRender={10}
@@ -225,8 +225,13 @@ export default function SavedEvents() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+  },
   dateGroup: {
-    marginBottom: 30,
+    marginBottom: spacing.lg,
   },
   dateText: {
     color: colors.textSecondary,
@@ -257,9 +262,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: spacing.sm,
   },
+  rootContainer: {
+    backgroundColor: colors.background,
+    flex: 1,
+  },
   scrollContainer: {
     flex: 1,
-    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: spacing.xl,
   },
   todayText: {
     color: colors.primary,
