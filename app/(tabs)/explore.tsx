@@ -49,7 +49,7 @@ export default function Explore() {
 
   const mapRef = useRef<MapViewType>(null);
   const isMapReady = useRef(false);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<number | null>(null);
   const [inputText, setInputText] = useState('');
 
   const [userLocation, setUserLocation] = useState<{
@@ -62,7 +62,7 @@ export default function Explore() {
   const [, setRegion] = useState(INITIAL_REGION);
 
   const prevZoom = useRef(getZoomFromLatDelta(INITIAL_REGION.latitudeDelta));
-  const [clusteringEnabled, setClusteringEnabled] = useState(true);
+  const [, setClusteringEnabled] = useState(true);
   const previousClusteringState = useRef(true);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -457,11 +457,9 @@ export default function Explore() {
       <StatusBar translucent backgroundColor='transparent' />
 
       <MapContainer
-        mapRef={mapRef}
-        clusteringEnabled={clusteringEnabled}
+        ref={mapRef}
         locationPermission={locationPermission}
-        userLocation={userLocation}
-        visibleMarkers={visibleMarkers}
+        visibleMarkers={filteredMarkers}
         onRegionChangeComplete={handleRegionChangeComplete}
         onMapReady={handleMapReady}
         onMarkerPress={openDetailModal}
