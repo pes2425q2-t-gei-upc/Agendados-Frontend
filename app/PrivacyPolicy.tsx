@@ -1,11 +1,23 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
+
 import { colors, spacing } from '@styles/globalStyles';
 
 const PrivacyPolicy = () => {
   const { t } = useTranslation();
+  const navigation = useNavigation();
+
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
 
   const renderListItem = (text: string) => (
     <View style={styles.listItem}>
@@ -16,6 +28,11 @@ const PrivacyPolicy = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Back Button */}
+      <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+        <Text style={styles.backButtonText}>← {t('common.back', 'Atrás')}</Text>
+      </TouchableOpacity>
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>{t('privacyPolicy.title')}</Text>
@@ -338,6 +355,22 @@ const PrivacyPolicy = () => {
 };
 
 const styles = StyleSheet.create({
+  backButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.background || '#f8f9fa',
+    borderColor: colors.border || '#e0e0e0',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: spacing.lg,
+    marginTop: 50,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  backButtonText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '500',
+  },
   bullet: {
     color: colors.primary,
     fontSize: 15,

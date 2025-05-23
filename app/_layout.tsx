@@ -67,10 +67,13 @@ export default function RootLayout() {
                   <Stack.Screen
                     name='PrivacyPolicy'
                     options={{
-                      headerShown: true,
-                      title: 'Política de privacidad',
-                      animation: 'slide_from_right',
-                      presentation: 'card',
+                      headerShown: false,
+                    }}
+                  />
+                  <Stack.Screen
+                    name='TermsOfService'
+                    options={{
+                      headerShown: false,
                     }}
                   />
                 </Stack>
