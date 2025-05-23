@@ -9,24 +9,29 @@ import React, {
   useState,
   useMemo,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   InteractionManager,
+  Animated,
 } from 'react-native';
-import MapView, { Marker, Region } from 'react-native-maps';
+import MapViewClustering from 'react-native-map-clustering-fh';
+import MapView, { Marker, Region, Circle } from 'react-native-maps';
 import Supercluster from 'supercluster';
 
-
 import type { Event as EventModel } from '@models/Event';
-
+import { styles } from '@styles/Explore';
 import { INITIAL_REGION } from 'app/constants/exploreConstants';
 
 import { EventMarker } from './EventMarker';
 
-export type MapViewType = MapView & {
+// Dummy i18n t function – replace with actual i18n if needed
+const t = (key: string) => key;
+
+export type MapViewType = MapViewClustering & {
   animateToRegion(region: Region, duration?: number): void;
 };
 
@@ -37,6 +42,9 @@ export interface MapContainerProps {
   onMapReady: () => void;
   onMarkerPress: (event: EventModel) => void;
   onMyLocationPress: () => void;
+  emissionsMode: boolean;
+  toggleEmissionsMode: () => void;
+  airQualityData: { event: EventModel; quality: number }[] | null;
 }
 
 export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
@@ -48,24 +56,25 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
       onMapReady,
       onMarkerPress,
       onMyLocationPress,
+      emissionsMode,
+      toggleEmissionsMode,
+      airQualityData,
     } = props;
 
-    // Ref interno al MapView para animaciones
     const mapRef = useRef<MapViewType | null>(null);
+
     const handleMapInstance = useCallback(
       (instance: MapViewType | null) => {
         mapRef.current = instance;
         if (typeof forwardedRef === 'function') {
           forwardedRef(instance);
         } else if (forwardedRef && 'current' in forwardedRef) {
-          (forwardedRef as React.MutableRefObject<MapViewType | null>).current =
-            instance;
+          forwardedRef.current = instance;
         }
       },
       [forwardedRef]
     );
 
-    // Creamos el idx sólo una vez
     const indexRef = useRef(
       new Supercluster({
         radius: 40,
@@ -75,8 +84,9 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
 
     const [clusters, setClusters] = useState<any[]>([]);
     const [region, setRegion] = useState<Region>(INITIAL_REGION);
+    const [legendVisible, setLegendVisible] = useState(false); // Nuevo estado para la leyenda
+    const legendContentHeight = useRef(new Animated.Value(0)).current; // Ref para la altura del contenido de la leyenda
 
-    // 1️⃣ Debounce de actualización de clusters tras mover mapa
     const debouncedUpdate = useMemo(
       () =>
         debounce((reg: Region) => {
@@ -93,12 +103,12 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
       []
     );
 
-    // 2️⃣ Cuando cambian los markers, recargamos el índice (sólo aquí)
     useEffect(() => {
       if (!visibleMarkers.length) {
         setClusters([]);
         return;
       }
+
       const points = visibleMarkers
         .filter(
           (
@@ -115,10 +125,7 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
           properties: { marker: m },
           geometry: {
             type: 'Point' as const,
-            coordinates: [m.location.longitude, m.location.latitude] as [
-              number,
-              number,
-            ],
+            coordinates: [m.location.longitude, m.location.latitude],
           },
         }));
 
@@ -126,17 +133,15 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
         setClusters([]);
         return;
       }
+
       indexRef.current.load(points);
-      // tras recargar, recalc con la región actual
       debouncedUpdate(region);
     }, [visibleMarkers, region, debouncedUpdate]);
 
-    // 3️⃣ Al cambiar la región, throttle + InteractionManager
     const handleRegionChangeComplete = useCallback(
       (newRegion: Region) => {
         setRegion(newRegion);
         onRegionChangeComplete(newRegion);
-        // Dejamos el cálculo de clusters para después de la animación/gesto
         InteractionManager.runAfterInteractions(() => {
           debouncedUpdate(newRegion);
         });
@@ -144,7 +149,28 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
       [onRegionChangeComplete, debouncedUpdate]
     );
 
-    // 4️⃣ Renderizamos clusters o markers individuales
+    const getAirQualityColor = (quality: number) => {
+      if (quality <= 700) {
+        return 'rgba(0, 255, 0, 0.3)';
+      }
+      if (quality <= 800) {
+        return 'rgba(255, 255, 0, 0.3)';
+      }
+      if (quality <= 1100) {
+        return 'rgba(255, 165, 0, 0.3)';
+      }
+      if (quality <= 1500) {
+        return 'rgba(255, 0, 0, 0.3)';
+      }
+      if (quality <= 2000) {
+        return 'rgba(128, 0, 128, 0.3)';
+      }
+      if (quality <= 3000) {
+        return 'rgba(128, 0, 0, 0.3)';
+      }
+      return 'rgba(0, 0, 0, 0.3)';
+    };
+
     const renderClusters = () =>
       clusters.map((cluster) => {
         const [longitude, latitude] = cluster.geometry.coordinates;
@@ -187,6 +213,18 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
         }
       });
 
+    // Función para mostrar u ocultar la leyenda
+    const toggleLegend = useCallback(() => {
+      setLegendVisible((prev) => !prev);
+
+      // Animar la altura del contenido
+      Animated.timing(legendContentHeight, {
+        toValue: legendVisible ? 0 : 100, // Ajusta este valor según la altura real del contenido
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
+    }, [legendVisible, legendContentHeight]);
+
     return (
       <>
         <MapView
@@ -197,15 +235,134 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
           showsMyLocationButton={false}
           onRegionChangeComplete={handleRegionChangeComplete}
           onMapReady={onMapReady}
+          clusteringEnabled
+          spiralEnabled
+          animationEnabled
+          maxZoom={19}
+          minZoom={10}
+          clusterColor='#4285F4'
+          clusterTextColor='#fff'
         >
           {renderClusters()}
+
+          {emissionsMode &&
+            airQualityData &&
+            airQualityData.map(({ event, quality }) => (
+              <Circle
+                key={`air-quality-${event.id}`}
+                center={{
+                  latitude: event.location?.latitude || 0,
+                  longitude: event.location?.longitude || 0,
+                }}
+                radius={500}
+                fillColor={getAirQualityColor(quality)}
+                strokeWidth={0}
+              />
+            ))}
         </MapView>
+
         <TouchableOpacity
-          style={localStyles.myLocationButton}
+          style={styles.myLocationButton}
           onPress={onMyLocationPress}
         >
           <Ionicons name='locate' size={24} color='#4285F4' />
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.emissionsButton}
+          onPress={toggleEmissionsMode}
+        >
+          <Ionicons
+            name='leaf'
+            size={24}
+            color={emissionsMode ? '#4CAF50' : '#4285F4'}
+          />
+        </TouchableOpacity>
+
+        {/* Leyenda de calidad del aire con estructura de dos columnas */}
+        {emissionsMode && (
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.airQualityLegend}
+            onPress={toggleLegend}
+          >
+            <View
+              style={[
+                styles.legendHeader,
+                { borderBottomWidth: legendVisible ? 1 : 0 },
+              ]}
+            >
+              <Text style={styles.legendTitle}>Leyenda emisiones</Text>
+            </View>
+
+            {/* Contenido animado de la leyenda */}
+            {legendVisible && (
+              <View style={styles.legendContent}>
+                {/* Primera columna */}
+                <View style={styles.legendColumn}>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendColor,
+                        { backgroundColor: 'rgba(0, 255, 0, 0.7)' },
+                      ]}
+                    />
+                    <Text style={styles.legendText}>Buena (0-700)</Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendColor,
+                        { backgroundColor: 'rgba(255, 255, 0, 0.7)' },
+                      ]}
+                    />
+                    <Text style={styles.legendText}>Moderada (701-800)</Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendColor,
+                        { backgroundColor: 'rgba(255, 165, 0, 0.7)' },
+                      ]}
+                    />
+                    <Text style={styles.legendText}>Regular (801-1100)</Text>
+                  </View>
+                </View>
+
+                {/* Segunda columna */}
+                <View style={styles.legendColumn}>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendColor,
+                        { backgroundColor: 'rgba(255, 0, 0, 0.7)' },
+                      ]}
+                    />
+                    <Text style={styles.legendText}>Mala (1101-1500)</Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendColor,
+                        { backgroundColor: 'rgba(128, 0, 128, 0.7)' },
+                      ]}
+                    />
+                    <Text style={styles.legendText}>M. Mala (1501-2000)</Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendColor,
+                        { backgroundColor: 'rgba(128, 0, 0, 0.7)' },
+                      ]}
+                    />
+                    <Text style={styles.legendText}>Peligrosa (2001+)</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
       </>
     );
   }
@@ -214,6 +371,16 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
 MapContainer.displayName = 'MapContainer';
 
 const localStyles = StyleSheet.create({
+  airQualityLegend: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 8,
+    elevation: 2,
+    padding: 10,
+    position: 'absolute',
+    right: 20,
+    top: 100,
+    width: 250,
+  },
   cluster: {
     alignItems: 'center',
     backgroundColor: '#4285F4',
@@ -225,6 +392,51 @@ const localStyles = StyleSheet.create({
   clusterText: {
     color: '#fff',
     fontSize: 13,
+    fontWeight: 'bold',
+  },
+  legendCloseButton: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    elevation: 2,
+    height: 24,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 10,
+    top: 10,
+    width: 24,
+  },
+  legendColor: {
+    borderRadius: 4,
+    height: 20,
+    marginRight: 10,
+    width: 20,
+  },
+  legendColumn: {
+    flex: 1,
+  },
+  legendContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  legendHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  legendItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: 5,
+  },
+  legendText: {
+    color: '#333',
+    fontSize: 14,
+  },
+  legendTitle: {
+    color: '#333',
+    fontSize: 16,
     fontWeight: 'bold',
   },
   map: {

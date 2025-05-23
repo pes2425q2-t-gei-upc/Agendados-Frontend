@@ -435,30 +435,81 @@ export const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    top: 160,
+    top: 190,
     width: 56,
     zIndex: 1,
   },
-  nearbyEventsContainer: {
-    bottom: 80,
-    left: 0,
-    paddingHorizontal: 20,
-    position: 'absolute',
-    right: 0,
-    zIndex: 10,
-  },
-  nearbyEventsScrollContainer: {
-    paddingBottom: 10,
-  },
-  noResultsContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  emissionsButton: {
     alignItems: 'center',
-    paddingVertical: 30,
+    backgroundColor: 'white',
+    borderRadius: 28,
+    elevation: 4,
+    height: 56,
+    justifyContent: 'center',
+    position: 'absolute',
+    left: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    top: 190,
+    width: 56,
+    zIndex: 1,
   },
-  noResultsText: {
-    color: '#666',
-    fontSize: 16,
+  airQualityLegend: {
+    position: 'absolute',
+    bottom: 80,
+    alignSelf: 'center',
+    left: '50%',
+    marginLeft: -130, // La mitad del ancho para centrar
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    padding: 10,
+    borderRadius: 8,
+    width: 260,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  legendHeader: {
+    flexDirection: 'row',
+    justifyContent: 'center', // Centrar el título
+    alignItems: 'center',
+    marginBottom: (legendVisible) => (legendVisible ? 8 : 0),
+    borderBottomWidth: (legendVisible) => (legendVisible ? 1 : 0),
+    borderBottomColor: '#eee',
+    paddingBottom: 5,
+    paddingHorizontal: 10,
+  },
+  legendTitle: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  // Eliminamos legendCloseButton ya que no lo necesitaremos
+  legendContent: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    overflow: 'hidden', // Para ocultar el contenido cuando está colapsado
+  },
+  legendColumn: {
+    width: '48%', // Un poco menos del 50% para tener espacio entre columnas
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  legendColor: {
+    width: 10, // Reducido de 12 a 10
+    height: 10, // Reducido de 12 a 10
+    borderRadius: 5, // La mitad del ancho/alto
+    marginRight: 6,
+  },
+  legendText: {
+    fontSize: 10, // Reducido de 11 a 10
   },
   populationDropdownButton: {
     alignItems: 'center',

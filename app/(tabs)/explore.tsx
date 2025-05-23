@@ -16,6 +16,7 @@ import {
   Platform,
   ActivityIndicator,
   InteractionManager,
+  Alert,
 } from 'react-native';
 import type { Region } from 'react-native-maps';
 
@@ -30,6 +31,7 @@ import {
   ZOOM_THRESHOLD,
   filterCategoryKeys,
 } from 'app/constants/exploreConstants';
+import { getAirQualityLevel } from 'app/exploreComponents/AirQualityResponse';
 import { AnimatedNearbyEventsList } from 'app/exploreComponents/AnimatedNearbyEventsList';
 import { CarouselToggle } from 'app/exploreComponents/CarouselToggle';
 import { EventsModal } from 'app/exploreComponents/EventsModal';
@@ -51,6 +53,11 @@ export default function Explore() {
   const isMapReady = useRef(false);
   const debounceRef = useRef<number | null>(null);
   const [inputText, setInputText] = useState('');
+  const [emissionsMode, setEmissionsMode] = useState(false);
+  const [airQualityData, setAirQualityData] = useState<
+    { event: EventModel; quality: number }[] | null
+  >(null);
+  const [isLoadingAirQuality, setIsLoadingAirQuality] = useState(false);
 
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
@@ -92,6 +99,67 @@ export default function Explore() {
     useState<EventModel | null>(null);
 
   const [carouselVisible, setCarouselVisible] = useState(true);
+
+  const toggleEmissionsMode = useCallback(async () => {
+    const newMode = !emissionsMode;
+    setEmissionsMode(newMode);
+
+    if (newMode && !airQualityData) {
+      // Fetch air quality data when enabling the mode
+      await fetchAirQualityData();
+    }
+  }, [emissionsMode, airQualityData, filteredMarkers]);
+
+  // Add this function to fetch air quality data
+  const fetchAirQualityData = async () => {
+    if (isLoadingAirQuality) {
+      return;
+    }
+
+    setIsLoadingAirQuality(true);
+
+    try {
+      const eventsWithLocation = filteredMarkers.filter(
+        (event) => event.location?.latitude && event.location?.longitude
+      );
+
+      // Process in batches to avoid overloading the API
+      const batchSize = 10;
+      let results: { event: EventModel; quality: number }[] = [];
+
+      for (let i = 0; i < eventsWithLocation.length; i += batchSize) {
+        const batch = eventsWithLocation.slice(i, i + batchSize);
+        const batchPromises = batch.map(async (event) => {
+          try {
+            if (event.location?.latitude && event.location?.longitude) {
+              const data = await getAirQualityLevel(
+                event.location.latitude,
+                event.location.longitude
+              );
+              return { event, quality: data.value };
+            }
+          } catch (err) {
+            console.error(
+              `Error fetching air quality for event ${event.id}:`,
+              err
+            );
+          }
+          return null;
+        });
+
+        const batchResults = await Promise.all(batchPromises);
+        results = [...results, ...batchResults.filter(Boolean)];
+      }
+
+      setAirQualityData(results);
+    } catch (error) {
+      console.error('Error fetching air quality data:', error);
+      Alert.alert(t('common.error'), t('explore.emissions.errorFetchingData'));
+      setEmissionsMode(false);
+    } finally {
+      setIsLoadingAirQuality(false);
+    }
+  };
 
   const filterCategories = useMemo(() => {
     return filterCategoryKeys.map((group) => ({
@@ -464,6 +532,9 @@ export default function Explore() {
         onMapReady={handleMapReady}
         onMarkerPress={openDetailModal}
         onMyLocationPress={handleMyLocationPress}
+        emissionsMode={emissionsMode}
+        toggleEmissionsMode={toggleEmissionsMode}
+        airQualityData={airQualityData}
       />
 
       <FilterControls
