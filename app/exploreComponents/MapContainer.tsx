@@ -14,7 +14,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   InteractionManager,
   Animated,
 } from 'react-native';
@@ -196,8 +195,8 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
                 );
               }}
             >
-              <View style={localStyles.cluster}>
-                <Text style={localStyles.clusterText}>{count}</Text>
+              <View style={styles.cluster}>
+                <Text style={styles.clusterText}>{count}</Text>
               </View>
             </Marker>
           );
@@ -229,7 +228,7 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
       <>
         <MapView
           ref={handleMapInstance}
-          style={localStyles.map}
+          style={styles.map}
           initialRegion={INITIAL_REGION}
           showsUserLocation={locationPermission}
           showsMyLocationButton={false}
@@ -246,13 +245,12 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
           {renderClusters()}
 
           {emissionsMode &&
-            airQualityData &&
-            airQualityData.map(({ event, quality }) => (
+            airQualityData?.map(({ event, quality }) => (
               <Circle
                 key={`air-quality-${event.id}`}
                 center={{
-                  latitude: event.location?.latitude || 0,
-                  longitude: event.location?.longitude || 0,
+                  latitude: event.location?.latitude ?? 0,
+                  longitude: event.location?.longitude ?? 0,
                 }}
                 radius={500}
                 fillColor={getAirQualityColor(quality)}
@@ -283,16 +281,37 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
         {emissionsMode && (
           <TouchableOpacity
             activeOpacity={0.9}
-            style={styles.airQualityLegend}
+            style={[
+              styles.airQualityLegend,
+              {
+                // Cuando está colapsado, hacerlo más pequeño y centrado
+                width: legendVisible ? 280 : 160,
+                marginLeft: legendVisible ? -140 : -80, // La mitad del ancho para mantenerlo centrado
+                padding: legendVisible ? 10 : 6,
+              },
+            ]}
             onPress={toggleLegend}
           >
             <View
               style={[
                 styles.legendHeader,
-                { borderBottomWidth: legendVisible ? 1 : 0 },
+                {
+                  borderBottomWidth: legendVisible ? 1 : 0,
+                  padding: legendVisible ? 8 : 4, // Menos padding cuando está colapsado
+                  marginBottom: legendVisible ? 8 : 0, // Sin margen inferior cuando está colapsado
+                },
               ]}
             >
-              <Text style={styles.legendTitle}>Leyenda emisiones</Text>
+              <Text
+                style={[
+                  styles.legendTitle,
+                  {
+                    fontSize: legendVisible ? 14 : 12, // Fuente más pequeña cuando está colapsado
+                  },
+                ]}
+              >
+                Leyenda emisiones
+              </Text>
             </View>
 
             {/* Contenido animado de la leyenda */}
@@ -369,86 +388,3 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
 );
 
 MapContainer.displayName = 'MapContainer';
-
-const localStyles = StyleSheet.create({
-  airQualityLegend: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 8,
-    elevation: 2,
-    padding: 10,
-    position: 'absolute',
-    right: 20,
-    top: 100,
-    width: 250,
-  },
-  cluster: {
-    alignItems: 'center',
-    backgroundColor: '#4285F4',
-    borderRadius: 18,
-    height: 36,
-    justifyContent: 'center',
-    width: 36,
-  },
-  clusterText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  legendCloseButton: {
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    borderRadius: 12,
-    elevation: 2,
-    height: 24,
-    justifyContent: 'center',
-    position: 'absolute',
-    right: 10,
-    top: 10,
-    width: 24,
-  },
-  legendColor: {
-    borderRadius: 4,
-    height: 20,
-    marginRight: 10,
-    width: 20,
-  },
-  legendColumn: {
-    flex: 1,
-  },
-  legendContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  legendHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  legendItem: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    marginBottom: 5,
-  },
-  legendText: {
-    color: '#333',
-    fontSize: 14,
-  },
-  legendTitle: {
-    color: '#333',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  map: {
-    flex: 1,
-  },
-  myLocationButton: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    bottom: 20,
-    elevation: 3,
-    padding: 8,
-    position: 'absolute',
-    right: 20,
-  },
-});

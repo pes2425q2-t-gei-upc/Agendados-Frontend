@@ -4,8 +4,6 @@ import { StyleSheet } from 'react-native';
 import { colors } from '@styles/globalStyles';
 
 export const styles = StyleSheet.create({
-  // Ejemplo de estilos para el carrusel (ajusta según tu línea gráfica)
-  // Añade estos estilos a tu archivo styles/Explore.js
   clusteringIndicator: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderColor: colors.primary,
@@ -251,6 +249,54 @@ export const styles = StyleSheet.create({
     marginBottom: 4,
     flexDirection: 'row',
   },
+  cluster: {
+    alignItems: 'center',
+    backgroundColor: '#4285F4',
+    borderRadius: 18,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  clusterText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  legendColor: {
+    borderRadius: 4,
+    height: 20,
+    marginRight: 10,
+    width: 20,
+  },
+  legendColumn: {
+    flex: 1,
+  },
+  legendContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  legendHeader: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    flexDirection: 'row',
+  },
+  legendItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: 1,
+  },
+  legendText: {
+    color: '#333',
+    fontSize: 10,
+  },
+  legendTitle: {
+    color: '#333',
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
+  },
   eventCardTimeText: {
     color: '#666',
     fontSize: 12,
@@ -270,9 +316,9 @@ export const styles = StyleSheet.create({
     marginTop: 5,
   },
   eventImage: {
-    width: '100%', // Cambia el ancho a 100%
-    height: 100, // Mantiene la altura original
-    borderRadius: 8, // Conserva el radio de los bordes
+    width: '100%',
+    height: 100,
+    borderRadius: 8,
   },
   eventModalCard: {
     backgroundColor: 'white',
@@ -461,55 +507,16 @@ export const styles = StyleSheet.create({
     bottom: 80,
     alignSelf: 'center',
     left: '50%',
-    marginLeft: -130, // La mitad del ancho para centrar
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    marginLeft: -140,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     padding: 10,
     borderRadius: 8,
-    width: 260,
+    width: 280,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-  },
-  legendHeader: {
-    flexDirection: 'row',
-    justifyContent: 'center', // Centrar el título
-    alignItems: 'center',
-    marginBottom: (legendVisible) => (legendVisible ? 8 : 0),
-    borderBottomWidth: (legendVisible) => (legendVisible ? 1 : 0),
-    borderBottomColor: '#eee',
-    paddingBottom: 5,
-    paddingHorizontal: 10,
-  },
-  legendTitle: {
-    fontWeight: 'bold',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  // Eliminamos legendCloseButton ya que no lo necesitaremos
-  legendContent: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    overflow: 'hidden', // Para ocultar el contenido cuando está colapsado
-  },
-  legendColumn: {
-    width: '48%', // Un poco menos del 50% para tener espacio entre columnas
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  legendColor: {
-    width: 10, // Reducido de 12 a 10
-    height: 10, // Reducido de 12 a 10
-    borderRadius: 5, // La mitad del ancho/alto
-    marginRight: 6,
-  },
-  legendText: {
-    fontSize: 10, // Reducido de 11 a 10
   },
   populationDropdownButton: {
     alignItems: 'center',
@@ -552,7 +559,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   populationList: {
-    flex: 1, // Ocupará el espacio restante después del encabezado y la barra de búsqueda
+    flex: 1,
     marginTop: 10,
   },
   populationListItem: {
