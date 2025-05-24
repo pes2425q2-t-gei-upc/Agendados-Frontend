@@ -34,6 +34,7 @@ export interface WebSocketServiceState {
   error: string | null;
   lastMessage: any | null; // For debugging or generic message handling
   isVotingActive: boolean;
+  isNewEvent?: boolean; // Optional, if you want to track the next event
   // Add other state properties as needed
 }
 
@@ -202,11 +203,9 @@ class WebSocketServiceController {
         break;
       case 'room_started': // Renamed from MATCHING_STARTED
         // Assuming payload: { event: EventModal (with at least a 'title' property) }
-        addMessageToLog(
-          `Room started. Event: ${message.payload?.event?.title}`
-        );
+        addMessageToLog(`Room started. Event: ${message.event?.title}`);
         this.updateState({
-          currentEvent: message.payload.event,
+          currentEvent: message.event,
           isVotingActive: true,
           votingResults: null, // Reset results for new event
           error: null,
@@ -218,13 +217,13 @@ class WebSocketServiceController {
         // Assuming payload: { vote_results: { true_votes, false_votes, total_votes }, user?: { username: string }, vote?: boolean }
         // webSockets.HTML updates results based on vote_results.
         addMessageToLog(
-          `Vote cast. Results: Yes ${message.payload?.vote_results?.true_votes}, No ${message.payload?.vote_results?.false_votes}`
+          `Vote cast. Results: Yes ${message.vote_results?.true_votes}, No ${message.vote_results?.false_votes}`
         );
         this.updateState({
           votingResults: {
-            true_votes: message.payload.vote_results.true_votes,
-            false_votes: message.payload.vote_results.false_votes,
-            total_votes: message.payload.vote_results.total_votes,
+            true_votes: message.vote_results.true_votes,
+            false_votes: message.vote_results.false_votes,
+            total_votes: message.vote_results.total_votes,
             // 'match' property is part of 'vote_finished'
           },
         });
@@ -235,41 +234,37 @@ class WebSocketServiceController {
         // or it could be the final tally. webSockets.HTML uses data.vote_results for vote_cast,
         // and for vote_finished, it implies new event or match.
         // Let's assume 'results' in payload updates votingResults one last time.
-        addMessageToLog(
-          `Voting finished. Is match: ${message.payload.is_match}`
-        );
-        if (message.payload.is_match) {
+        addMessageToLog(`Voting finished. Is match: ${message.is_match}`);
+        if (message.is_match) {
           this.updateState({
-            currentEvent: message.payload.current_event, // The matched event
+            currentEvent: message.current_event, // The matched event
             isVotingActive: false,
-            votingResults: message.payload.results
+            votingResults: message.results
               ? {
                   // Update with final results if provided
-                  true_votes: message.payload.results.true_votes,
-                  false_votes: message.payload.results.false_votes,
-                  total_votes: message.payload.results.total_votes,
+                  true_votes: message.results.true_votes,
+                  false_votes: message.results.false_votes,
+                  total_votes: message.results.total_votes,
                   match: true,
                 }
               : ({ ...this.state.votingResults, match: true } as VotingResults),
           });
           addMessageToLog(
-            `Match found! Event: ${message.payload.current_event?.title}`
+            `Match found! Event: ${message.current_event?.title}`
           );
         } else {
           this.updateState({
-            currentEvent: message.payload.next_event, // New event for next round
+            currentEvent: message.next_event, // New event for next round
             isVotingActive: true,
             votingResults: null, // Reset for next round's voting
           });
-          addMessageToLog(
-            `Next round. Event: ${message.payload.next_event?.title}`
-          );
+          addMessageToLog(`Next round. Event: ${message.next_event?.title}`);
         }
         break;
       // MATCH_FOUND is removed, handled by vote_finished with is_match: true.
 
       case 'ERROR': // Kept as is, assuming server might send this type
-        this.updateState({ error: message.payload.message });
+        this.updateState({ error: message.message });
         break;
       default:
         console.warn('Unhandled WebSocket message type:', message.type);
@@ -294,7 +289,7 @@ class WebSocketServiceController {
   }
 
   // Renamed from startMatching, payload changed
-  public startRoom() {
+  public startMatching() {
     if (
       !this.state.roomDetails ||
       this.state.roomDetails.participants.length < 2

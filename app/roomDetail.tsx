@@ -87,14 +87,6 @@ export default function RoomDetailScreen() {
     setIsStarting(true);
     WebSocketService.startMatching(currentRoom.id);
 
-    // Navigation to roomMatching will be handled by WebSocketService state update (e.g., MATCHING_STARTED)
-    // For now, we can optimistically navigate or wait for a specific state change.
-    // Let's assume MATCHING_STARTED will trigger a state that roomMatching screen listens to.
-    // Or, we can navigate directly if the UX flow expects it.
-
-    // Simulating a delay for the "start" action, then relying on WebSocket to push to matching screen
-    // In a real scenario, the server would send a message that matching has started, and that would trigger navigation.
-    // For now, let's navigate after a short delay to simulate this.
     setTimeout(() => {
       setIsStarting(false);
       if (WebSocketService.getState().currentEvent) {
@@ -237,9 +229,7 @@ export default function RoomDetailScreen() {
                   >
                     <Image
                       source={{
-                        uri:
-                          participant.avatar ||
-                          'https://via.placeholder.com/60',
+                        uri: participant.avatar || 'https://i.pravatar.cc/300', // Fallback placeholder
                       }} // Placeholder avatar
                       style={styles.avatar}
                     />

@@ -1,8 +1,26 @@
 import { StyleSheet } from 'react-native';
 
-import { colors } from '@styles/globalStyles';
+import { colors, spacing } from '@styles/globalStyles';
 
 export const styles = StyleSheet.create({
+  button: {
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  buttonText: {
+    color: colors.lightText,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  statusText: {
+    color: colors.textSecondary,
+    fontSize: 18,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
   animatedCard: {
     alignItems: 'center',
     flex: 1,
@@ -10,11 +28,49 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '95%',
   },
+  liveVotesContainer: {
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    borderRadius: spacing.xs,
+    bottom: 20,
+    padding: spacing.sm,
+    position: 'absolute',
+  },
+  liveVotesText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+  },
+  nextCardText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontStyle: 'italic',
+  },
+  noMatchText: {
+    color: colors.textSecondary,
+    fontSize: 18,
+    marginBottom: spacing.sm,
+  },
+  voteCountText: {
+    color: colors.text,
+    fontSize: 18,
+  },
+  voteCountsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: spacing.md,
+    width: '80%',
+  },
+  votedText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
 
   card: {
     borderRadius: 10,
     elevation: 12,
-    height: '99%',
+    height: '60%',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

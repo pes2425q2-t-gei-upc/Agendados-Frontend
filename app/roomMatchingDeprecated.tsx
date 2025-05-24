@@ -1,16 +1,16 @@
 /* eslint-disable react-native/no-inline-styles */
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
+  StyleSheet,
   ActivityIndicator,
-  TouchableOpacity,
   useWindowDimensions,
-  Modal,
+  TouchableOpacity,
   Alert,
+  Image,
 } from 'react-native';
 import {
   GestureHandlerRootView,
@@ -20,33 +20,28 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  runOnJS,
   withTiming,
-  useDerivedValue,
-  useAnimatedGestureHandler,
   interpolate,
+  useAnimatedGestureHandler,
+  runOnJS,
   Easing,
+  useDerivedValue,
 } from 'react-native-reanimated';
 
-import Card from '@components/cardEvent';
 import EventDetailModal from '@components/EventDetailModal';
-import { Welcome } from '@components/Welcome';
 import { useAuth } from '@context/authContext';
-import { Event as EventModal } from '@models/Event';
-import { getEventRecomendations } from '@services/EventsService';
-import { SavedService } from '@services/SavedService';
+import { useFavorites } from '@context/FavoritesContext'; // For adding to favorites
+import { Event as EventModal } from '@models/Event'; // Assuming EventModal type
 import WebSocketService, {
   WebSocketServiceState,
 } from '@services/WebSocketService';
-import { colors } from '@styles/globalStyles';
-import { styles } from '@styles/MatchingStyles';
-import { useFavorites } from 'app/context/FavoritesContext';
+import { colors, spacing } from '@styles/globalStyles'; // Assuming global styles
 
 // Import images for swipe indicators
-const Like = require('@assets/images/GreenColor.jpeg');
-const Dislike = require('@assets/images/RedColor.png');
+const Like = require('@assets/images/GreenColor.jpeg'); // Adjusted path
+const Dislike = require('@assets/images/RedColor.png'); // Adjusted path
 
-const SWIPE_VELOCITY = 800;
+const SWIPE_VELOCITY_THRESHOLD = 800;
 const VOTING_TIME_SECONDS = 12; // 12 seconds per vote
 const RESULTS_DISPLAY_SECONDS = 3; // Time to show results before next card or end
 
@@ -77,9 +72,9 @@ export default function RoomMatching() {
   // Event detail modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
 
-  // Values for animations
+  // Animation values
   const { width: screenWidth } = useWindowDimensions();
-  const hiddenTranslateX = 2 * screenWidth;
+  const hiddenTranslateX = screenWidth * 1.5;
   const translateX = useSharedValue(0);
   const progressWidth = useSharedValue(100);
 
@@ -99,11 +94,7 @@ export default function RoomMatching() {
         // router.replace('/rooms');
       }
 
-      if (
-        newState.isVotingActive &&
-        newState.currentEvent &&
-        newState.isNewEvent
-      ) {
+      if (newState.isVotingActive && newState.currentEvent) {
         // New event or voting started
         setShowResults(false);
         setUserVotedThisRound(false);
@@ -125,7 +116,14 @@ export default function RoomMatching() {
             'Match!',
             `Everyone liked ${newState.currentEvent.name}! Added to favorites.`
           );
+          // Add to favorites (implement this function in FavoritesContext or a service)
+          // await FavoriteService.addFavorite(user.id, newState.currentEvent.id);
           refreshFavorites(); // Refresh favorites list
+          // Server might automatically move to next or end room. Client could also leave.
+          // For now, let's assume the server handles the next step or room closure.
+          // If client needs to leave:
+          // WebSocketService.leaveRoom(roomId!);
+          // router.replace('/rooms');
         }
       }
 
@@ -161,7 +159,7 @@ export default function RoomMatching() {
         clearInterval(resultsTimerRef.current);
       }
     };
-  }, [roomId, router, refreshFavorites, translateX, progressWidth]);
+  }, [roomId, router, refreshFavorites, translateX, progressWidth]); // Added translateX, progressWidth
 
   // --- Countdown Timers ---
   useEffect(() => {
@@ -232,8 +230,8 @@ export default function RoomMatching() {
     setDetailModalVisible(true);
   }, []);
 
-  // --- Voting Logic ---
-  const handleVote = useCallback(
+  // --- Swipe Gesture and Vote Handling ---
+  const handleVoteAction = useCallback(
     (isRightSwipe: boolean) => {
       if (
         !currentEvent ||
@@ -263,34 +261,6 @@ export default function RoomMatching() {
     ]
   );
 
-  // Derived rotation value based on swipe position
-  const rotate = useDerivedValue(
-    () => interpolate(translateX.value, [0, hiddenTranslateX], [0, 60]) + 'deg'
-  );
-
-  // Animations for the current card
-  const cardStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }, { rotate: rotate.value }],
-  }));
-
-  // Progress bar animation
-  const progressBarStyle = useAnimatedStyle(() => {
-    return { width: `${progressWidth.value}%` };
-  });
-  // Like/dislike overlay animations
-  const likeStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(translateX.value, [0, hiddenTranslateX / 4], [0, 0.5]),
-  }));
-
-  const dislikeStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      translateX.value,
-      [0, -hiddenTranslateX / 4],
-      [0, 0.5]
-    ),
-  }));
-
-  // Gesture handler for swipe
   const gestureHandler = useAnimatedGestureHandler({
     onStart: (_, context: any) => {
       if (userVotedThisRound || !roomState.isVotingActive) {
@@ -309,7 +279,7 @@ export default function RoomMatching() {
         return;
       }
 
-      if (Math.abs(event.velocityX) < SWIPE_VELOCITY) {
+      if (Math.abs(event.velocityX) < SWIPE_VELOCITY_THRESHOLD) {
         translateX.value = withSpring(0);
         return;
       }
@@ -319,19 +289,28 @@ export default function RoomMatching() {
         isSwipeRight ? hiddenTranslateX : -hiddenTranslateX,
         { duration: 300 },
         () => {
-          runOnJS(handleVote)(isSwipeRight);
+          runOnJS(handleVoteAction)(isSwipeRight);
         }
       );
     },
   });
 
-  // Handle info button click from card component
-  const handleInfoButtonPress = useCallback(
-    (event: EventModal) => {
-      openDetailModal(event);
-    },
-    [openDetailModal]
+  // --- Animated Styles ---
+  const rotate = useDerivedValue(
+    () => interpolate(translateX.value, [0, hiddenTranslateX], [0, 30]) + 'deg'
   );
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }, { rotate: rotate.value }],
+  }));
+  const likeOverlayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateX.value, [0, screenWidth / 4], [0, 1]),
+  }));
+  const dislikeOverlayStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateX.value, [0, -screenWidth / 4], [0, 1]),
+  }));
+  const progressBarAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${progressWidth.value}%`,
+  }));
 
   // --- UI Rendering ---
   const handleLeaveRoom = () => {
@@ -354,8 +333,6 @@ export default function RoomMatching() {
     );
   };
 
-  // Show loading screen
-
   if (!currentEvent && !showResults && roomState.isConnected) {
     // Waiting for the first event or for host to start if not started
     return (
@@ -375,23 +352,51 @@ export default function RoomMatching() {
     );
   }
 
+  if (!roomState.isConnected) {
+    return (
+      <View style={styles.pageContainer}>
+        <ActivityIndicator size='large' color={colors.primary} />
+        <Text style={styles.statusText}>Reconnecting to room...</Text>
+        <TouchableOpacity
+          onPress={handleLeaveRoom}
+          style={[styles.button, styles.leaveButton]}
+        >
+          <Text style={styles.buttonText}>Leave Room</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.pageContainer}>
-        {/* Leave Room Button */}
-        <TouchableOpacity style={styles.leaveButton} onPress={handleLeaveRoom}>
-          <Ionicons name='close' size={24} color='white' />
-        </TouchableOpacity>
-
-        {/* Countdown Timer */}
-        <View style={styles.countdownContainer}>
-          <View style={styles.progressBarContainer}>
-            <Animated.View style={[styles.progressBar, progressBarStyle]} />
-          </View>
-          <Text style={styles.timeText}>
-            {timeRemaining}s remaining to vote
-          </Text>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={handleLeaveRoom}
+            style={styles.leaveIconContainer}
+          >
+            <Ionicons
+              name='close-circle-outline'
+              size={30}
+              color={colors.textSecondary}
+            />
+          </TouchableOpacity>
+          <Text style={styles.roomName}>{roomName}</Text>
+          <View style={{ width: 30 }} />
+          {/* Placeholder for balance */}
         </View>
+
+        {/* Voting Progress Bar */}
+        {roomState.isVotingActive && !userVotedThisRound && !showResults && (
+          <View style={styles.timerContainer}>
+            <Text style={styles.timerText}>{timeRemaining}s</Text>
+            <View style={styles.progressBarBackground}>
+              <Animated.View
+                style={[styles.progressBarForeground, progressBarAnimatedStyle]}
+              />
+            </View>
+          </View>
+        )}
 
         {/* Results Display */}
         {showResults && roomState.votingResults && (
@@ -399,15 +404,15 @@ export default function RoomMatching() {
             <Text style={styles.resultsTitle}>Results</Text>
             <View style={styles.voteCountsContainer}>
               <Text style={styles.voteCountText}>
-                Yes: {roomState.votingResults.true_votes}
+                Yes: {roomState.votingResults.yes}
               </Text>
               <Text style={styles.voteCountText}>
-                No: {roomState.votingResults.false_votes}
+                No: {roomState.votingResults.no}
               </Text>
             </View>
             {roomState.votingResults.match && currentEvent && (
               <Text style={styles.matchText}>
-                🎉 Match on {currentEvent.title}! 🎉
+                🎉 Match on {currentEvent.name}! 🎉
               </Text>
             )}
             {!roomState.votingResults.match && (
@@ -419,33 +424,70 @@ export default function RoomMatching() {
           </View>
         )}
 
-        {!showResults && currentEvent && !userVotedThisRound && (
-          <PanGestureHandler onGestureEvent={gestureHandler}>
-            <Animated.View style={[styles.animatedCard, cardStyle]}>
-              <Animated.Image
-                source={Like}
-                style={[styles.like, { left: 0 }, likeStyle]}
-                resizeMode='stretch'
-              />
-              <Animated.Image
-                source={Dislike}
-                style={[styles.like, { right: 0 }, dislikeStyle]}
-                resizeMode='stretch'
-              />
-              <Card
-                event={currentEvent!}
-                onInfoPress={() => handleInfoButtonPress(currentEvent!)}
-              />
+        {/* Event Card Stack */}
+        {!showResults && currentEvent && (
+          <PanGestureHandler
+            onGestureEvent={gestureHandler}
+            activeOffsetX={[-30, 30]}
+          >
+            <Animated.View style={styles.cardWrapper}>
+              <Animated.View style={[styles.eventCardContainer, cardStyle]}>
+                <Animated.Image
+                  source={Like}
+                  style={[
+                    styles.overlayImage,
+                    styles.likeOverlay,
+                    likeOverlayStyle,
+                  ]}
+                  resizeMode='contain'
+                />
+                <Animated.Image
+                  source={Dislike}
+                  style={[
+                    styles.overlayImage,
+                    styles.dislikeOverlay,
+                    dislikeOverlayStyle,
+                  ]}
+                  resizeMode='contain'
+                />
+                {/* Using a simplified card, replace with your actual EventCard component */}
+                <View style={styles.cardContent}>
+                  <Image
+                    source={{
+                      uri:
+                        currentEvent.image_url ||
+                        'https://via.placeholder.com/300',
+                    }}
+                    style={styles.eventImage}
+                  />
+                  <Text style={styles.eventName}>{currentEvent.name}</Text>
+                  <Text style={styles.eventDescription} numberOfLines={2}>
+                    {currentEvent.description}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => openDetailModal(currentEvent)}
+                    style={styles.infoButton}
+                  >
+                    <Ionicons
+                      name='information-circle-outline'
+                      size={24}
+                      color={colors.primary}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </Animated.View>
             </Animated.View>
           </PanGestureHandler>
         )}
+
+        {/* Voting Status / Participants' Votes (Optional UI) */}
         {roomState.isVotingActive &&
           roomState.votingResults &&
           !showResults && (
             <View style={styles.liveVotesContainer}>
               <Text style={styles.liveVotesText}>
-                Votes: {roomState.votingResults.true_votes} Yes /{' '}
-                {roomState.votingResults.false_votes} No (Total:{' '}
+                Votes: {roomState.votingResults.yes} Yes /{' '}
+                {roomState.votingResults.no} No (Total:{' '}
                 {roomState.roomDetails?.participants.length || 0})
               </Text>
               {userVotedThisRound && (
@@ -469,15 +511,226 @@ export default function RoomMatching() {
           </View>
         )}
 
-        {/* Event detail modal */}
         <EventDetailModal
           visible={detailModalVisible}
-          event={currentEvent!}
-          onClose={() => {
-            setDetailModalVisible(false);
-          }}
+          event={currentEvent!} // currentEvent should be valid if modal is open
+          onClose={() => setDetailModalVisible(false)}
         />
       </View>
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  buttonText: {
+    color: colors.lightText,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cardContent: {
+    alignItems: 'center',
+    height: '100%',
+    justifyContent: 'flex-start',
+    width: '100%',
+  },
+  cardWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%', // Ensure it takes full width for centering card
+    marginTop: 120, // Space for header and timer
+    marginBottom: 80, // Space for potential bottom controls
+  },
+  dislikeOverlay: {
+    right: '10%',
+    transform: [{ rotate: '15deg' }],
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 16,
+    marginBottom: spacing.md,
+    textAlign: 'center',
+  },
+  eventCardContainer: {
+    width: '90%',
+    aspectRatio: 3 / 4, // Common card aspect ratio
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: spacing.md,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.md,
+    // Shadow for card (optional)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    position: 'relative', // For overlay images
+  },
+  eventDescription: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  eventImage: {
+    width: '100%',
+    height: '65%', // Adjust as needed
+    borderRadius: spacing.sm,
+    marginBottom: spacing.sm,
+    backgroundColor: colors.border, // Placeholder while image loads
+  },
+  eventName: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: spacing.xs,
+    textAlign: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    paddingTop: spacing.lg, // For status bar
+    paddingBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: colors.background, // Or transparent if you want content to scroll under
+  },
+  infoButton: {
+    bottom: spacing.xs,
+    padding: spacing.xs,
+    position: 'absolute',
+    right: spacing.xs,
+  },
+  leaveButton: {
+    backgroundColor: colors.error,
+  },
+  leaveIconContainer: {
+    padding: spacing.xs,
+  },
+  likeOverlay: {
+    left: '10%',
+    transform: [{ rotate: '-15deg' }],
+  },
+  liveVotesContainer: {
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    borderRadius: spacing.xs,
+    bottom: 20,
+    padding: spacing.sm,
+    position: 'absolute',
+  },
+  liveVotesText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+  },
+  matchText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.success, // Assuming you have a success color
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  nextCardText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontStyle: 'italic',
+  },
+  noMatchText: {
+    color: colors.textSecondary,
+    fontSize: 18,
+    marginBottom: spacing.sm,
+  },
+  overlayImage: {
+    height: 100,
+    opacity: 0,
+    position: 'absolute',
+    top: '30%',
+    width: 100, // Controlled by animation
+  },
+  pageContainer: {
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.md,
+  },
+  progressBarBackground: {
+    backgroundColor: colors.border,
+    borderRadius: 4,
+    height: 8,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  progressBarForeground: {
+    backgroundColor: colors.primary,
+    borderRadius: 4,
+    height: '100%',
+  },
+  resultsContainer: {
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: spacing.md,
+    justifyContent: 'center',
+    margin: spacing.md,
+    padding: spacing.lg,
+  },
+  resultsTitle: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: spacing.md,
+  },
+  roomName: {
+    color: colors.text,
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  statusText: {
+    color: colors.textSecondary,
+    fontSize: 18,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  timerContainer: {
+    position: 'absolute',
+    top: 80, // Adjust as needed below header
+    width: '90%',
+    alignItems: 'center',
+    zIndex: 5,
+  },
+  timerText: {
+    color: colors.textSecondary,
+    fontSize: 16,
+    marginBottom: spacing.xs,
+  },
+  voteCountText: {
+    color: colors.text,
+    fontSize: 18,
+  },
+  voteCountsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: spacing.md,
+    width: '80%',
+  },
+  votedText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+});

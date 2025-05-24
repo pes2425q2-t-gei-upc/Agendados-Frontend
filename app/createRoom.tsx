@@ -84,8 +84,11 @@ export default function CreateRoomScreen() {
         await WebSocketService.connect(response.code, true, roomName);
       }
 
+      // Create a reference for storing the unsubscribe function
+      let unsubscribeFunction: (() => void) | null = null;
+
       // Subscribe to WebSocket state changes to know when the room is ready
-      const unsubscribe = WebSocketService.subscribe((state) => {
+      unsubscribeFunction = WebSocketService.subscribe((state) => {
         if (
           state.roomDetails &&
           state.roomDetails.id === response.code &&
@@ -98,7 +101,6 @@ export default function CreateRoomScreen() {
               onPress: () =>
                 router.push({
                   pathname: '/roomDetail',
-                  // Pass the room ID from WebSocketService state
                   params: {
                     id: state.roomDetails!.id,
                     name: state.roomDetails!.name,
@@ -107,14 +109,18 @@ export default function CreateRoomScreen() {
                 }),
             },
           ]);
-          unsubscribe(); // Clean up the subscription
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          } // Clean up only if defined
           setLoadingCreateRoom(false);
         } else if (state.error) {
           Alert.alert(
             'Error',
             `Failed to create room & connect: ${state.error}`
           );
-          unsubscribe(); // Clean up
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          } // Clean up only if defined
           setLoadingCreateRoom(false);
         }
       });
@@ -122,14 +128,14 @@ export default function CreateRoomScreen() {
       // Timeout for WebSocket response
       setTimeout(() => {
         if (loadingCreateRoom) {
-          // Check if still loading (i.e., room not created)
           Alert.alert('Error', 'Room creation timed out.');
-          unsubscribe();
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          }
           setLoadingCreateRoom(false);
-          // Consider disconnecting if the primary action failed
           WebSocketService.disconnect();
         }
-      }, 10000); // 10 seconds timeout
+      }, 10000);
     } catch (error: any) {
       console.error('Error in handleCreateRoom:', error);
       Alert.alert(
@@ -138,7 +144,6 @@ export default function CreateRoomScreen() {
       );
       setLoadingCreateRoom(false);
     }
-    // setLoadingCreateRoom(false); // Moved inside subscribe or catch
   };
   return (
     <ProtectedRoute>
