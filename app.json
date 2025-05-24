@@ -1,31 +1,62 @@
 {
   "expo": {
-    "extra": {
-      "Token": "3a9ecd5d877376903ceee38fefaccc3ae332a896",
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "a00173ea-6d16-4be8-8ae0-5379a6e550a1"
-      }
-    },
-    "name": "Agendados-Front",
+    "name": "Agendados",
     "slug": "Agendados-Front",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "icon": "./assets/images/icon2.png",
+    "scheme": "com.arnau.farran.agendados",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.arnau.farran.AgendadosFront",
+      "config": {
+        "usesNonExemptEncryption": false,
+        "googleMapsApiKey": "AIzaSyD_zbbpCNtXBXiJll83yQ6mvLYi9_AObJk"
+      },
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.arnau.farran.agendados",
+              "com.googleusercontent.apps.259177311342-m3as7g1cidrdtf7r858i285atqljusnq"
+            ]
+          }
+        ]
+      }
     },
     "android": {
+      "package": "com.arnau.farran.AgendadosFront",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/icon2.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.arnau.farran.AgendadosFront"
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDKXfuH_8bLhC6ZlJAfEilHRVq9RVJIXhY"
+        }
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "com.arnau.farran.agendados",
+              "host": "redirect"
+            },
+            {
+              "scheme": "com.googleusercontent.apps.259177311342-m226u0jikrh0oeipt6i3mar912i5ilo3",
+              "host": "*"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -33,6 +64,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "expo-dev-client",
       "expo-router",
       [
         "expo-splash-screen",
@@ -42,10 +74,45 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "scopes": [
+            "profile",
+            "email"
+          ],
+          "iosClientId": "259177311342-m3as7g1cidrdtf7r858i285atqljusnq.apps.googleusercontent.com",
+          "androidClientId": "259177311342-m226u0jikrh0oeipt6i3mar912i5ilo3.apps.googleusercontent.com",
+          "iosUrlScheme": "com.googleusercontent.apps.259177311342-m3as7g1cidrdtf7r858i285atqljusnq"
+        }
+      ],
+      "expo-font",
+      "expo-web-browser",
+      "expo-secure-store"
     ],
+    "extra": {
+      "googleSignIn": {
+        "scopes": [
+          "profile",
+          "email"
+        ]
+      },
+      "googleWebClientId": "259177311342-jpmq68ro7s6jq1hs84o84pv2u1baebu9.apps.googleusercontent.com",
+      "googleIosClientId": "259177311342-m3as7g1cidrdtf7r858i285atqljusnq.apps.googleusercontent.com",
+      "googleAndroidClientId": "259177311342-m226u0jikrh0oeipt6i3mar912i5ilo3.apps.googleusercontent.com",
+      "redirectUrl": "https://agendados-app.com/auth/google-redirect",
+      "Token": "3a9ecd5d877376903ceee38fefaccc3ae332a896",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a00173ea-6d16-4be8-8ae0-5379a6e550a1"
+      }
+    },
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "owner": "agendados"
   }
 }

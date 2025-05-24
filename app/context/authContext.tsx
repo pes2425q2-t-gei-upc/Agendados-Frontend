@@ -12,6 +12,8 @@ import {
   getUserInfo,
   removeUserToken,
   changePassword as apiChangePassword,
+  storeUserToken,    // En lugar de saveUserToken
+  storeUserInfo, 
 } from '../Services/AuthService';
 
 // Definir tipos de usuario
@@ -65,13 +67,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const loadToken = async () => {
       try {
+        console.log('🔍 Checking for stored token...');
         const token = await getUserToken();
         const user = await getUserInfo();
-
+        
+        console.log('🔍 Token found:', !!token);
+        console.log('🔍 User found:', !!user);
+  
         if (token) {
           setUserToken(token);
           setUserInfo(user);
           setIsAuthenticated(true);
+          console.log('✅ User authenticated from storage');
+        } else {
+          console.log('❌ No token found in storage');
         }
       } catch (error) {
         console.error('Error loading auth state:', error);
@@ -79,16 +88,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
       }
     };
-
+  
     loadToken();
   }, []);
 
   const login = async (token: string, user?: UserInfo) => {
-    setUserToken(token);
-    if (user) {
-      setUserInfo(user);
+    try {
+      // Usa las funciones originales que tienen las claves correctas
+      await storeUserToken(token);
+      if (user) {
+        await storeUserInfo(user);
+      }
+      
+      // Actualizar estado local
+      setUserToken(token);
+      setUserInfo(user || null);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Error saving auth data:', error);
+      throw error;
     }
-    setIsAuthenticated(true);
   };
 
   const logout = async () => {

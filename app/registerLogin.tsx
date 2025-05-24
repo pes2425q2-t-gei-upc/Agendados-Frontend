@@ -17,16 +17,23 @@ import {
   ImageBackground,
   StatusBar,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
 
 import { useAuth } from '@context/authContext';
 import { login, register } from '@services/AuthService';
 import { colors, spacing } from '@styles/globalStyles';
+
+import { GoogleSignInButton } from './components/GoogleSignInButton';
+import { PasswordResetForm } from './components/PasswordResetForm';
+
+const { height: screenHeight } = Dimensions.get('window');
 
 export default function RegisterLoginPage() {
   const router = useRouter();
@@ -37,24 +44,75 @@ export default function RegisterLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
-  // Animated styles - Corregido para mostrar ambos formularios
+  const toggleResetPassword = () => {
+    setShowResetPassword(!showResetPassword);
+  };
+
+  const showErrorToast = (message: string) => {
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: message,
+      visibilityTime: 4000,
+      autoHide: true,
+      topOffset: Platform.OS === 'ios' ? 60 : 40,
+      position: 'top',
+      text1Style: {
+        fontSize: 18,
+        fontWeight: 'bold',
+      },
+      text2Style: {
+        fontSize: 12, // Slightly smaller font
+        fontWeight: '500',
+        lineHeight: 18, // Better line spacing
+        textAlign: 'left', // Ensure proper alignment
+      },
+      swipeable: true, // Allow swipe to dismiss
+    });
+  };
+
+  const showSuccessToast = (message: string) => {
+    Toast.show({
+      type: 'success',
+      text1: 'Éxito',
+      text2: message,
+      visibilityTime: 3000,
+      autoHide: true,
+      topOffset: Platform.OS === 'ios' ? 60 : 40,
+      position: 'top',
+      text1Style: {
+        fontSize: 18,
+        fontWeight: 'bold',
+      },
+      text2Style: {
+        fontSize: 12, // Slightly smaller font
+        fontWeight: '500',
+        lineHeight: 18, // Better line spacing
+        textAlign: 'left', // Ensure proper alignment
+      },
+      swipeable: true, // Allow swipe to dismiss
+    });
+  };
+
+  // Improved animated styles
   const loginFormStyle = useAnimatedStyle(() => {
     return {
       opacity: withTiming(showLogin ? 1 : 0, {
-        duration: 350,
+        duration: 300,
         easing: Easing.bezier(0.25, 1, 0.5, 1),
       }),
       transform: [
         {
-          translateY: withTiming(showLogin ? 0 : 20, {
-            duration: 350,
+          translateX: withTiming(showLogin ? 0 : -50, {
+            duration: 300,
             easing: Easing.bezier(0.25, 1, 0.5, 1),
           }),
         },
       ],
+      position: 'absolute',
       display: showLogin ? 'flex' : 'none',
       width: '100%',
       alignItems: 'center',
@@ -64,17 +122,18 @@ export default function RegisterLoginPage() {
   const registerFormStyle = useAnimatedStyle(() => {
     return {
       opacity: withTiming(showLogin ? 0 : 1, {
-        duration: 350,
+        duration: 300,
         easing: Easing.bezier(0.25, 1, 0.5, 1),
       }),
       transform: [
         {
-          translateY: withTiming(showLogin ? 20 : 0, {
-            duration: 350,
+          translateX: withTiming(showLogin ? 50 : 0, {
+            duration: 300,
             easing: Easing.bezier(0.25, 1, 0.5, 1),
           }),
         },
       ],
+      position: 'absolute',
       display: showLogin ? 'none' : 'flex',
       width: '100%',
       alignItems: 'center',
@@ -87,11 +146,10 @@ export default function RegisterLoginPage() {
     return re.test(email);
   };
 
+  // ...existing code...
   const handleLogin = async () => {
-    setErrorMessage('');
-
     if (!username || !password) {
-      setErrorMessage(
+      showErrorToast(
         t('auth.completeFields') || 'Por favor, completa todos los campos'
       );
       return;
@@ -103,47 +161,67 @@ export default function RegisterLoginPage() {
 
       if (response.token) {
         await auth.login(response.token, response.user);
+        showSuccessToast('Sesión iniciada correctamente');
         router.replace('/(tabs)/main');
       } else {
-        setErrorMessage(
+        showErrorToast(
           t('auth.noTokenReceived') || 'No se recibió un token de autenticación'
         );
       }
-    } catch (error: any) {
-      if (error.response?.data?.message) {
-        setErrorMessage(error.response.data.message);
-      } else if (error.message) {
-        setErrorMessage(error.message);
+    } catch (error) {
+      // Handle errors from AuthService - these are plain Error objects
+      if (error instanceof Error) {
+        // Check if it's a 404 error based on the message
+        if (error.message.includes('404')) {
+          showErrorToast(
+            t('auth.userNotFound') || 'Usuario o contraseña incorrectos'
+          );
+        } else if (error.message.includes('401')) {
+          showErrorToast(
+            t('auth.invalidCredentials') || 'Credenciales inválidas'
+          );
+        } else if (error.message.includes('403')) {
+          showErrorToast(
+            t('auth.accountBlocked') || 'Cuenta bloqueada o sin permisos'
+          );
+        } else if (error.message.includes('500')) {
+          showErrorToast(
+            t('auth.serverError') || 'Error del servidor. Inténtalo más tarde'
+          );
+        } else {
+          // Use the actual error message from the server
+          showErrorToast(error.message);
+        }
       } else {
-        setErrorMessage(
+        // Fallback for unknown error types
+        showErrorToast(
           t('auth.loginError') || 'Error al iniciar sesión. Inténtalo de nuevo.'
         );
       }
-      console.error(error);
+      console.error('Login error:', error);
     } finally {
       setLoading(false);
     }
   };
+  // ...existing code...
 
   const handleRegister = async () => {
-    setErrorMessage('');
-
     if (!username || !email || !password) {
-      setErrorMessage(
+      showErrorToast(
         t('auth.completeFields') || 'Por favor, completa todos los campos'
       );
       return;
     }
 
     if (!validateEmail(email)) {
-      setErrorMessage(
+      showErrorToast(
         t('auth.invalidEmail') || 'Por favor, introduce un email válido'
       );
       return;
     }
 
     if (password.length < 3) {
-      setErrorMessage(
+      showErrorToast(
         t('auth.passwordLength') ||
           'La contraseña debe tener al menos 3 caracteres'
       );
@@ -159,17 +237,29 @@ export default function RegisterLoginPage() {
         await auth.login(response.token, response.user);
       }
 
+      showSuccessToast('Cuenta creada exitosamente');
       router.replace('/(tabs)/main');
-    } catch (error: any) {
-      if (error.response?.data?.message) {
-        setErrorMessage(error.response.data.message);
+    } catch (error) {
+      // Manejo específico para errores de registro
+      if ((error as any).response?.status === 409) {
+        showErrorToast(t('auth.userExists') || 'El usuario o email ya existe');
+      } else if ((error as any).response?.status === 400) {
+        showErrorToast(
+          t('auth.badRequest') || 'Datos inválidos. Verifica la información'
+        );
+      } else if ((error as any).response?.status === 500) {
+        showErrorToast(
+          t('auth.serverError') || 'Error del servidor. Inténtalo más tarde'
+        );
+      } else if ((error as any).response?.data?.message) {
+        showErrorToast((error as any).response.data.message);
       } else {
-        setErrorMessage(
+        showErrorToast(
           t('auth.registerError') ||
             'Error al registrar usuario. Inténtalo de nuevo.'
         );
       }
-      console.error(error);
+      console.error('Register error:', error);
     } finally {
       setLoading(false);
     }
@@ -180,14 +270,28 @@ export default function RegisterLoginPage() {
     setUsername('');
     setEmail('');
     setPassword('');
-    setErrorMessage('');
   };
 
+  if (showResetPassword) {
+    return (
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: '#f5f5f5',
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        ]}
+      >
+        <PasswordResetForm onBackToLogin={toggleResetPassword} />
+        <Toast />
+      </View>
+    );
+  }
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <StatusBar
         barStyle='light-content'
         translucent
@@ -199,254 +303,387 @@ export default function RegisterLoginPage() {
         resizeMode='cover'
       >
         <LinearGradient
-          colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.7)']}
+          colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.5)', colors.primaryDark]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={styles.overlay}
         >
-          <ScrollView
-            contentContainerStyle={styles.scrollContainer}
-            showsVerticalScrollIndicator={false}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.keyboardContainer}
           >
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>Agendados</Text>
-            </View>
+            <ScrollView
+              contentContainerStyle={styles.scrollContainer}
+              keyboardShouldPersistTaps='handled'
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+            >
+              <View style={styles.logoContainer}>
+                <Text style={styles.logoText}>Agendados</Text>
+              </View>
 
-            {/* Título diferente según el formulario activo */}
-            <Text style={styles.title}>
-              {showLogin
-                ? t('auth.login') || 'Iniciar Sesión'
-                : t('auth.register') || 'Crear Cuenta'}
-            </Text>
+              {/* Título animado según el formulario activo */}
+              <Animated.Text
+                style={[
+                  styles.title,
+                  {
+                    opacity: showLogin ? 1 : 0,
+                    display: showLogin ? 'flex' : 'none',
+                  },
+                ]}
+              >
+                {t('auth.login') || 'Iniciar Sesión'}
+              </Animated.Text>
 
-            {/* Contenedor de formularios */}
-            <View style={styles.formsContainer}>
-              {/* Formulario de Login */}
-              <Animated.View style={[styles.formContent, loginFormStyle]}>
-                {errorMessage && showLogin ? (
-                  <View style={styles.errorContainer}>
+              <Animated.Text
+                style={[
+                  styles.title,
+                  {
+                    opacity: showLogin ? 0 : 1,
+                    display: showLogin ? 'none' : 'flex',
+                  },
+                ]}
+              >
+                {t('auth.register') || 'Crear Cuenta'}
+              </Animated.Text>
+
+              {/* Contenedor de formularios */}
+              <View style={styles.formsContainer}>
+                {/* Formulario de Login */}
+                <Animated.View style={[styles.formCard, loginFormStyle]}>
+                  <View style={styles.inputContainer}>
                     <Ionicons
-                      name='alert-circle-outline'
-                      size={18}
-                      color={colors.error}
-                    />
-                    <Text style={styles.errorText}>{errorMessage}</Text>
-                  </View>
-                ) : null}
-
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name='person-outline'
-                    size={22}
-                    color='#666'
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('auth.username') || 'Nombre de usuario'}
-                    placeholderTextColor='#666'
-                    value={username}
-                    onChangeText={setUsername}
-                    autoCapitalize='none'
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name='lock-closed-outline'
-                    size={22}
-                    color='#666'
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={[styles.input, { paddingRight: 40 }]}
-                    placeholder={t('auth.password') || 'Contraseña'}
-                    placeholderTextColor='#666'
-                    secureTextEntry={!showPassword}
-                    value={password}
-                    onChangeText={setPassword}
-                  />
-                  <TouchableOpacity
-                    style={styles.passwordToggle}
-                    onPress={() => setShowPassword(!showPassword)}
-                  >
-                    <Ionicons
-                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      name='person-outline'
                       size={22}
-                      color='#666'
+                      color={colors.primary}
+                      style={styles.inputIcon}
                     />
-                  </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity style={styles.forgotPassword}>
-                  <Text style={styles.forgotPasswordText}>
-                    {t('auth.forgotPassword') || '¿Olvidaste tu contraseña?'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.button,
-                    loading && { backgroundColor: colors.disabled },
-                  ]}
-                  onPress={handleLogin}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator size='small' color='#fff' />
-                  ) : (
-                    <Text style={styles.buttonText}>
-                      {t('auth.loginButton') || 'Entrar'}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
-
-              {/* Formulario de Registro */}
-              <Animated.View style={[styles.formContent, registerFormStyle]}>
-                {errorMessage && !showLogin ? (
-                  <View style={styles.errorContainer}>
-                    <Ionicons
-                      name='alert-circle-outline'
-                      size={18}
-                      color={colors.error}
+                    <TextInput
+                      style={styles.input}
+                      placeholder={t('auth.username') || 'Nombre de usuario'}
+                      placeholderTextColor='#999'
+                      value={username}
+                      onChangeText={setUsername}
+                      autoCapitalize='none'
                     />
-                    <Text style={styles.errorText}>{errorMessage}</Text>
                   </View>
-                ) : null}
 
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name='person-outline'
-                    size={22}
-                    color='#666'
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('auth.username') || 'Nombre de usuario'}
-                    placeholderTextColor='#666'
-                    value={username}
-                    onChangeText={setUsername}
-                    autoCapitalize='none'
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name='mail-outline'
-                    size={22}
-                    color='#666'
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('auth.email') || 'Correo electrónico'}
-                    placeholderTextColor='#666'
-                    keyboardType='email-address'
-                    value={email}
-                    onChangeText={setEmail}
-                    autoCapitalize='none'
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name='lock-closed-outline'
-                    size={22}
-                    color='#666'
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={[styles.input, { paddingRight: 40 }]}
-                    placeholder={t('auth.password') || 'Contraseña'}
-                    placeholderTextColor='#666'
-                    secureTextEntry={!showPassword}
-                    value={password}
-                    onChangeText={setPassword}
-                  />
-                  <TouchableOpacity
-                    style={styles.passwordToggle}
-                    onPress={() => setShowPassword(!showPassword)}
-                  >
+                  <View style={styles.inputContainer}>
                     <Ionicons
-                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      name='lock-closed-outline'
                       size={22}
-                      color='#666'
+                      color={colors.primary}
+                      style={styles.inputIcon}
                     />
-                  </TouchableOpacity>
-                </View>
+                    <TextInput
+                      style={[styles.input, { paddingRight: 40 }]}
+                      placeholder={t('auth.password') || 'Contraseña'}
+                      placeholderTextColor='#999'
+                      secureTextEntry={!showPassword}
+                      value={password}
+                      onChangeText={setPassword}
+                    />
+                    <TouchableOpacity
+                      style={styles.passwordToggle}
+                      onPress={() => setShowPassword(!showPassword)}
+                    >
+                      <Ionicons
+                        name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                        size={22}
+                        color='#999'
+                      />
+                    </TouchableOpacity>
+                  </View>
 
-                <TouchableOpacity
-                  style={[
-                    styles.button,
-                    loading && { backgroundColor: colors.disabled },
-                  ]}
-                  onPress={handleRegister}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator size='small' color='#fff' />
-                  ) : (
-                    <Text style={styles.buttonText}>
-                      {t('auth.registerButton') || 'Registrar'}
+                  <TouchableOpacity
+                    style={styles.forgotPassword}
+                    onPress={toggleResetPassword}
+                  >
+                    <Text
+                      style={[
+                        styles.forgotPasswordText,
+                        { textAlign: 'center' },
+                      ]}
+                    >
+                      {t('auth.forgotPassword') || '¿Olvidaste tu contraseña?'}
                     </Text>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
-            </View>
+                  </TouchableOpacity>
 
-            {/* Contenedor del switch entre Login y Register */}
-            <View style={styles.switchContainer}>
-              <Text style={styles.switchText}>
-                {showLogin
-                  ? t('auth.noAccount') || '¿No tienes cuenta?'
-                  : t('auth.haveAccount') || '¿Ya tienes cuenta?'}
-              </Text>
-              {showLogin ? (
+                  <TouchableOpacity
+                    style={[styles.button, loading && { opacity: 0.7 }]}
+                    onPress={handleLogin}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size='small' color='#fff' />
+                    ) : (
+                      <Text style={styles.buttonText}>
+                        {t('auth.loginButton') || 'Entrar'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+
+                  <View style={styles.dividerContainer}>
+                    <View style={styles.dividerLine} />
+                    <Text style={styles.dividerText}>
+                      {t('auth.orContinueWith') || 'O continúa con'}
+                    </Text>
+                    <View style={styles.dividerLine} />
+                  </View>
+
+                  <GoogleSignInButton
+                    onSuccess={() => {
+                      showSuccessToast('Sesión iniciada con Google');
+                      router.replace('/(tabs)/main');
+                    }}
+                    onError={(error) =>
+                      showErrorToast(
+                        error?.message ?? 'Error al iniciar sesión con Google'
+                      )
+                    }
+                  />
+                </Animated.View>
+
+                {/* Formulario de Registro */}
+                <Animated.View style={[styles.formCard, registerFormStyle]}>
+                  {/* Username Input */}
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name='person-outline'
+                      size={22}
+                      color={colors.primary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder={t('auth.username') || 'Nombre de usuario'}
+                      placeholderTextColor='#999'
+                      autoCapitalize='none'
+                      value={username}
+                      onChangeText={setUsername}
+                      editable={!loading}
+                    />
+                  </View>
+
+                  {/* Email Input */}
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name='mail-outline'
+                      size={22}
+                      color={colors.primary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder={t('auth.email') || 'Correo electrónico'}
+                      placeholderTextColor='#999'
+                      autoCapitalize='none'
+                      keyboardType='email-address'
+                      value={email}
+                      onChangeText={setEmail}
+                      editable={!loading}
+                    />
+                  </View>
+
+                  {/* Password Input */}
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name='lock-closed-outline'
+                      size={22}
+                      color={colors.primary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder={t('auth.password') || 'Contraseña'}
+                      placeholderTextColor='#999'
+                      autoCapitalize='none'
+                      secureTextEntry={!showPassword}
+                      value={password}
+                      onChangeText={setPassword}
+                      editable={!loading}
+                    />
+                    <TouchableOpacity
+                      style={styles.passwordToggle}
+                      onPress={() => setShowPassword(!showPassword)}
+                    >
+                      <Ionicons
+                        name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                        size={22}
+                        color='#999'
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    style={styles.button}
+                    onPress={handleRegister}
+                    disabled={loading}
+                    activeOpacity={0.85}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color='#fff' />
+                    ) : (
+                      <Text style={styles.buttonText}>
+                        {t('auth.register') || 'Registrarse'}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </Animated.View>
+              </View>
+
+              {/* Toggle Container */}
+              <View style={styles.toggleContainer}>
+                <Text style={styles.toggleText}>
+                  {showLogin
+                    ? t('auth.noAccount') || '¿No tienes cuenta?'
+                    : t('auth.haveAccount') || '¿Ya tienes cuenta?'}
+                </Text>
                 <TouchableOpacity
-                  style={styles.switchButton}
+                  style={styles.toggleButton}
                   onPress={toggleForm}
                   disabled={loading}
                 >
-                  <Text style={styles.switchButtonText}>
-                    {t('auth.registerNow') || 'Regístrate'}
+                  <Text style={styles.toggleButtonText}>
+                    {showLogin
+                      ? t('auth.registerNow') || 'Regístrate'
+                      : t('auth.loginNow') || 'Inicia sesión'}
                   </Text>
                 </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={styles.switchButton}
-                  onPress={toggleForm}
-                  disabled={loading}
-                >
-                  <Text style={styles.switchButtonText}>
-                    {t('auth.loginNow') || 'Inicia sesión'}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </ScrollView>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </LinearGradient>
       </ImageBackground>
-    </KeyboardAvoidingView>
+
+      {/* Toast Component */}
+      <Toast />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    width: '100%',
+  },
   background: {
     flex: 1,
     width: '100%',
+    height: screenHeight,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  overlay: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  keyboardContainer: {
+    flex: 1,
+  },
+  scrollContainer: {
+    alignItems: 'center',
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingBottom: spacing.xl * 2,
+    paddingHorizontal: spacing.lg,
+    paddingTop: Platform.OS === 'ios' ? 60 : spacing.xl * 2,
+    width: '100%',
+    minHeight: screenHeight,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  logoText: {
+    color: 'white',
+    fontSize: 42,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
+  },
+  title: {
+    color: 'white',
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 50,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  formsContainer: {
+    position: 'relative',
+    width: '90%',
+    height: 350,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formCard: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 20,
+    padding: spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 8,
+    alignItems: 'center',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 245, 245, 0.9)',
+    borderRadius: 12,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
+    height: 55,
+  },
+  inputIcon: {
+    marginRight: spacing.sm,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+    paddingVertical: spacing.sm,
+    height: 55,
+  },
+  passwordToggle: {
+    padding: spacing.xs,
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginTop: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  forgotPasswordText: {
+    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '500',
   },
   button: {
     alignItems: 'center',
     backgroundColor: colors.primary,
-    borderRadius: 25,
-    elevation: 2,
-    height: 50,
+    borderRadius: 12,
+    elevation: 4,
+    height: 55,
     justifyContent: 'center',
-    marginTop: spacing.xl,
+    marginTop: spacing.md,
     shadowColor: colors.primaryDark,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
     width: '100%',
   },
   buttonText: {
@@ -454,128 +691,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  container: {
-    flex: 1,
-    width: '100%',
-  },
-  errorContainer: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(209, 17, 73, 0.1)',
-    borderRadius: 8,
+  dividerContainer: {
     flexDirection: 'row',
-    marginBottom: spacing.md,
-    padding: spacing.sm,
+    alignItems: 'center',
+    marginVertical: spacing.lg,
     width: '100%',
   },
-  errorText: {
-    color: colors.error,
+  dividerLine: {
     flex: 1,
-    fontSize: 14,
-    marginLeft: 5,
+    height: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginTop: spacing.xs,
-  },
-  forgotPasswordText: {
-    color: colors.secondary,
+  dividerText: {
+    color: 'rgba(0, 0, 0, 0.5)',
+    marginHorizontal: spacing.sm,
     fontSize: 14,
   },
-  formsContainer: {
-    position: 'relative',
-    width: '85%',
-  },
-  formContent: {
+  toggleContainer: {
+    marginTop: 50,
     alignItems: 'center',
-    width: '100%',
   },
-  input: {
-    color: '#333',
-    flex: 1,
-    fontSize: 16,
-    height: '100%',
-  },
-  inputContainer: {
-    alignItems: 'center',
-    backgroundColor: '#f0f0fa',
-    borderRadius: 25,
-    flexDirection: 'row',
-    height: 54,
-    marginBottom: spacing.md,
-    paddingHorizontal: spacing.md,
-    width: '100%',
-  },
-  inputIcon: {
-    marginRight: spacing.sm,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-    marginTop: spacing.xl * 2,
-  },
-  logoText: {
+  toggleText: {
     color: 'white',
-    fontSize: 48,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    textShadowColor: 'rgba(0, 0, 0, 0.15)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-  },
-  overlay: {
-    flex: 1,
-    width: '100%',
-  },
-  passwordToggle: {
-    position: 'absolute',
-    right: spacing.md,
-  },
-  scrollContainer: {
-    alignItems: 'center',
-    flexGrow: 1,
-    justifyContent: 'flex-start',
-    paddingBottom: spacing.xl * 2,
-    paddingHorizontal: spacing.lg,
-    paddingTop: Platform.OS === 'ios' ? 60 : spacing.xl,
-    width: '100%',
-  },
-  switchButtonText: {
-    color: 'white',
-    fontWeight: 'semibold',
-  },
-  switchContainer: {
-    alignItems: 'center',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    marginTop: spacing.xl * 2,
-    width: '85%',
-  },
-  switchText: {
-    color: 'white',
+    fontSize: 15,
     marginBottom: spacing.sm,
   },
-  // Nuevo estilo para el botón del switch
-  switchButton: {
-    alignItems: 'center',
-    borderColor: colors.primary,
+  toggleButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
     borderRadius: 25,
     borderWidth: 1,
-    justifyContent: 'center',
-    marginTop: spacing.sm,
-    paddingHorizontal: 24,
-    paddingVertical: 6,
-    width: '70%',
-    backgroundColor: colors.primary, // Fondo blanco con 80% de opacidad
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    minWidth: 150,
+    alignItems: 'center',
   },
-
-  title: {
+  toggleButtonText: {
     color: 'white',
-    fontSize: 30,
-    fontWeight: 'bold',
-    marginBottom: spacing.xl, // Se aumenta el margen inferior para separar mejor del formulario
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    fontWeight: '600',
+    fontSize: 15,
   },
 });

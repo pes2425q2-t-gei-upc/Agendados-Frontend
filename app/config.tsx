@@ -58,10 +58,6 @@ const Config = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Notificaciones
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(false);
-
   // Cargar datos del usuario
   useEffect(() => {
     if (!userInfo) {
@@ -489,57 +485,10 @@ const Config = () => {
             <LanguageSelector onLanguageChange={handleLanguageChange} />
           </View>
 
-          {/* Notificaciones */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {t('settings.notifications')}
-            </Text>
-            <View style={styles.toggleItem}>
-              <View style={styles.toggleInfo}>
-                <Ionicons
-                  name='notifications-outline'
-                  size={22}
-                  color={colors.text}
-                />
-                <Text style={styles.toggleLabel}>
-                  {t('settings.pushNotifications')}
-                </Text>
-              </View>
-              <Switch
-                value={pushNotifications}
-                onValueChange={setPushNotifications}
-                trackColor={{
-                  false: colors.border,
-                  true: colors.primaryLight,
-                }}
-                thumbColor={pushNotifications ? colors.primary : '#f4f3f4'}
-                ios_backgroundColor={colors.border}
-              />
-            </View>
-            <View style={styles.toggleItem}>
-              <View style={styles.toggleInfo}>
-                <Ionicons name='mail-outline' size={22} color={colors.text} />
-                <Text style={styles.toggleLabel}>
-                  {t('settings.emailNotifications')}
-                </Text>
-              </View>
-              <Switch
-                value={emailNotifications}
-                onValueChange={setEmailNotifications}
-                trackColor={{
-                  false: colors.border,
-                  true: colors.primaryLight,
-                }}
-                thumbColor={emailNotifications ? colors.primary : '#f4f3f4'}
-                ios_backgroundColor={colors.border}
-              />
-            </View>
-          </View>
-
           {/* Privacidad */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('settings.privacy')}</Text>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/TermsOfService')}>
               <Ionicons
                 name='document-text-outline'
                 size={22}
@@ -554,7 +503,7 @@ const Config = () => {
                 color={colors.textSecondary}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/PrivacyPolicy')}>
               <Ionicons
                 name='shield-checkmark-outline'
                 size={22}

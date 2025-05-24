@@ -7,15 +7,13 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
   StatusBar,
+  View,
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { colors } from '@styles/globalStyles';
 
-// Constantes para dimensiones consistentes entre desarrollo y producción
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const STATUSBAR_HEIGHT = StatusBar.currentHeight ?? 0;
 const IS_IOS = Platform.OS === 'ios';
@@ -27,13 +25,11 @@ function CustomHeader() {
     router.push('/main');
   };
   return (
-    <TouchableOpacity
-      onPress={handlePress}
-      style={styles.headerContainer}
-      activeOpacity={0.9}
-    >
-      <Text style={styles.headerTitle}>Agendados</Text>
-    </TouchableOpacity>
+    <View style={styles.headerContainer}>
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+        <Text style={styles.headerTitle}>Agendados</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -153,7 +149,6 @@ export default function TabLayout() {
   );
 }
 
-// Styles for the Custom Header
 const styles = StyleSheet.create({
   headerContainer: {
     alignItems: 'center',
@@ -161,22 +156,22 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     borderBottomWidth: 1,
     elevation: 3,
-    height: IS_IOS ? 70 : 50 + STATUSBAR_HEIGHT,
+    height: IS_IOS ? 60 : 60 + STATUSBAR_HEIGHT,
     justifyContent: 'center',
-    paddingHorizontal: 16,
-    width: SCREEN_WIDTH, // Asegura que el ancho sea el de la pantalla completa
+    marginTop: 50,
+    paddingTop: IS_IOS ? 0 : STATUSBAR_HEIGHT,
+    width: SCREEN_WIDTH,
   },
   headerTitle: {
-    alignSelf: 'center', // Asegura que el título esté centrado
+    alignSelf: 'center',
     color: colors.primary,
     fontSize: 24,
     fontWeight: 'bold',
     letterSpacing: 1,
-    paddingTop: IS_IOS ? 15 : STATUSBAR_HEIGHT + 10,
-    textAlign: 'center', // Asegura que el texto esté centrado
+    textAlign: 'center',
   },
-  safeArea: {
+  root: {
+    backgroundColor: colors.background,
     flex: 1,
-    width: SCREEN_WIDTH, // Asegura que el ancho sea el de la pantalla completa
   },
 });
