@@ -161,6 +161,12 @@ export default function Explore() {
     }
   };
 
+  useEffect(() => {
+    if (emissionsMode && filteredMarkers.length > 0) {
+      fetchAirQualityData();
+    }
+  }, [emissionsMode, filteredMarkers]);
+
   const filterCategories = useMemo(() => {
     return filterCategoryKeys.map((group) => ({
       titleKey: group.titleKey,
@@ -638,12 +644,10 @@ export default function Explore() {
 
       {selectedEventDetail && (
         <EventDetailModal
-          event={selectedEventDetail}
           visible={detailModalVisible}
-          onClose={() => {
-            setDetailModalVisible(false);
-            setSelectedEventDetail(null);
-          }}
+          event={selectedEventDetail}
+          onClose={() => setDetailModalVisible(false)}
+          t={t}
         />
       )}
     </View>

@@ -3,6 +3,9 @@ interface AirQualityResponse {
   air_quality_index: string;
 }
 
+const API_KEY =
+  '4dbaf12c103e3d9ecd4bc2711fcf65feb1398dd79806521ad9bce7342cb25725';
+
 /**
  * Fetches the air quality level for a specific location
  * @param latitude The latitude of the location
@@ -14,12 +17,14 @@ export const getAirQualityLevel = async (
   longitude: number
 ): Promise<AirQualityResponse> => {
   try {
+    console.log('Requesting air quality for: ${latitude}, ${longitude}');
     const response = await fetch(
-      'https://agendados-backend-842309366027.europe-southwest1.run.app/api/v1/maps/qa-levels',
+      'https://ventus-app-backend.xyz/api/v1/maps/qa-levels',
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-API-KEY': API_KEY,
         },
         body: JSON.stringify({
           latitud: latitude,
@@ -29,10 +34,11 @@ export const getAirQualityLevel = async (
     );
 
     if (!response.ok) {
-      throw new Error(`Error fetching air quality: ${response.status}`);
+      throw new Error('Error fetching air quality: ${response.status}');
     }
 
     const data = await response.json();
+    console.log('Air quality API response:', data);
     return data;
   } catch (error) {
     console.error('Error in getAirQualityLevel:', error);
