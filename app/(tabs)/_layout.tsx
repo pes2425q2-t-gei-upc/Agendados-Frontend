@@ -36,116 +36,115 @@ function CustomHeader() {
 export default function TabLayout() {
   const { t } = useTranslation();
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.safeArea}>
-        <Tabs
-          screenOptions={{
-            tabBarActiveTintColor: colors.primary,
-            tabBarInactiveTintColor: colors.textSecondary,
-            tabBarShowLabel: true,
-            tabBarStyle: {
-              backgroundColor: colors.background,
-              borderTopWidth: 1,
-              borderTopColor: colors.border,
-              paddingBottom: 8,
-              paddingTop: 8,
-              height: IS_IOS ? 90 : 70,
-              shadowColor: colors.darkBackground,
-              shadowOffset: { width: 0, height: -2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 5,
-              width: SCREEN_WIDTH, // Asegura el ancho completo
-              alignItems: 'center', // Centra los elementos
-              justifyContent: 'space-around', // Distribuye los íconos uniformemente
-            },
-            tabBarLabelStyle: {
-              fontSize: 12,
-              fontWeight: '500',
-              marginTop: 4,
-              textAlign: 'center', // Asegura que el texto esté centrado
-            },
-            tabBarIconStyle: {
-              marginBottom: 0,
-              alignSelf: 'center', // Centra los íconos
-            },
-            // Add the custom header to all screens
-            header: () => <CustomHeader />,
-            headerStyle: {
-              backgroundColor: colors.background,
-              width: SCREEN_WIDTH, // Asegura el ancho completo del header
-            },
+    <View style={styles.root}>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.textSecondary,
+          tabBarShowLabel: true,
+          tabBarStyle: {
+            backgroundColor: colors.background,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+            height: IS_IOS ? 80 : 80,
+            shadowColor: colors.darkBackground,
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 5,
+            width: SCREEN_WIDTH,
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            paddingTop: 5,
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '500',
+            marginTop: 0,
+            textAlign: 'center',
+          },
+          tabBarIconStyle: {
+            marginBottom: 0,
+            alignSelf: 'center',
+          },
+          header: () => <CustomHeader />,
+          headerStyle: {
+            backgroundColor: colors.background,
+            width: SCREEN_WIDTH,
+            elevation: 0,
+            shadowOpacity: 0,
+            borderBottomWidth: 0,
+          },
+        }}
+      >
+        <Tabs.Screen
+          name='main'
+          options={{
+            title: t('navigation.home'),
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? 'home' : 'home-outline'}
+                size={28}
+                color={color}
+              />
+            ),
           }}
-        >
-          <Tabs.Screen
-            name='main'
-            options={{
-              title: t('navigation.home'),
-              tabBarIcon: ({ color, focused }) => (
-                <Ionicons
-                  name={focused ? 'home' : 'home-outline'}
-                  size={28}
-                  color={color}
-                />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name='explore'
-            options={{
-              title: t('navigation.explore'),
-              header: () => null, // Esto elimina el header solo para esta pestaña
-              tabBarIcon: ({ color, focused }) => (
-                <Ionicons
-                  name={focused ? 'compass' : 'compass-outline'}
-                  size={28}
-                  color={color}
-                />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name='saved'
-            options={{
-              title: t('navigation.saved'),
-              tabBarIcon: ({ color, focused }) => (
-                <Ionicons
-                  name={focused ? 'bookmark' : 'bookmark-outline'}
-                  size={28}
-                  color={color}
-                />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name='chats'
-            options={{
-              title: t('navigation.chats'),
-              tabBarIcon: ({ color, focused }) => (
-                <Ionicons
-                  name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
-                  size={28}
-                  color={color}
-                />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name='profile'
-            options={{
-              title: t('navigation.profile'),
-              tabBarIcon: ({ color, focused }) => (
-                <Ionicons
-                  name={focused ? 'person' : 'person-outline'}
-                  size={28}
-                  color={color}
-                />
-              ),
-            }}
-          />
-        </Tabs>
-      </SafeAreaView>
-    </SafeAreaProvider>
+        />
+        <Tabs.Screen
+          name='explore'
+          options={{
+            title: t('navigation.explore'),
+            header: () => null,
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? 'compass' : 'compass-outline'}
+                size={28}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name='saved'
+          options={{
+            title: t('navigation.saved'),
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? 'bookmark' : 'bookmark-outline'}
+                size={28}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name='chats'
+          options={{
+            title: t('navigation.chats'),
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
+                size={28}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name='profile'
+          options={{
+            title: t('navigation.profile'),
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? 'person' : 'person-outline'}
+                size={28}
+                color={color}
+              />
+            ),
+          }}
+        />
+      </Tabs>
+    </View>
   );
 }
 
