@@ -26,7 +26,7 @@ export default function RoomsScreen() {
     if (roomCode.trim()) {
       router.push({
         pathname: '/roomDetail',
-        params: { code: roomCode.trim() },
+        params: { code: roomCode.trim(), roomName: '', isAdmin: 0 },
       });
     }
   };

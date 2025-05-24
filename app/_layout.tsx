@@ -101,7 +101,7 @@ export default function RootLayout() {
                     }}
                   />
                   <Stack.Screen
-                    name='matchingRoom'
+                    name='roomMatching'
                     options={{
                       headerShown: false,
                       animation: 'slide_from_right',

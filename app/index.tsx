@@ -5,7 +5,7 @@ import { useAuth } from './context/authContext';
 
 export default function Index() {
   const { isAuthenticated, loading } = useAuth();
-
+  /** 
   if (loading) {
     return null;
   }
@@ -15,4 +15,6 @@ export default function Index() {
   } else {
     return <Redirect href='/registerLogin' />;
   }
+  */
+  return <Redirect href='/(tabs)/main' />;
 }

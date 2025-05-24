@@ -1,26 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { use } from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  FlatList,
-  Image,
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
-  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
+import { useAuth } from '@context/authContext';
 import { Friendship } from '@models/Friendship';
 import { FriendshipService } from '@services/FriendshipService';
 import RoomService from '@services/RoomService';
+import WebSocketService from '@services/WebSocketService';
 import { colors, spacing } from '@styles/globalStyles';
 
 import ProtectedRoute from './components/ProtectedRoute';
@@ -28,6 +27,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 export default function CreateRoomScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { user } = useAuth();
 
   const [roomName, setRoomName] = useState('');
   const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
@@ -79,22 +79,66 @@ export default function CreateRoomScreen() {
     }
 
     try {
-      //await RoomService.createRoom(roomName, selectedFriends);
-      Alert.alert('Success', 'Room created successfully!', [
-        {
-          text: 'OK',
-          onPress: () =>
-            router.push({
-              pathname: '/roomDetail',
-              params: { id: 1, name: roomName }, // Replace with actual room code
-            }),
-        },
-      ]);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to create room');
-    } finally {
+      const response = await RoomService.createRoom(roomName, selectedFriends);
+      if (!WebSocketService.getState().isConnected) {
+        await WebSocketService.connect(response.code, true, roomName);
+      }
+
+      // Subscribe to WebSocket state changes to know when the room is ready
+      const unsubscribe = WebSocketService.subscribe((state) => {
+        if (
+          state.roomDetails &&
+          state.roomDetails.id === response.code &&
+          state.isConnected
+        ) {
+          // Assuming the server sends back roomDetails upon successful creation/joining
+          Alert.alert('Success', 'Room created successfully!', [
+            {
+              text: 'OK',
+              onPress: () =>
+                router.push({
+                  pathname: '/roomDetail',
+                  // Pass the room ID from WebSocketService state
+                  params: {
+                    id: state.roomDetails!.id,
+                    name: state.roomDetails!.name,
+                    isAdmin: state.roomDetails!.isHost ? '1' : '0',
+                  },
+                }),
+            },
+          ]);
+          unsubscribe(); // Clean up the subscription
+          setLoadingCreateRoom(false);
+        } else if (state.error) {
+          Alert.alert(
+            'Error',
+            `Failed to create room & connect: ${state.error}`
+          );
+          unsubscribe(); // Clean up
+          setLoadingCreateRoom(false);
+        }
+      });
+
+      // Timeout for WebSocket response
+      setTimeout(() => {
+        if (loadingCreateRoom) {
+          // Check if still loading (i.e., room not created)
+          Alert.alert('Error', 'Room creation timed out.');
+          unsubscribe();
+          setLoadingCreateRoom(false);
+          // Consider disconnecting if the primary action failed
+          WebSocketService.disconnect();
+        }
+      }, 10000); // 10 seconds timeout
+    } catch (error: any) {
+      console.error('Error in handleCreateRoom:', error);
+      Alert.alert(
+        'Error',
+        `Failed to create room: ${error.message || 'Unknown error'}`
+      );
       setLoadingCreateRoom(false);
     }
+    // setLoadingCreateRoom(false); // Moved inside subscribe or catch
   };
   return (
     <ProtectedRoute>
@@ -148,50 +192,79 @@ export default function CreateRoomScreen() {
               />
             </View>
             {loading && (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size='large' color={colors.primary} />
-                <Text style={styles.loadingText}>Loading friends...</Text>
-              </View>
-            )}
-            {error && (
-              <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>{error}</Text>
-              </View>
-            )}
-            {!loading && !error && (
-              <FlatList
-                data={filteredFriends}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={[
-                      styles.friendItem,
-                      selectedFriends.includes(item.id) &&
-                        styles.selectedFriendItem,
-                    ]}
-                    onPress={() => toggleFriendSelection(item.id)}
-                  >
-                    <View style={styles.friendAvatarContainer}>
-                      <Image
-                        source={{ uri: item.user?.avatar }}
-                        style={styles.friendAvatar}
-                      />
-                    </View>
-                    <Text style={styles.friendName}>{item.user?.name}</Text>
-                    <View style={styles.checkboxContainer}>
-                      {selectedFriends.includes(item.id) && (
-                        <Ionicons
-                          name='checkmark-circle'
-                          size={24}
-                          color={colors.primary}
-                        />
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                )}
-                scrollEnabled={false}
+              <ActivityIndicator
+                size='small'
+                color={colors.primary}
+                style={{ marginTop: spacing.md }}
               />
             )}
+            {error && (
+              <Text
+                style={{
+                  color: colors.error,
+                  textAlign: 'center',
+                  marginTop: spacing.md,
+                }}
+              >
+                {error}
+              </Text>
+            )}
+            {!loading &&
+              !error &&
+              filteredFriends.length === 0 &&
+              searchText && (
+                <Text
+                  style={{
+                    textAlign: 'center',
+                    color: colors.textSecondary,
+                    marginTop: spacing.md,
+                  }}
+                >
+                  No friends found matching "{searchText}".
+                </Text>
+              )}
+            {!loading && !error && Friends.length === 0 && !searchText && (
+              <Text
+                style={{
+                  textAlign: 'center',
+                  color: colors.textSecondary,
+                  marginTop: spacing.md,
+                }}
+              >
+                You have no friends to invite yet.
+              </Text>
+            )}
+            <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
+              {filteredFriends.map((friend) => (
+                <TouchableOpacity
+                  key={friend.id}
+                  style={[
+                    styles.friendItem,
+                    selectedFriends.includes(friend.id!) &&
+                      styles.selectedFriendItem,
+                  ]}
+                  onPress={() => toggleFriendSelection(friend.id!)}
+                >
+                  {/* You might want to add an avatar here */}
+                  <Text style={styles.friendName}>{friend.user?.username}</Text>
+                  <View style={styles.checkboxContainer}>
+                    {selectedFriends.includes(friend.id!) ? (
+                      <Ionicons
+                        name='checkmark-circle'
+                        size={24}
+                        color={colors.primary}
+                      />
+                    ) : (
+                      <Ionicons
+                        name='ellipse-outline'
+                        size={24}
+                        color={colors.textSecondary}
+                      />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </ScrollView>
 
@@ -199,12 +272,16 @@ export default function CreateRoomScreen() {
           <TouchableOpacity
             style={[
               styles.createButton,
-              !roomName.trim() && styles.disabledButton,
+              (!roomName.trim() || loadingCreateRoom) && styles.disabledButton,
             ]}
             onPress={handleCreateRoom}
-            disabled={loading || loadingCreateRoom}
+            disabled={!roomName.trim() || loadingCreateRoom}
           >
-            <Text style={styles.createButtonText}>Create Room</Text>
+            {loadingCreateRoom ? (
+              <ActivityIndicator color={colors.lightText} />
+            ) : (
+              <Text style={styles.createButtonText}>Create Room</Text>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
