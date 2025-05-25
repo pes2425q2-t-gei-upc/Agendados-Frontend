@@ -129,7 +129,7 @@ export default function SavedEvents() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 5,
     paddingTop: spacing.lg,
   },
   emptyContainer: {
@@ -160,6 +160,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    backgroundColor: colors.background,
     flexGrow: 1,
     paddingBottom: spacing.xl,
   },

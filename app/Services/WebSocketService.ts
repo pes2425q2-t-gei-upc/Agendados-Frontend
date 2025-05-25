@@ -180,6 +180,7 @@ class WebSocketServiceController {
             roomDetails: {
               ...this.state.roomDetails,
               participants: message.participants,
+              name: message.room_name ?? 'Voting Room', // Use room_name if available
             },
           });
         }

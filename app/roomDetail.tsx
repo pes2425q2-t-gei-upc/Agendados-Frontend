@@ -226,7 +226,7 @@ export default function RoomDetailScreen() {
                   >
                     <Image
                       source={{
-                        uri: participant.avatar || 'https://i.pravatar.cc/300', // Fallback placeholder
+                        uri: participant.avatar ?? 'https://i.pravatar.cc/300', // Fallback placeholder
                       }} // Placeholder avatar
                       style={styles.avatar}
                     />
