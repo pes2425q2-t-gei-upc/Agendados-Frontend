@@ -62,7 +62,10 @@ export default function RoomMatching() {
   const [showResults, setShowResults] = useState(false);
   const [matchEvent, setMatchEvent] = useState<EventModal | null>(null);
   const [votingStarted, setVotingStarted] = useState(false);
+
+  // Store voted events to prevent re-voting
   const votedEvents = useRef<number[]>([]);
+  const events = useRef<number[]>([]);
 
   // Event detail modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -92,9 +95,11 @@ export default function RoomMatching() {
           newState.isVotingActive &&
           newState.currentEvent &&
           newState.currentEvent.id &&
-          !votedEvents.current.includes(newState.currentEvent.id)
+          !votedEvents.current.includes(newState.currentEvent.id) &&
+          !events.current.includes(newState.currentEvent.id)
         ) {
           console.log('Setting userVotedThisRound to false');
+          events.current.push(newState.currentEvent.id);
           setUserVotedThisRound(false);
           setVotingStarted(false); // Reset voting started flag
           setTimeRemaining(VOTING_TIME_SECONDS + VOTING_DELAY_SECONDS); // Add delay to initial time
@@ -111,7 +116,6 @@ export default function RoomMatching() {
           }, VOTING_DELAY_SECONDS * 1000);
         } else if (
           !newState.isVotingActive &&
-          newState.votingResults &&
           !showResults &&
           newState.currentEvent != null
         ) {
@@ -338,11 +342,22 @@ export default function RoomMatching() {
             <View style={styles.progressBarContainer}>
               <Animated.View style={[styles.progressBar, progressBarStyle]} />
             </View>
-            <Text style={styles.timeText}>
-              {votingStarted
-                ? `${timeRemaining}s remaining to vote`
-                : `Get ready! Voting starts in ${timeRemaining - VOTING_TIME_SECONDS}s`}
-            </Text>
+            <View
+              style={{
+                marginTop: 10,
+                backgroundColor: 'rgba(128, 128, 128, 0.82)',
+                borderRadius: 8,
+                paddingVertical: 6,
+                paddingHorizontal: 10,
+                alignSelf: 'center',
+              }}
+            >
+              <Text style={styles.timeText}>
+                {votingStarted
+                  ? `${timeRemaining}s remaining to vote`
+                  : `Get ready! Voting starts in ${timeRemaining - VOTING_TIME_SECONDS}s`}
+              </Text>
+            </View>
           </View>
         )}
 
@@ -383,11 +398,15 @@ export default function RoomMatching() {
           roomState.votingResults &&
           !showResults && (
             <View style={styles.liveVotesContainer}>
-              <Text style={styles.liveVotesText}>
-                Votes: {roomState.votingResults.true_votes} Yes /{' '}
-                {roomState.votingResults.false_votes} No (Total:{' '}
-                {roomState.roomDetails?.participants.length ?? 0})
-              </Text>
+              {!userVotedThisRound && (
+                <Text style={styles.liveVotesText}>
+                  Votes:{' '}
+                  {roomState.votingResults.true_votes +
+                    roomState.votingResults.false_votes}
+                  {'/'}
+                  {roomState.roomDetails?.participants.length ?? 0}
+                </Text>
+              )}
               {userVotedThisRound && (
                 <Text style={styles.votedText}>You have voted!</Text>
               )}

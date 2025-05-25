@@ -325,15 +325,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     padding: spacing.md,
   },
-  friendAvatar: {
-    borderRadius: 20,
-    height: 40,
-    width: 40,
-  },
-  friendAvatarContainer: {
-    marginRight: spacing.md,
-    position: 'relative',
-  },
   friendItem: {
     alignItems: 'center',
     backgroundColor: colors.backgroundAlt,
@@ -357,6 +348,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundAlt,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingTop: Platform.OS === 'ios' ? 40 : 0,
     padding: spacing.md,
   },
   headerTitle: {
@@ -381,16 +373,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: spacing.sm,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.xl,
-  },
-  loadingText: {
-    color: colors.text,
-    fontSize: 16,
-    marginTop: spacing.md,
   },
   searchContainer: {
     alignItems: 'center',

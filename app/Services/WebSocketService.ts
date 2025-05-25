@@ -209,9 +209,7 @@ class WebSocketServiceController {
         break;
       // NEW_EVENT is removed, covered by room_started and vote_finished.
 
-      case 'vote_cast': // Renamed from VOTE_UPDATE
-        // Assuming payload: { vote_results: { true_votes, false_votes, total_votes }, user?: { username: string }, vote?: boolean }
-        // webSockets.HTML updates results based on vote_results.
+      case 'vote_cast':
         addMessageToLog(
           `Vote cast. Results: Yes ${message.vote_results?.true_votes}, No ${message.vote_results?.false_votes}`
         );
@@ -291,6 +289,7 @@ class WebSocketServiceController {
       return;
     }
     // webSockets.HTML sends { action: "start_room" }
+    console.log('Sending start room message');
     this.sendMessage({ action: 'start_room' });
   }
 

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { colors, spacing } from '@styles/globalStyles';
 
@@ -26,14 +26,17 @@ export const styles = StyleSheet.create({
     flex: 1,
     height: '60%',
     justifyContent: 'center',
+    marginTop: Platform.OS === 'ios' ? 130 : 100, // Add margin to push card below countdown
     width: '95%',
+    marginBottom: 20,
   },
   liveVotesContainer: {
     backgroundColor: 'rgba(0,0,0,0.1)',
     borderRadius: spacing.xs,
-    bottom: 20,
     padding: spacing.sm,
     position: 'absolute',
+    right: Platform.OS === 'ios' ? 30 : 20,
+    top: Platform.OS === 'ios' ? 50 : 20,
   },
   liveVotesText: {
     color: colors.textSecondary,
@@ -54,6 +57,7 @@ export const styles = StyleSheet.create({
     fontSize: 18,
   },
   voteCountsContainer: {
+    alignContent: 'center',
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginBottom: spacing.md,
@@ -194,9 +198,10 @@ export const styles = StyleSheet.create({
   countdownContainer: {
     left: 0,
     paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 100 : 70, // More padding for iOS to account for status bar
     position: 'absolute',
     right: 0,
-    top: 20,
+    top: 0, // Start from very top
     zIndex: 10,
   },
 
@@ -214,8 +219,7 @@ export const styles = StyleSheet.create({
 
   timeText: {
     color: 'white',
-    fontSize: 12,
-    marginTop: 5,
+    fontSize: 14,
     textAlign: 'center',
   },
 
@@ -227,9 +231,9 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     left: 20,
     position: 'absolute',
-    top: 20,
+    top: Platform.OS === 'ios' ? 50 : 20, // Position below status bar
     width: 40,
-    zIndex: 10,
+    zIndex: 11, // Higher than countdown
   },
 
   resultsModal: {
@@ -241,7 +245,7 @@ export const styles = StyleSheet.create({
 
   resultsContainer: {
     alignItems: 'center',
-    backgroundColor: 'black',
+    backgroundColor: colors.backgroundAlt,
     borderRadius: 10,
     padding: 20,
     width: '80%',
@@ -249,8 +253,9 @@ export const styles = StyleSheet.create({
 
   resultsTitle: {
     color: colors.text,
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
+    justifyContent: 'center',
     marginBottom: 15,
   },
 

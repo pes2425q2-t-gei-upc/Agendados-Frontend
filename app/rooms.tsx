@@ -127,7 +127,7 @@ export default function RoomsScreen() {
           <View style={styles.header}>
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => router.back()}
+              onPress={() => router.push('/(tabs)/chats')}
             >
               <Ionicons name='arrow-back' size={24} color={colors.text} />
             </TouchableOpacity>

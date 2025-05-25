@@ -52,7 +52,7 @@ export default function RoomDetailScreen() {
         setIsStarting(true);
       } else {
         if (newState.error) {
-          Alert.alert('WebSocket Error', newState.error);
+          console.error('WebSocket Error', newState.error);
         }
       }
     };
@@ -72,7 +72,6 @@ export default function RoomDetailScreen() {
 
   useEffect(() => {
     if (isStarting) {
-      WebSocketService.startMatching();
       router.push({
         pathname: '/roomMatching',
         params: {
@@ -106,11 +105,6 @@ export default function RoomDetailScreen() {
     setTimeout(() => {
       setIsStarting(false);
       if (WebSocketService.getState().currentEvent) {
-        router.push({
-          pathname: '/roomMatching',
-          params: { roomId: currentRoom.id, roomName: currentRoom.name },
-        });
-      } else {
         router.push({
           pathname: '/roomMatching',
           params: { roomId: currentRoom.id, roomName: currentRoom.name },
