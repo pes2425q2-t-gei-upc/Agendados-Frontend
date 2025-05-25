@@ -173,9 +173,6 @@ class WebSocketServiceController {
     // Based on the structure of messages from webSockets.HTML and your app needs
     console.log('Handling server message:', message);
     switch (message.type) {
-      // ROOM_JOINED is removed; initial room details set on connect or by first user_joined.
-      // isHost status is not directly managed by webSockets.HTML messages.
-
       case 'user_joined': // Renamed from USER_JOINED
         addMessageToLog(`User joined: ${message.user_joined.username}`);
         if (this.state.roomDetails) {
@@ -246,7 +243,6 @@ class WebSocketServiceController {
           addMessageToLog(
             `Match found! Event: ${message.current_event?.title}`
           );
-          this.disconnect(); // Optionally disconnect after match
         } else {
           this.updateState({
             currentEvent: message.next_event, // New event for next round

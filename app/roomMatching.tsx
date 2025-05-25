@@ -43,6 +43,7 @@ const Dislike = require('@assets/images/RedColor.png');
 
 const SWIPE_VELOCITY = 800;
 const VOTING_TIME_SECONDS = 12; // 12 seconds per vote
+const VOTING_DELAY_SECONDS = 3; // 3 second delay before voting starts
 
 export default function RoomMatching() {
   const router = useRouter();
@@ -59,7 +60,8 @@ export default function RoomMatching() {
   // Group voting state - managed by WebSocketService, reflected here
   const [timeRemaining, setTimeRemaining] = useState(VOTING_TIME_SECONDS);
   const [showResults, setShowResults] = useState(false);
-  const [matchEvnent, setMatchEvent] = useState<string | null>(null);
+  const [matchEvent, setMatchEvent] = useState<EventModal | null>(null);
+  const [votingStarted, setVotingStarted] = useState(false);
   const votedEvents = useRef<number[]>([]);
 
   // Event detail modal state
@@ -78,43 +80,54 @@ export default function RoomMatching() {
   useEffect(() => {
     const handleStateUpdate = (newState: WebSocketServiceState) => {
       setRoomState(newState);
-      setCurrentEvent(newState.currentEvent);
+      if (newState.isConnected) {
+        setCurrentEvent(newState.currentEvent);
 
-      if (newState.error) {
-        Alert.alert('Room Error', newState.error);
-        router.replace('/rooms');
-      }
-
-      if (
-        newState.isVotingActive &&
-        newState.currentEvent &&
-        !votedEvents.current.includes(newState.currentEvent.id)
-      ) {
-        console.log('Setting userVotedThisRound to false');
-        setUserVotedThisRound(false);
-        setTimeRemaining(VOTING_TIME_SECONDS);
-        translateX.value = 0; // Reset card position
-        progressWidth.value = 100; // Reset progress bar
-        progressWidth.value = withTiming(0, {
-          duration: VOTING_TIME_SECONDS * 1000,
-          easing: Easing.linear,
-        });
-      } else if (
-        !newState.isVotingActive &&
-        newState.votingResults &&
-        !showResults
-      ) {
-        console.log('I have the results');
-        setShowResults(true);
-        setMatchEvent(newState.currentEvent!.title!);
-        if (newState.votingResults.match && newState.currentEvent) {
-          SavedService.addFavorite(newState.currentEvent.id);
-          refreshFavorites(); // Refresh favorites list
-        }
-        //After 10s return to /rooms
-        setTimeout(() => {
+        if (newState.error) {
+          Alert.alert('Room Error', newState.error);
           router.replace('/rooms');
-        }, 10000);
+        }
+
+        if (
+          newState.isVotingActive &&
+          newState.currentEvent &&
+          newState.currentEvent.id &&
+          !votedEvents.current.includes(newState.currentEvent.id)
+        ) {
+          console.log('Setting userVotedThisRound to false');
+          setUserVotedThisRound(false);
+          setVotingStarted(false); // Reset voting started flag
+          setTimeRemaining(VOTING_TIME_SECONDS + VOTING_DELAY_SECONDS); // Add delay to initial time
+          translateX.value = 0; // Reset card position
+          progressWidth.value = 100; // Reset progress bar
+
+          // Start delay countdown first
+          setTimeout(() => {
+            setVotingStarted(true);
+            progressWidth.value = withTiming(0, {
+              duration: VOTING_TIME_SECONDS * 1000,
+              easing: Easing.linear,
+            });
+          }, VOTING_DELAY_SECONDS * 1000);
+        } else if (
+          !newState.isVotingActive &&
+          newState.votingResults &&
+          !showResults &&
+          newState.currentEvent != null
+        ) {
+          console.log('I have the results');
+          console.log('Voting results:', newState.currentEvent);
+          setShowResults(true);
+          setMatchEvent(newState.currentEvent);
+          console.log('Match event:', newState.currentEvent);
+          SavedService.addFavorite(newState.currentEvent!.id); // Save the matched event
+          refreshFavorites(); // Refresh favorites list
+          //After 10s return to /rooms
+          setTimeout(() => {
+            WebSocketService.disconnect(); // Disconnect WebSocket
+            router.replace('/rooms');
+          }, 10000);
+        }
       }
     };
 
@@ -132,7 +145,15 @@ export default function RoomMatching() {
         clearInterval(votingTimerRef.current);
       }
     };
-  }, [router, refreshFavorites, translateX, progressWidth]);
+  }, [
+    router,
+    refreshFavorites,
+    translateX,
+    progressWidth,
+    roomState.isVotingActive,
+    roomState.currentEvent,
+    showResults,
+  ]);
 
   // --- Countdown Timers ---
   useEffect(() => {
@@ -142,7 +163,7 @@ export default function RoomMatching() {
           if (prev <= 1) {
             clearInterval(votingTimerRef.current!); // Explicitly clear
 
-            if (!userVotedThisRound && currentEvent) {
+            if (!userVotedThisRound && currentEvent && votingStarted) {
               WebSocketService.sendVote(false);
               setUserVotedThisRound(true); // Mark as voted (timeout)
               votedEvents.current.push(currentEvent.id);
@@ -162,12 +183,23 @@ export default function RoomMatching() {
         clearInterval(votingTimerRef.current);
       }
     };
-  }, [roomState.isVotingActive, userVotedThisRound, showResults, currentEvent]);
+  }, [
+    roomState.isVotingActive,
+    userVotedThisRound,
+    showResults,
+    currentEvent,
+    votingStarted,
+  ]);
 
   // --- Voting Logic ---
   const handleVote = useCallback(
     (isRightSwipe: boolean) => {
-      if (!currentEvent || userVotedThisRound || !roomState.isVotingActive) {
+      if (
+        !currentEvent ||
+        userVotedThisRound ||
+        !roomState.isVotingActive ||
+        !votingStarted
+      ) {
         return;
       }
 
@@ -176,7 +208,13 @@ export default function RoomMatching() {
       const vote = isRightSwipe;
       WebSocketService.sendVote(vote);
     },
-    [currentEvent, userVotedThisRound, roomState.isVotingActive, progressWidth]
+    [
+      currentEvent,
+      userVotedThisRound,
+      roomState.isVotingActive,
+      votingStarted,
+      progressWidth,
+    ]
   );
 
   // Derived rotation value based on swipe position
@@ -209,19 +247,19 @@ export default function RoomMatching() {
   // Gesture handler for swipe
   const gestureHandler = useAnimatedGestureHandler({
     onStart: (_, context: any) => {
-      if (userVotedThisRound || !roomState.isVotingActive) {
+      if (userVotedThisRound || !roomState.isVotingActive || !votingStarted) {
         return;
       }
       context.startX = translateX.value;
     },
     onActive: (event, context: any) => {
-      if (userVotedThisRound || !roomState.isVotingActive) {
+      if (userVotedThisRound || !roomState.isVotingActive || !votingStarted) {
         return;
       }
       translateX.value = context.startX + event.translationX;
     },
     onEnd: (event) => {
-      if (userVotedThisRound || !roomState.isVotingActive) {
+      if (userVotedThisRound || !roomState.isVotingActive || !votingStarted) {
         return;
       }
 
@@ -301,7 +339,9 @@ export default function RoomMatching() {
               <Animated.View style={[styles.progressBar, progressBarStyle]} />
             </View>
             <Text style={styles.timeText}>
-              {timeRemaining}s remaining to vote
+              {votingStarted
+                ? `${timeRemaining}s remaining to vote`
+                : `Get ready! Voting starts in ${timeRemaining - VOTING_TIME_SECONDS}s`}
             </Text>
           </View>
         )}
@@ -309,17 +349,16 @@ export default function RoomMatching() {
         {/* Results Display */}
         {showResults && (
           <View style={styles.resultsContainer}>
-            {roomState.votingResults.match && currentEvent && (
-              <Text style={styles.matchText}>
-                🎉 Match on {currentEvent.title}! 🎉
-              </Text>
-            )}
+            <Text style={styles.matchText}>
+              🎉 Match on {matchEvent!.title}! 🎉
+            </Text>
           </View>
         )}
 
         {!showResults &&
           currentEvent &&
           !userVotedThisRound &&
+          votingStarted &&
           !votedEvents.current.includes(currentEvent.id) && (
             <PanGestureHandler onGestureEvent={gestureHandler}>
               <Animated.View style={[styles.animatedCard, cardStyle]}>
