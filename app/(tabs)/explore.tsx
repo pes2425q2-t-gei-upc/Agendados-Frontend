@@ -123,8 +123,8 @@ export default function Explore() {
         (event) => event.location?.latitude && event.location?.longitude
       );
 
-      // Process in batches to avoid overloading the API
-      const batchSize = 10;
+      // For heatmaps, we want more data points
+      const batchSize = 20; // Increased from 10
       let results: { event: EventModel; quality: number }[] = [];
 
       for (let i = 0; i < eventsWithLocation.length; i += batchSize) {
@@ -161,11 +161,84 @@ export default function Explore() {
     }
   };
 
+  // Implementar precarga de datos de calidad del aire
+  const [preloadedAirQualityData, setPreloadedAirQualityData] = useState<
+    { event: EventModel; quality: number }[] | null
+  >(null);
+  const isPreloading = useRef(false);
+
+  // Precarga de datos en segundo plano
+  const preloadAirQualityData = useCallback(async () => {
+    if (
+      isPreloading.current ||
+      preloadedAirQualityData ||
+      isLoadingAirQuality
+    ) {
+      return;
+    }
+
+    isPreloading.current = true;
+
+    try {
+      const eventsToProcess = filteredMarkers.slice(0, 20); // Limitamos para no sobrecargar
+      const eventsWithLocation = eventsToProcess.filter(
+        (event) => event.location?.latitude && event.location?.longitude
+      );
+
+      // Usamos InteractionManager para asegurar que no interfiera con la UI
+      InteractionManager.runAfterInteractions(async () => {
+        const batchPromises = eventsWithLocation.map(async (event) => {
+          try {
+            if (event.location?.latitude && event.location?.longitude) {
+              const data = await getAirQualityLevel(
+                event.location.latitude,
+                event.location.longitude
+              );
+              return { event, quality: data.value };
+            }
+          } catch (err) {
+            console.debug(`Preloading error for event ${event.id}:`, err);
+          }
+          return null;
+        });
+
+        const results = (await Promise.all(batchPromises)).filter(Boolean);
+        setPreloadedAirQualityData(results);
+      });
+    } catch (error) {
+      console.debug('Error preloading air quality data:', error);
+    } finally {
+      isPreloading.current = false;
+    }
+  }, [filteredMarkers, isLoadingAirQuality, preloadedAirQualityData]);
+
   useEffect(() => {
     if (emissionsMode && filteredMarkers.length > 0) {
       fetchAirQualityData();
     }
   }, [emissionsMode, filteredMarkers]);
+
+  // Efecto para fetchAirQualityData modificado
+  useEffect(() => {
+    if (emissionsMode) {
+      if (preloadedAirQualityData) {
+        // Usar datos precargados si están disponibles
+        setAirQualityData(preloadedAirQualityData);
+        setPreloadedAirQualityData(null); // Limpiar datos precargados
+
+        // Si hay más marcadores que los precargados, cargar el resto
+        if (filteredMarkers.length > 20) {
+          fetchAirQualityData();
+        }
+      } else {
+        // Si no hay datos precargados, cargar normalmente
+        fetchAirQualityData();
+      }
+    } else {
+      // Precargar datos cuando el modo emisiones está desactivado
+      preloadAirQualityData();
+    }
+  }, [emissionsMode, filteredMarkers, preloadedAirQualityData]);
 
   const filterCategories = useMemo(() => {
     return filterCategoryKeys.map((group) => ({
@@ -220,6 +293,13 @@ export default function Explore() {
   useEffect(() => {
     if (events.length > 0) {
       setMaxEventsToProcess(events.length);
+    }
+  }, [events.length]);
+
+  useEffect(() => {
+    if (events.length > 0) {
+      setMaxEventsToProcess(events.length);
+      preloadAirQualityData();
     }
   }, [events.length]);
 

@@ -18,7 +18,7 @@ import {
   Animated,
 } from 'react-native';
 import MapViewClustering from 'react-native-map-clustering-fh';
-import MapView, { Marker, Region, Circle } from 'react-native-maps';
+import MapView, { Marker, Region, Heatmap } from 'react-native-maps';
 import Supercluster from 'supercluster';
 
 import type { Event as EventModel } from '@models/Event';
@@ -224,6 +224,27 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
       }).start();
     }, [legendVisible, legendContentHeight]);
 
+    // Mejorar la normalización de pesos para el heatmap
+    const heatmapPoints = useMemo(() => {
+      if (!emissionsMode || !airQualityData) {
+        return [];
+      }
+
+      return airQualityData.map(({ event, quality }) => {
+        // Normalización mejorada con una escala logarítmica para mejor distribución
+        const normalizedWeight = Math.min(
+          Math.log(quality + 1) / Math.log(3001),
+          1
+        );
+
+        return {
+          latitude: event.location?.latitude ?? 0,
+          longitude: event.location?.longitude ?? 0,
+          weight: normalizedWeight,
+        };
+      });
+    }, [emissionsMode, airQualityData]);
+
     return (
       <>
         <MapView
@@ -244,19 +265,27 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
         >
           {renderClusters()}
 
-          {emissionsMode &&
-            airQualityData?.map(({ event, quality }) => (
-              <Circle
-                key={`air-quality-${event.id}`}
-                center={{
-                  latitude: event.location?.latitude ?? 0,
-                  longitude: event.location?.longitude ?? 0,
-                }}
-                radius={500}
-                fillColor={getAirQualityColor(quality)}
-                strokeWidth={0}
-              />
-            ))}
+          {/* Replace the Circle components with a Heatmap */}
+          {emissionsMode && heatmapPoints.length > 0 && (
+            <Heatmap
+              points={heatmapPoints}
+              radius={50}
+              opacity={0.8}
+              gradient={{
+                colors: [
+                  'rgba(0, 255, 0, 0.7)',
+                  'rgba(255, 255, 0, 0.7)',
+                  'rgba(255, 165, 0, 0.7)',
+                  'rgba(255, 0, 0, 0.7)',
+                  'rgba(128, 0, 128, 0.7)',
+                  'rgba(128, 0, 0, 0.7)',
+                ],
+                startPoints: [0, 0.2, 0.4, 0.6, 0.8, 1],
+              }}
+              gradientSmoothing={15} // Aumentado para transiciones más suaves
+              heatmapMode='POINTS_DENSITY' // Enfocado en densidad para mejor cobertura
+            />
+          )}
         </MapView>
 
         <TouchableOpacity
