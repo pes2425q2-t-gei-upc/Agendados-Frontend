@@ -591,9 +591,11 @@ export default function Explore() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size='large' color='#4285F4' />
-        <Text>{t('explore.loading')}</Text>
+      <View style={styles.loadingOverlay}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size='large' color='#4285F4' />
+          <Text style={styles.loadingText}>{t('Cargando mapa...')}</Text>
+        </View>
       </View>
     );
   }
@@ -729,6 +731,16 @@ export default function Explore() {
           onClose={() => setDetailModalVisible(false)}
           t={t}
         />
+      )}
+
+      {/* Indicador de carga para la calidad del aire */}
+      {emissionsMode && isLoadingAirQuality && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size='large' color='#4285F4' />
+            <Text style={styles.loadingText}>{t('Cargando emisiones...')}</Text>
+          </View>
+        </View>
       )}
     </View>
   );

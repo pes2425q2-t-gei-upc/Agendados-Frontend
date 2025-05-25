@@ -282,8 +282,8 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
                 ],
                 startPoints: [0, 0.2, 0.4, 0.6, 0.8, 1],
               }}
-              gradientSmoothing={15} // Aumentado para transiciones más suaves
-              heatmapMode='POINTS_DENSITY' // Enfocado en densidad para mejor cobertura
+              gradientSmoothing={20}
+              heatmapMode='POINTS_DENSITY'
             />
           )}
         </MapView>
