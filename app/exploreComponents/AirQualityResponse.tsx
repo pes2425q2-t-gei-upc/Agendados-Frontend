@@ -17,7 +17,6 @@ export const getAirQualityLevel = async (
   longitude: number
 ): Promise<AirQualityResponse> => {
   try {
-    console.log('Requesting air quality for: ${latitude}, ${longitude}');
     const response = await fetch(
       'https://ventus-app-backend.xyz/api/v1/maps/qa-levels',
       {
@@ -38,7 +37,6 @@ export const getAirQualityLevel = async (
     }
 
     const data = await response.json();
-    console.log('Air quality API response:', data);
     return data;
   } catch (error) {
     console.error('Error in getAirQualityLevel:', error);

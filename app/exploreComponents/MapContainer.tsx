@@ -224,25 +224,55 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
       }).start();
     }, [legendVisible, legendContentHeight]);
 
-    // Mejorar la normalización de pesos para el heatmap
+    // Modificación del heatmapPoints para quitar el pintado de toda Cataluña
     const heatmapPoints = useMemo(() => {
       if (!emissionsMode || !airQualityData) {
         return [];
       }
 
-      return airQualityData.map(({ event, quality }) => {
-        // Normalización mejorada con una escala logarítmica para mejor distribución
-        const normalizedWeight = Math.min(
-          Math.log(quality + 1) / Math.log(3001),
-          1
-        );
+      // Crear un mapa para mantener un solo punto por ubicación
+      const locationMap = new Map();
 
-        return {
-          latitude: event.location?.latitude ?? 0,
-          longitude: event.location?.longitude ?? 0,
-          weight: normalizedWeight,
-        };
+      airQualityData.forEach(({ event, quality }) => {
+        if (event.location?.latitude && event.location?.longitude) {
+          // Crear una clave única para cada ubicación
+          const locationKey = `${event.location.latitude.toFixed(5)},${event.location.longitude.toFixed(5)}`;
+
+          // Solo añadir el punto si esta ubicación no existe ya en el mapa
+          if (!locationMap.has(locationKey)) {
+            // Asignar pesos fijos por categoría
+            let weight = 0;
+
+            if (quality <= 700) {
+              weight = 0.1;
+            } // Buena
+            else if (quality <= 800) {
+              weight = 0.25;
+            } // Moderada
+            else if (quality <= 1100) {
+              weight = 0.4;
+            } // Regular
+            else if (quality <= 1500) {
+              weight = 0.6;
+            } // Mala
+            else if (quality <= 2000) {
+              weight = 0.8;
+            } // Muy Mala
+            else {
+              weight = 1.0;
+            } // Peligrosa
+
+            locationMap.set(locationKey, {
+              latitude: event.location.latitude,
+              longitude: event.location.longitude,
+              weight: weight,
+            });
+          }
+        }
       });
+
+      // Convertir el mapa a un array de puntos y retornarlo directamente
+      return Array.from(locationMap.values());
     }, [emissionsMode, airQualityData]);
 
     return (
@@ -270,7 +300,7 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
             <Heatmap
               points={heatmapPoints}
               radius={50}
-              opacity={0.8}
+              opacity={0.7}
               gradient={{
                 colors: [
                   'rgba(0, 255, 0, 0.7)',
@@ -282,8 +312,10 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
                 ],
                 startPoints: [0, 0.2, 0.4, 0.6, 0.8, 1],
               }}
-              gradientSmoothing={20}
-              heatmapMode='POINTS_DENSITY'
+              gradientSmoothing={10}
+              heatmapMode='POINTS_WEIGHT'
+              maxIntensity={1.0}
+              weatheringFactor={0.2}
             />
           )}
         </MapView>

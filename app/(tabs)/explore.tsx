@@ -110,7 +110,7 @@ export default function Explore() {
     }
   }, [emissionsMode, airQualityData, filteredMarkers]);
 
-  // Add this function to fetch air quality data
+  // Función optimizada para evitar llamadas duplicadas a la API
   const fetchAirQualityData = async () => {
     if (isLoadingAirQuality) {
       return;
@@ -123,32 +123,69 @@ export default function Explore() {
         (event) => event.location?.latitude && event.location?.longitude
       );
 
-      // For heatmaps, we want more data points
-      const batchSize = 20; // Increased from 10
+      // Crear un mapa para agrupar eventos por coordenadas
+      const locationMap = new Map();
+
+      // Agrupar eventos por sus coordenadas
+      eventsWithLocation.forEach((event) => {
+        if (event.location?.latitude && event.location?.longitude) {
+          // Crear una clave única para cada par de coordenadas
+          const locationKey = `${event.location.latitude.toFixed(5)},${event.location.longitude.toFixed(5)}`;
+
+          if (!locationMap.has(locationKey)) {
+            locationMap.set(locationKey, {
+              coords: {
+                latitude: event.location.latitude,
+                longitude: event.location.longitude,
+              },
+              events: [],
+            });
+          }
+
+          locationMap.get(locationKey).events.push(event);
+        }
+      });
+
+      // Procesar ubicaciones únicas en lotes
+      const uniqueLocations = Array.from(locationMap.values());
+      const batchSize = 20;
       let results: { event: EventModel; quality: number }[] = [];
 
-      for (let i = 0; i < eventsWithLocation.length; i += batchSize) {
-        const batch = eventsWithLocation.slice(i, i + batchSize);
-        const batchPromises = batch.map(async (event) => {
+      for (let i = 0; i < uniqueLocations.length; i += batchSize) {
+        const batch = uniqueLocations.slice(i, i + batchSize);
+        const batchPromises = batch.map(async (location) => {
           try {
-            if (event.location?.latitude && event.location?.longitude) {
-              const data = await getAirQualityLevel(
-                event.location.latitude,
-                event.location.longitude
-              );
-              return { event, quality: data.value };
-            }
+            const data = await getAirQualityLevel(
+              location.coords.latitude,
+              location.coords.longitude
+            );
+
+            // Aplicar el mismo valor de calidad del aire a todos los eventos en esta ubicación
+            // Seleccionar solo un evento representante para cada ubicación
+            return [
+              {
+                event: location.events[0],
+                quality: data.value,
+                // Guardamos una referencia a todos los eventos en esta ubicación si fuera necesario
+                allEventsAtLocation: location.events,
+              },
+            ];
           } catch (err) {
             console.error(
-              `Error fetching air quality for event ${event.id}:`,
+              `Error fetching air quality for location ${location.coords.latitude},${location.coords.longitude}:`,
               err
             );
+            return null;
           }
-          return null;
         });
 
         const batchResults = await Promise.all(batchPromises);
-        results = [...results, ...batchResults.filter(Boolean)];
+        // Aplanar el array de resultados y filtrar los nulos
+        const flattenedResults = batchResults
+          .filter(Boolean)
+          .flatMap((result) => result);
+
+        results = [...results, ...flattenedResults];
       }
 
       setAirQualityData(results);
@@ -167,7 +204,8 @@ export default function Explore() {
   >(null);
   const isPreloading = useRef(false);
 
-  // Precarga de datos en segundo plano
+  // Precarga de datos optimizada
+
   const preloadAirQualityData = useCallback(async () => {
     if (
       isPreloading.current ||
@@ -180,29 +218,64 @@ export default function Explore() {
     isPreloading.current = true;
 
     try {
-      const eventsToProcess = filteredMarkers.slice(0, 20); // Limitamos para no sobrecargar
+      const eventsToProcess = filteredMarkers.slice(0, 20);
       const eventsWithLocation = eventsToProcess.filter(
         (event) => event.location?.latitude && event.location?.longitude
       );
 
+      // Crear un mapa para agrupar eventos por coordenadas
+      const locationMap = new Map();
+
+      // Agrupar eventos por sus coordenadas
+      eventsWithLocation.forEach((event) => {
+        if (event.location?.latitude && event.location?.longitude) {
+          const locationKey = `${event.location.latitude.toFixed(5)},${event.location.longitude.toFixed(5)}`;
+
+          if (!locationMap.has(locationKey)) {
+            locationMap.set(locationKey, {
+              coords: {
+                latitude: event.location.latitude,
+                longitude: event.location.longitude,
+              },
+              events: [],
+            });
+          }
+
+          locationMap.get(locationKey).events.push(event);
+        }
+      });
+
+      // Procesar ubicaciones únicas
+      const uniqueLocations = Array.from(locationMap.values());
+
       // Usamos InteractionManager para asegurar que no interfiera con la UI
       InteractionManager.runAfterInteractions(async () => {
-        const batchPromises = eventsWithLocation.map(async (event) => {
+        const locationPromises = uniqueLocations.map(async (location) => {
           try {
-            if (event.location?.latitude && event.location?.longitude) {
-              const data = await getAirQualityLevel(
-                event.location.latitude,
-                event.location.longitude
-              );
-              return { event, quality: data.value };
-            }
+            const data = await getAirQualityLevel(
+              location.coords.latitude,
+              location.coords.longitude
+            );
+
+            // Aplicar el mismo valor de calidad del aire a todos los eventos en esta ubicación
+            return [
+              {
+                event: location.events[0],
+                quality: data.value,
+                // Guardamos una referencia a todos los eventos en esta ubicación si fuera necesario
+                allEventsAtLocation: location.events,
+              },
+            ];
           } catch (err) {
-            console.debug(`Preloading error for event ${event.id}:`, err);
+            console.debug(`Preloading error for location:`, err);
+            return null;
           }
-          return null;
         });
 
-        const results = (await Promise.all(batchPromises)).filter(Boolean);
+        const results = (await Promise.all(locationPromises))
+          .filter(Boolean)
+          .flatMap((result) => result);
+
         setPreloadedAirQualityData(results);
       });
     } catch (error) {
