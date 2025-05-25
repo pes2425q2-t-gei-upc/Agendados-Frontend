@@ -73,6 +73,8 @@ export default function RoomMatching() {
   const [resultsCountdown, setResultsCountdown] = useState(
     RESULTS_DISPLAY_SECONDS
   );
+  const votedEvents = useRef<number[]>([]);
+  const events = useRef<number[]>([]);
 
   // Event detail modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -102,10 +104,11 @@ export default function RoomMatching() {
       if (
         newState.isVotingActive &&
         newState.currentEvent &&
-        newState.isNewEvent
+        !events.current.includes(newState.currentEvent.id)
       ) {
-        // New event or voting started
+        events.current.push(newState.currentEvent.id);
         setShowResults(false);
+        console.log('Setting userVotedThisRound to false');
         setUserVotedThisRound(false);
         setTimeRemaining(VOTING_TIME_SECONDS);
         translateX.value = 0; // Reset card position
@@ -118,13 +121,15 @@ export default function RoomMatching() {
       } else if (!newState.isVotingActive && newState.votingResults) {
         // Voting ended, show results
         setShowResults(true);
+        WebSocketService.disconnect(); // Disconnect WebSocket to stop receiving updates
         setResultsCountdown(RESULTS_DISPLAY_SECONDS);
         if (newState.votingResults.match && newState.currentEvent) {
           // MATCH FOUND!
           Alert.alert(
             'Match!',
-            `Everyone liked ${newState.currentEvent.name}! Added to favorites.`
+            `Everyone liked ${newState.currentEvent.title}! Added to favorites.`
           );
+          SavedService.addFavorite(newState.currentEvent.id);
           refreshFavorites(); // Refresh favorites list
         }
       }
@@ -141,12 +146,7 @@ export default function RoomMatching() {
 
     const unsubscribe = WebSocketService.subscribe(handleStateUpdate);
 
-    // Initial check if we should be in matching (e.g. if user reloads into this screen)
     if (!roomState.isVotingActive && !roomState.currentEvent && roomId) {
-      // If not actively voting and no event, maybe we need to signal ready or wait
-      // This scenario depends on server logic. For now, assume if user is here,
-      // they are waiting for an event or the host to start.
-      // If WebSocketService doesn't have an event, it implies we are waiting.
       console.log(
         'RoomMatching: No current event, waiting for server push or host action.'
       );
@@ -170,13 +170,12 @@ export default function RoomMatching() {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
             clearInterval(votingTimerRef.current!); // Explicitly clear
-            // Time's up! WebSocketService should handle this (e.g. auto-vote 'no')
-            // Client doesn't need to send a vote here if server handles timeout.
-            // If client *must* send a timeout vote:
-            // if (!userVotedThisRound && currentEvent && roomId) {
-            //   WebSocketService.sendVote(roomId, currentEvent.id.toString(), 'no');
-            //   setUserVotedThisRound(true); // Mark as voted (timeout)
-            // }
+
+            if (!userVotedThisRound && currentEvent && roomId) {
+              WebSocketService.sendVote(false);
+              setUserVotedThisRound(true); // Mark as voted (timeout)
+              votedEvents.current.push(currentEvent.id);
+            }
             return 0;
           }
           return prev - 1;
@@ -205,11 +204,10 @@ export default function RoomMatching() {
       resultsTimerRef.current = setInterval(() => {
         setResultsCountdown((prev) => {
           if (prev <= 1) {
-            clearInterval(resultsTimerRef.current!); // Explicitly clear
-            setShowResults(false); // Hide results, ready for next event or end
-            // Server will send NEW_EVENT or end the session.
-            // If it was a match, navigation might have already occurred.
+            clearInterval(resultsTimerRef.current!);
+            setShowResults(false);
             return 0;
+          } else {
           }
           return prev - 1;
         });
@@ -226,12 +224,6 @@ export default function RoomMatching() {
     };
   }, [showResults]);
 
-  // --- Event Detail Modal ---
-  const openDetailModal = useCallback((event: EventModal) => {
-    // setSelectedEventDetail(event); // Not needed if currentEvent is always the one
-    setDetailModalVisible(true);
-  }, []);
-
   // --- Voting Logic ---
   const handleVote = useCallback(
     (isRightSwipe: boolean) => {
@@ -244,6 +236,7 @@ export default function RoomMatching() {
         return;
       }
 
+      votedEvents.current.push(currentEvent.id);
       setUserVotedThisRound(true);
       const vote = isRightSwipe;
       WebSocketService.sendVote(vote);
@@ -328,9 +321,9 @@ export default function RoomMatching() {
   // Handle info button click from card component
   const handleInfoButtonPress = useCallback(
     (event: EventModal) => {
-      openDetailModal(event);
+      setDetailModalVisible(true);
     },
-    [openDetailModal]
+    [setDetailModalVisible]
   );
 
   // --- UI Rendering ---
@@ -345,7 +338,7 @@ export default function RoomMatching() {
           style: 'destructive',
           onPress: () => {
             if (roomId) {
-              WebSocketService.leaveRoom(roomId);
+              WebSocketService.leaveRoom();
             }
             router.replace('/rooms');
           },
@@ -419,26 +412,29 @@ export default function RoomMatching() {
           </View>
         )}
 
-        {!showResults && currentEvent && !userVotedThisRound && (
-          <PanGestureHandler onGestureEvent={gestureHandler}>
-            <Animated.View style={[styles.animatedCard, cardStyle]}>
-              <Animated.Image
-                source={Like}
-                style={[styles.like, { left: 0 }, likeStyle]}
-                resizeMode='stretch'
-              />
-              <Animated.Image
-                source={Dislike}
-                style={[styles.like, { right: 0 }, dislikeStyle]}
-                resizeMode='stretch'
-              />
-              <Card
-                event={currentEvent!}
-                onInfoPress={() => handleInfoButtonPress(currentEvent!)}
-              />
-            </Animated.View>
-          </PanGestureHandler>
-        )}
+        {!showResults &&
+          currentEvent &&
+          !userVotedThisRound &&
+          !votedEvents.current.includes(currentEvent.id) && (
+            <PanGestureHandler onGestureEvent={gestureHandler}>
+              <Animated.View style={[styles.animatedCard, cardStyle]}>
+                <Animated.Image
+                  source={Like}
+                  style={[styles.like, { left: 0 }, likeStyle]}
+                  resizeMode='stretch'
+                />
+                <Animated.Image
+                  source={Dislike}
+                  style={[styles.like, { right: 0 }, dislikeStyle]}
+                  resizeMode='stretch'
+                />
+                <Card
+                  event={currentEvent!}
+                  onInfoPress={() => handleInfoButtonPress(currentEvent!)}
+                />
+              </Animated.View>
+            </PanGestureHandler>
+          )}
         {roomState.isVotingActive &&
           roomState.votingResults &&
           !showResults && (

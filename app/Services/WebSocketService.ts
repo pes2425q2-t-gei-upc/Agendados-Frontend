@@ -11,9 +11,9 @@ const WEBSOCKET_URL =
 
 interface RoomDetails {
   id: string;
-  name: string; // Can be same as roomCode or a descriptive name
+  name: string;
   participants: User[];
-  isHost: boolean; // Note: webSockets.HTML does not explicitly manage/receive this
+  isHost: boolean;
   currentEvent?: EventModal;
 }
 
@@ -42,7 +42,6 @@ class WebSocketServiceController {
   private socket: WebSocket | null = null;
   private state: WebSocketServiceState;
   private listeners: WebSocketServiceListener[] = [];
-  private auth = useAuth();
 
   constructor() {
     this.state = {
@@ -101,9 +100,9 @@ class WebSocketServiceController {
           isConnected: true,
           roomDetails: {
             id: roomCode,
-            name: roomName, // Or fetch/set a more descriptive name
-            participants: [], // Participants will be updated by server messages
-            isHost: isHost, // Default, server might update this if it sends such info
+            name: roomName,
+            participants: [],
+            isHost: isHost,
             currentEvent: undefined,
           },
         });
@@ -187,8 +186,7 @@ class WebSocketServiceController {
           });
         }
         break;
-      case 'user_left': // Renamed from USER_LEFT
-        // Assuming payload: { participants: User[], user_left: { username: string } }
+      case 'user_left':
         addMessageToLog(
           `User left: ${message.user_left.username ?? 'Unknown user'}`
         );
@@ -229,11 +227,6 @@ class WebSocketServiceController {
         });
         break;
       case 'vote_finished': // Renamed from VOTING_ENDED
-        // Assuming payload: { is_match: boolean, current_event?: EventModal (if match), next_event?: EventModal (if not match), results: VotingResults (optional, if final results are sent here too) }
-        // The 'results' part for votingResults might be redundant if 'vote_cast' keeps it updated,
-        // or it could be the final tally. webSockets.HTML uses data.vote_results for vote_cast,
-        // and for vote_finished, it implies new event or match.
-        // Let's assume 'results' in payload updates votingResults one last time.
         addMessageToLog(`Voting finished. Is match: ${message.is_match}`);
         if (message.is_match) {
           this.updateState({
@@ -252,6 +245,7 @@ class WebSocketServiceController {
           addMessageToLog(
             `Match found! Event: ${message.current_event?.title}`
           );
+          this.disconnect(); // Optionally disconnect after match
         } else {
           this.updateState({
             currentEvent: message.next_event, // New event for next round
@@ -261,7 +255,6 @@ class WebSocketServiceController {
           addMessageToLog(`Next round. Event: ${message.next_event?.title}`);
         }
         break;
-      // MATCH_FOUND is removed, handled by vote_finished with is_match: true.
 
       case 'ERROR': // Kept as is, assuming server might send this type
         this.updateState({ error: message.message });
@@ -316,8 +309,7 @@ class WebSocketServiceController {
     this.sendMessage({ action: 'vote', vote: vote });
   }
 
-  public leaveRoom(roomId: string) {
-    this.sendMessage({ type: 'LEAVE_ROOM', payload: { roomId } });
+  public leaveRoom() {
     this.disconnect(); // Or server could confirm leave and then client disconnects
   }
 

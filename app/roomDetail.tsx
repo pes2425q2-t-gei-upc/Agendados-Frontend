@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, use } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -44,13 +44,16 @@ export default function RoomDetailScreen() {
     const handleStateUpdate = (newState: WebSocketServiceState) => {
       setRoomState(newState);
       if (newState.roomDetails && newState.roomDetails.id === roomIdParam) {
-        setLoading(false); // Room details are available
+        setLoading(false);
       } else if (!newState.isConnected && !newState.roomDetails) {
-        // If disconnected or no room details for this room, might indicate an issue or need to rejoin
-        setLoading(false); // Stop loading, UI will show appropriate message
+        setLoading(false);
       }
-      if (newState.error) {
-        Alert.alert('WebSocket Error', newState.error);
+      if (newState.currentEvent != null) {
+        setIsStarting(true);
+      } else {
+        if (newState.error) {
+          Alert.alert('WebSocket Error', newState.error);
+        }
       }
     };
 
@@ -66,6 +69,19 @@ export default function RoomDetailScreen() {
       unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (isStarting) {
+      WebSocketService.startMatching();
+      router.push({
+        pathname: '/roomMatching',
+        params: {
+          roomId: roomIdParam,
+          roomName: roomState?.roomDetails?.name,
+        },
+      });
+    }
+  }, [isStarting]);
 
   const currentRoom = roomState?.roomDetails;
   const participants = currentRoom?.participants || [];
@@ -85,26 +101,22 @@ export default function RoomDetailScreen() {
     }
 
     setIsStarting(true);
-    WebSocketService.startMatching(currentRoom.id);
+    WebSocketService.startMatching();
 
     setTimeout(() => {
       setIsStarting(false);
       if (WebSocketService.getState().currentEvent) {
-        // Check if an event was pushed
         router.push({
           pathname: '/roomMatching',
           params: { roomId: currentRoom.id, roomName: currentRoom.name },
         });
       } else {
-        // If no event yet, it might mean the server is still preparing.
-        // The roomMatching screen should handle the "waiting for first event" state.
         router.push({
           pathname: '/roomMatching',
           params: { roomId: currentRoom.id, roomName: currentRoom.name },
         });
-        // Alert.alert("Waiting", "Waiting for the matching process to begin...");
       }
-    }, 1000); // Reduced delay, actual navigation should be event-driven
+    }, 1000);
   };
 
   const handleInvite = () => {
@@ -123,7 +135,7 @@ export default function RoomDetailScreen() {
         text: 'Leave',
         onPress: () => {
           if (currentRoom && currentRoom.id) {
-            WebSocketService.leaveRoom(currentRoom.id);
+            WebSocketService.leaveRoom();
           }
           router.replace('/rooms'); // Navigate to rooms list or main screen
         },
@@ -162,7 +174,7 @@ export default function RoomDetailScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()} // Or handleLeave if appropriate
+            onPress={() => handleLeave()} // Or handleLeave if appropriate
           >
             <Ionicons name='arrow-back' size={24} color={colors.text} />
           </TouchableOpacity>
@@ -183,15 +195,6 @@ export default function RoomDetailScreen() {
                 style={styles.infoIcon}
               />
               <Text style={styles.infoText}>Room ID: {currentRoom.id}</Text>
-            </View>
-            <View style={styles.infoItem}>
-              <Ionicons
-                name='person-circle-outline'
-                size={20}
-                color={colors.textSecondary}
-                style={styles.infoIcon}
-              />
-              <Text style={styles.infoText}>You are: {user?.username}</Text>
             </View>
             {isHost && (
               <View style={styles.infoItem}>

@@ -94,21 +94,14 @@ export default function CreateRoomScreen() {
           state.roomDetails.id === response.code &&
           state.isConnected
         ) {
-          // Assuming the server sends back roomDetails upon successful creation/joining
-          Alert.alert('Success', 'Room created successfully!', [
-            {
-              text: 'OK',
-              onPress: () =>
-                router.push({
-                  pathname: '/roomDetail',
-                  params: {
-                    id: state.roomDetails!.id,
-                    name: state.roomDetails!.name,
-                    isAdmin: state.roomDetails!.isHost ? '1' : '0',
-                  },
-                }),
+          router.push({
+            pathname: '/roomDetail',
+            params: {
+              id: state.roomDetails!.id,
+              name: state.roomDetails!.name,
+              isAdmin: state.roomDetails!.isHost ? '1' : '0',
             },
-          ]);
+          });
           if (unsubscribeFunction) {
             unsubscribeFunction();
           } // Clean up only if defined

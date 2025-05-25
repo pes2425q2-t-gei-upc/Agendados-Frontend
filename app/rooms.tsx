@@ -11,8 +11,10 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 
+import WebSocketService from '@services/WebSocketService';
 import { colors, spacing, typography } from '@styles/globalStyles';
 
 import ProtectedRoute from './components/ProtectedRoute';
@@ -21,13 +23,55 @@ export default function RoomsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const [roomCode, setRoomCode] = useState('');
+  const [LoadingJoinRoom, setLoadingJoinRoom] = useState(false);
 
-  const navigateToRoomByCode = () => {
-    if (roomCode.trim()) {
-      router.push({
-        pathname: '/roomDetail',
-        params: { code: roomCode.trim(), roomName: '', isAdmin: 0 },
+  const navigateToRoomByCode = async () => {
+    setLoadingJoinRoom(true);
+    if (!roomCode.trim()) {
+      Alert.alert('Error', 'Please enter a room code');
+      setLoadingJoinRoom(false);
+      return;
+    }
+
+    try {
+      if (!WebSocketService.getState().isConnected) {
+        await WebSocketService.connect(roomCode, false, 'Unknown');
+      }
+
+      // Create a reference for storing the unsubscribe function
+      let unsubscribeFunction: (() => void) | null = null;
+
+      // Subscribe to WebSocket state changes to know when the room is ready
+      unsubscribeFunction = WebSocketService.subscribe((state) => {
+        if (
+          state.roomDetails &&
+          state.roomDetails.id === roomCode &&
+          state.isConnected
+        ) {
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          } // Clean up only if defined
+          router.push({
+            pathname: '/roomDetail',
+            params: {
+              id: state.roomDetails!.id,
+              name: state.roomDetails!.name,
+              isAdmin: state.roomDetails!.isHost ? '1' : '0',
+            },
+          });
+          setLoadingJoinRoom(false);
+        } else if (state.error) {
+          Alert.alert('Error', `Failed to join room & connect: ${state.error}`);
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          } // Clean up only if defined
+          setLoadingJoinRoom(false);
+        }
       });
+    } catch (error) {
+      console.error('Error joining room:', error);
+      Alert.alert('Error', 'Failed to join room. Please try again.');
+      setLoadingJoinRoom(false);
     }
   };
 
@@ -74,7 +118,7 @@ export default function RoomsScreen() {
                     !roomCode.trim() && styles.joinButtonDisabled,
                   ]}
                   onPress={navigateToRoomByCode}
-                  disabled={!roomCode.trim()}
+                  disabled={!roomCode.trim() || LoadingJoinRoom}
                 >
                   <Text style={styles.joinButtonText}>Join Room</Text>
                   <Ionicons
