@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     height: IS_IOS ? 60 : 60 + STATUSBAR_HEIGHT,
     justifyContent: 'center',
-    marginTop: IS_IOS ? 50 : -STATUSBAR_HEIGHT,
+    marginTop: IS_IOS ? 50 : -STATUSBAR_HEIGHT + 20,
     paddingTop: IS_IOS ? 0 : STATUSBAR_HEIGHT,
     width: SCREEN_WIDTH,
   },

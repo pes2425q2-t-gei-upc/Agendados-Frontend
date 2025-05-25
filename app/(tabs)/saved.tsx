@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -22,133 +22,32 @@ import {
 } from '@styles/globalStyles';
 import { useFavorites } from 'app/context/FavoritesContext';
 
-// Helper function to group events by date
-const groupEventsByDate = (events: Event[]) => {
-  const grouped: Record<string, Event[]> = {};
+// Helper function to filter and sort events by end date
+const filterAndSortEvents = (events: Event[]) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const getDatesInRange = (startDate: Date, endDate: Date) => {
-    const dates: Date[] = [];
-    let currentDate = new Date(startDate);
-    currentDate.setHours(0, 0, 0, 0);
-    const endDateOnly = new Date(endDate);
-    endDateOnly.setHours(0, 0, 0, 0);
-
-    if (endDateOnly < today) {
-      return dates;
-    }
-    if (currentDate < today) {
-      currentDate = new Date(today);
-    }
-
-    while (currentDate <= endDateOnly) {
-      dates.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-    return dates;
-  };
+  // Calculate date 5 years from now
+  const fiveYearsFromNow = new Date(today);
+  fiveYearsFromNow.setFullYear(today.getFullYear() + 5);
 
   const relevantEvents = events.filter((event) => {
     const endDate = event.date_end
       ? new Date(event.date_end)
       : new Date(event.date_ini);
     endDate.setHours(0, 0, 0, 0);
-    return endDate >= today;
+
+    // Filter events that end in the future but not more than 5 years from now
+    return endDate >= today && endDate <= fiveYearsFromNow;
   });
 
-  relevantEvents.forEach((event: Event) => {
-    const startDate = new Date(event.date_ini);
-    const endDate = event.date_end
-      ? new Date(event.date_end)
-      : new Date(event.date_ini);
-    const eventDates = getDatesInRange(startDate, endDate);
-
-    eventDates.forEach((date) => {
-      const dateKey = date.toDateString();
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = [];
-      }
-      if (!grouped[dateKey].find((e) => e.id === event.id)) {
-        grouped[dateKey].push(event);
-      }
-    });
+  // Sort by end date (earliest ending first)
+  return relevantEvents.sort((a, b) => {
+    const endDateA = a.date_end ? new Date(a.date_end) : new Date(a.date_ini);
+    const endDateB = b.date_end ? new Date(b.date_end) : new Date(b.date_ini);
+    return endDateA.getTime() - endDateB.getTime();
   });
-
-  return Object.keys(grouped)
-    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-    .map((date) => ({
-      date,
-      events: grouped[date],
-    }));
 };
-
-// Date Group Component
-interface DateGroupProps {
-  group: { date: string; events: Event[] };
-  onDeleteEvent: (id: number) => void;
-}
-
-const DateGroup = memo(({ group, onDeleteEvent }: DateGroupProps) => {
-  const { t } = useTranslation();
-  const date = new Date(group.date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const isToday = date.toDateString() === today.toDateString();
-
-  // Obtener día de la semana y mes de las traducciones
-  const weekdays = [
-    t('days.sunday'),
-    t('days.monday'),
-    t('days.tuesday'),
-    t('days.wednesday'),
-    t('days.thursday'),
-    t('days.friday'),
-    t('days.saturday'),
-  ];
-
-  const months = [
-    t('months.january'),
-    t('months.february'),
-    t('months.march'),
-    t('months.april'),
-    t('months.may'),
-    t('months.june'),
-    t('months.july'),
-    t('months.august'),
-    t('months.september'),
-    t('months.october'),
-    t('months.november'),
-    t('months.december'),
-  ];
-
-  const weekday = weekdays[date.getDay()];
-  const month = months[date.getMonth()];
-  const day = date.getDate();
-
-  // Formatear la fecha usando traducciones personalizadas
-  const formattedDate = `${weekday}, ${day} ${t('common.of')} ${month}`;
-
-  return (
-    <View style={styles.dateGroup}>
-      <Text style={[styles.dateText, isToday && styles.todayText]}>
-        {isToday ? `${t('saved.today')}, ${formattedDate}` : formattedDate}
-      </Text>
-      <View style={styles.eventsContainer}>
-        {group.events.map((event: Event) => (
-          <SavedEventCard
-            key={event.id}
-            event={event}
-            onRemoved={() => onDeleteEvent(event.id)}
-          />
-        ))}
-      </View>
-    </View>
-  );
-});
-
-DateGroup.displayName = 'DateGroup';
 
 export default function SavedEvents() {
   const { t } = useTranslation();
@@ -167,8 +66,8 @@ export default function SavedEvents() {
     [removeFavorite]
   );
 
-  const groupedEvents = useMemo(
-    () => groupEventsByDate(favorites),
+  const sortedEvents = useMemo(
+    () => filterAndSortEvents(favorites),
     [favorites]
   );
 
@@ -198,18 +97,21 @@ export default function SavedEvents() {
           </View>
         ) : (
           <FlatList
-            data={groupedEvents}
+            data={sortedEvents}
             renderItem={({ item }) => (
-              <DateGroup group={item} onDeleteEvent={handleDeleteEvent} />
+              <SavedEventCard
+                event={item}
+                onRemoved={() => handleDeleteEvent(item.id)}
+              />
             )}
-            keyExtractor={(item, index) => `${item.date}-${index}`}
+            keyExtractor={(item) => item.id.toString()}
             style={styles.scrollContainer}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             removeClippedSubviews={true}
             initialNumToRender={10}
             ListEmptyComponent={
-              groupedEvents.length === 0 ? (
+              sortedEvents.length === 0 ? (
                 <View style={styles.emptyContainer}>
                   <Text style={styles.emptyText}>
                     {t('saved.noSavedEvents')}
@@ -230,15 +132,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
   },
-  dateGroup: {
-    marginBottom: spacing.lg,
-  },
-  dateText: {
-    color: colors.textSecondary,
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-  },
   emptyContainer: {
     alignItems: 'center',
     flex: 1,
@@ -248,9 +141,6 @@ const styles = StyleSheet.create({
   emptyText: {
     color: colors.textSecondary,
     fontSize: 16,
-  },
-  eventsContainer: {
-    paddingLeft: 10,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -272,9 +162,5 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingBottom: spacing.xl,
-  },
-  todayText: {
-    color: colors.primary,
-    fontWeight: 'bold',
   },
 });

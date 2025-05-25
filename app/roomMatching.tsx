@@ -81,7 +81,7 @@ export default function RoomMatching() {
 
   // --- WebSocket State Synchronization ---
   useEffect(() => {
-    const handleStateUpdate = (newState: WebSocketServiceState) => {
+    const handleStateUpdate = async (newState: WebSocketServiceState) => {
       setRoomState(newState);
       if (newState.isConnected) {
         setCurrentEvent(newState.currentEvent);
@@ -124,9 +124,12 @@ export default function RoomMatching() {
           setShowResults(true);
           setMatchEvent(newState.currentEvent);
           console.log('Match event:', newState.currentEvent);
-          SavedService.addFavorite(newState.currentEvent!.id); // Save the matched event
-          refreshFavorites(); // Refresh favorites list
-          //After 10s return to /rooms
+          try {
+            await SavedService.addFavorite(newState.currentEvent!.id); // Save the matched event
+            await refreshFavorites();
+          } catch (error) {
+            console.error('Error saving matched event:', error);
+          }
           setTimeout(() => {
             WebSocketService.disconnect(); // Disconnect WebSocket
             router.replace('/rooms');

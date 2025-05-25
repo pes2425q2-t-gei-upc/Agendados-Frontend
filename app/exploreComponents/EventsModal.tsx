@@ -19,6 +19,7 @@ import {
 
 import EventCard from '@components/EventCard';
 import { Event } from '@models/Event'; // Adjust the import path as necessary
+import { colors } from '@styles/globalStyles';
 
 interface EventsModalProps {
   visible: boolean;
@@ -284,7 +285,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    backgroundColor: '#3b5998',
+    backgroundColor: colors.primary,
     flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 14,
