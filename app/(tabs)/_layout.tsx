@@ -118,6 +118,19 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name='chats'
+          options={{
+            title: t('navigation.chats'),
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
+                size={28}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
           name='profile'
           options={{
             title: t('navigation.profile'),
@@ -144,7 +157,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     height: IS_IOS ? 60 : 60 + STATUSBAR_HEIGHT,
     justifyContent: 'center',
-    marginTop: 50,
+    marginTop: IS_IOS ? 50 : -STATUSBAR_HEIGHT + 20,
     paddingTop: IS_IOS ? 0 : STATUSBAR_HEIGHT,
     width: SCREEN_WIDTH,
   },

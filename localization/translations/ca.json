@@ -23,7 +23,10 @@
     "explore": "Explorar",
     "saved": "Desats",
     "profile": "Perfil",
-    "settings": "Configuració"
+    "settings": "Configuració",
+    "chats": "Xats"
+
+    
   },
   "auth": {
     "login": "Iniciar Sessió",

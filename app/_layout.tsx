@@ -76,6 +76,38 @@ export default function RootLayout() {
                       headerShown: false,
                     }}
                   />
+                  <Stack.Screen
+                    name='rooms'
+                    options={{
+                      headerShown: false,
+                      animation: 'slide_from_right',
+                      presentation: 'card',
+                    }}
+                  />
+                  <Stack.Screen
+                    name='roomDetail'
+                    options={{
+                      headerShown: false,
+                      animation: 'slide_from_right',
+                      presentation: 'card',
+                    }}
+                  />
+                  <Stack.Screen
+                    name='createRoom'
+                    options={{
+                      headerShown: false,
+                      animation: 'slide_from_right',
+                      presentation: 'card',
+                    }}
+                  />
+                  <Stack.Screen
+                    name='roomMatching'
+                    options={{
+                      headerShown: false,
+                      animation: 'slide_from_right',
+                      presentation: 'card',
+                    }}
+                  />
                 </Stack>
               </FriendshipProvider>
             </FavoritesProvider>
