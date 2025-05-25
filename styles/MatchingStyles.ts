@@ -241,7 +241,7 @@ export const styles = StyleSheet.create({
 
   resultsContainer: {
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: 'black',
     borderRadius: 10,
     padding: 20,
     width: '80%',

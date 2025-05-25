@@ -18,7 +18,7 @@ import WebSocketService from '@services/WebSocketService';
 import { colors, spacing, typography } from '@styles/globalStyles';
 
 import ProtectedRoute from './components/ProtectedRoute';
-
+// ...existing code...
 export default function RoomsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -35,22 +35,35 @@ export default function RoomsScreen() {
 
     try {
       if (!WebSocketService.getState().isConnected) {
+        // Ensure connection is established for the specific room or generally
+        // Depending on WebSocketService.connect behavior, you might connect to the specific roomCode here
         await WebSocketService.connect(roomCode, false, 'Unknown');
       }
 
-      // Create a reference for storing the unsubscribe function
       let unsubscribeFunction: (() => void) | null = null;
+      let hasNavigated = false; // Flag to prevent multiple navigations
 
-      // Subscribe to WebSocket state changes to know when the room is ready
       unsubscribeFunction = WebSocketService.subscribe((state) => {
+        if (hasNavigated) {
+          // If navigation has already occurred for this attempt, do nothing.
+          // Also, ensure unsubscription happens if it hasn't already.
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+            unsubscribeFunction = null; // Prevent multiple calls to unsubscribe
+          }
+          return;
+        }
+
         if (
           state.roomDetails &&
           state.roomDetails.id === roomCode &&
           state.isConnected
         ) {
+          hasNavigated = true; // Set the flag
           if (unsubscribeFunction) {
             unsubscribeFunction();
-          } // Clean up only if defined
+            unsubscribeFunction = null;
+          }
           router.push({
             pathname: '/roomDetail',
             params: {
@@ -61,13 +74,38 @@ export default function RoomsScreen() {
           });
           setLoadingJoinRoom(false);
         } else if (state.error) {
+          // Consider if an error should also set hasNavigated to true
+          // to prevent further attempts from this specific subscription call.
+          // If an error occurs, we typically want to stop this attempt.
+          hasNavigated = true;
           Alert.alert('Error', `Failed to join room & connect: ${state.error}`);
           if (unsubscribeFunction) {
             unsubscribeFunction();
-          } // Clean up only if defined
+            unsubscribeFunction = null;
+          }
           setLoadingJoinRoom(false);
         }
       });
+
+      // Safety net: If after a timeout no navigation or error has occurred,
+      // clean up and inform the user. This handles cases where the WebSocket
+      // state might not resolve as expected.
+      setTimeout(() => {
+        if (!hasNavigated) {
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+            unsubscribeFunction = null;
+          }
+          if (LoadingJoinRoom) {
+            // Check if still in loading state
+            setLoadingJoinRoom(false);
+            Alert.alert(
+              'Timeout',
+              'Could not join the room. Please try again.'
+            );
+          }
+        }
+      }, 10000); // 10-second timeout, adjust as needed
     } catch (error) {
       console.error('Error joining room:', error);
       Alert.alert('Error', 'Failed to join room. Please try again.');

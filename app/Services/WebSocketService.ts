@@ -162,6 +162,7 @@ class WebSocketServiceController {
           roomDetails: null,
           currentEvent: null,
           isVotingActive: false,
+          votingResults: null,
         });
         // Optionally implement reconnection logic here
       };
@@ -324,6 +325,7 @@ class WebSocketServiceController {
       roomDetails: null,
       currentEvent: null,
       isVotingActive: false,
+      votingResults: null,
     });
   }
 
