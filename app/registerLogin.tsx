@@ -430,6 +430,18 @@ export default function RegisterLoginPage() {
                     </Text>
                     <View style={styles.dividerLine} />
                   </View>
+
+                  <GoogleSignInButton
+                    onSuccess={() => {
+                      showSuccessToast('Sesión iniciada con Google');
+                      router.replace('/(tabs)/main');
+                    }}
+                    onError={(error) =>
+                      showErrorToast(
+                        error?.message ?? 'Error al iniciar sesión con Google'
+                      )
+                    }
+                  />
                 </Animated.View>
 
                 {/* Formulario de Registro */}
