@@ -20,4 +20,21 @@ export const styles = StyleSheet.create({
     marginVertical: spacing.xs,
     width: 50,
   },
+
+  calendarActionButton: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    width: 80,
+  },
+  calendarButton: {
+    alignItems: 'center',
+    backgroundColor: 'blue',
+    borderRadius: 8,
+    height: '85%',
+    justifyContent: 'center',
+    marginVertical: spacing.xs,
+    width: 50,
+  },
 });
