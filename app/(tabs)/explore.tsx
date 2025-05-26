@@ -16,6 +16,7 @@ import {
   Platform,
   ActivityIndicator,
   InteractionManager,
+  Alert,
 } from 'react-native';
 import type { Region } from 'react-native-maps';
 
@@ -30,6 +31,7 @@ import {
   ZOOM_THRESHOLD,
   filterCategoryKeys,
 } from 'app/constants/exploreConstants';
+import { getAirQualityLevel } from 'app/exploreComponents/AirQualityResponse';
 import { AnimatedNearbyEventsList } from 'app/exploreComponents/AnimatedNearbyEventsList';
 import { CarouselToggle } from 'app/exploreComponents/CarouselToggle';
 import { EventsModal } from 'app/exploreComponents/EventsModal';
@@ -51,6 +53,11 @@ export default function Explore() {
   const isMapReady = useRef(false);
   const debounceRef = useRef<number | null>(null);
   const [inputText, setInputText] = useState('');
+  const [emissionsMode, setEmissionsMode] = useState(false);
+  const [airQualityData, setAirQualityData] = useState<
+    { event: EventModel; quality: number }[] | null
+  >(null);
+  const [isLoadingAirQuality, setIsLoadingAirQuality] = useState(false);
 
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
@@ -92,6 +99,219 @@ export default function Explore() {
     useState<EventModel | null>(null);
 
   const [carouselVisible, setCarouselVisible] = useState(true);
+
+  const toggleEmissionsMode = useCallback(async () => {
+    const newMode = !emissionsMode;
+    setEmissionsMode(newMode);
+
+    if (newMode && !airQualityData) {
+      // Fetch air quality data when enabling the mode
+      await fetchAirQualityData();
+    }
+  }, [emissionsMode, airQualityData, filteredMarkers]);
+
+  // Función optimizada para evitar llamadas duplicadas a la API
+  const fetchAirQualityData = async () => {
+    if (isLoadingAirQuality) {
+      return;
+    }
+
+    setIsLoadingAirQuality(true);
+
+    try {
+      const eventsWithLocation = filteredMarkers.filter(
+        (event) => event.location?.latitude && event.location?.longitude
+      );
+
+      // Crear un mapa para agrupar eventos por coordenadas
+      const locationMap = new Map();
+
+      // Agrupar eventos por sus coordenadas
+      eventsWithLocation.forEach((event) => {
+        if (event.location?.latitude && event.location?.longitude) {
+          // Crear una clave única para cada par de coordenadas
+          const locationKey = `${event.location.latitude.toFixed(5)},${event.location.longitude.toFixed(5)}`;
+
+          if (!locationMap.has(locationKey)) {
+            locationMap.set(locationKey, {
+              coords: {
+                latitude: event.location.latitude,
+                longitude: event.location.longitude,
+              },
+              events: [],
+            });
+          }
+
+          locationMap.get(locationKey).events.push(event);
+        }
+      });
+
+      // Procesar ubicaciones únicas en lotes
+      const uniqueLocations = Array.from(locationMap.values());
+      const batchSize = 20;
+      let results: { event: EventModel; quality: number }[] = [];
+
+      for (let i = 0; i < uniqueLocations.length; i += batchSize) {
+        const batch = uniqueLocations.slice(i, i + batchSize);
+        const batchPromises = batch.map(async (location) => {
+          try {
+            const data = await getAirQualityLevel(
+              location.coords.latitude,
+              location.coords.longitude
+            );
+
+            // Aplicar el mismo valor de calidad del aire a todos los eventos en esta ubicación
+            // Seleccionar solo un evento representante para cada ubicación
+            return [
+              {
+                event: location.events[0],
+                quality: data.value,
+                // Guardamos una referencia a todos los eventos en esta ubicación si fuera necesario
+                allEventsAtLocation: location.events,
+              },
+            ];
+          } catch (err) {
+            console.error(
+              `Error fetching air quality for location ${location.coords.latitude},${location.coords.longitude}:`,
+              err
+            );
+            return null;
+          }
+        });
+
+        const batchResults = await Promise.all(batchPromises);
+        // Aplanar el array de resultados y filtrar los nulos
+        const flattenedResults = batchResults
+          .filter(Boolean)
+          .flatMap((result) => result);
+
+        results = [...results, ...flattenedResults];
+      }
+
+      setAirQualityData(results);
+    } catch (error) {
+      console.error('Error fetching air quality data:', error);
+      Alert.alert(t('common.error'), t('explore.emissions.errorFetchingData'));
+      setEmissionsMode(false);
+    } finally {
+      setIsLoadingAirQuality(false);
+    }
+  };
+
+  // Implementar precarga de datos de calidad del aire
+  const [preloadedAirQualityData, setPreloadedAirQualityData] = useState<
+    { event: EventModel; quality: number }[] | null
+  >(null);
+  const isPreloading = useRef(false);
+
+  // Precarga de datos optimizada
+
+  const preloadAirQualityData = useCallback(async () => {
+    if (
+      isPreloading.current ||
+      preloadedAirQualityData ||
+      isLoadingAirQuality
+    ) {
+      return;
+    }
+
+    isPreloading.current = true;
+
+    try {
+      const eventsToProcess = filteredMarkers.slice(0, 20);
+      const eventsWithLocation = eventsToProcess.filter(
+        (event) => event.location?.latitude && event.location?.longitude
+      );
+
+      // Crear un mapa para agrupar eventos por coordenadas
+      const locationMap = new Map();
+
+      // Agrupar eventos por sus coordenadas
+      eventsWithLocation.forEach((event) => {
+        if (event.location?.latitude && event.location?.longitude) {
+          const locationKey = `${event.location.latitude.toFixed(5)},${event.location.longitude.toFixed(5)}`;
+
+          if (!locationMap.has(locationKey)) {
+            locationMap.set(locationKey, {
+              coords: {
+                latitude: event.location.latitude,
+                longitude: event.location.longitude,
+              },
+              events: [],
+            });
+          }
+
+          locationMap.get(locationKey).events.push(event);
+        }
+      });
+
+      // Procesar ubicaciones únicas
+      const uniqueLocations = Array.from(locationMap.values());
+
+      // Usamos InteractionManager para asegurar que no interfiera con la UI
+      InteractionManager.runAfterInteractions(async () => {
+        const locationPromises = uniqueLocations.map(async (location) => {
+          try {
+            const data = await getAirQualityLevel(
+              location.coords.latitude,
+              location.coords.longitude
+            );
+
+            // Aplicar el mismo valor de calidad del aire a todos los eventos en esta ubicación
+            return [
+              {
+                event: location.events[0],
+                quality: data.value,
+                // Guardamos una referencia a todos los eventos en esta ubicación si fuera necesario
+                allEventsAtLocation: location.events,
+              },
+            ];
+          } catch (err) {
+            console.debug(`Preloading error for location:`, err);
+            return null;
+          }
+        });
+
+        const results = (await Promise.all(locationPromises))
+          .filter(Boolean)
+          .flatMap((result) => result);
+
+        setPreloadedAirQualityData(results);
+      });
+    } catch (error) {
+      console.debug('Error preloading air quality data:', error);
+    } finally {
+      isPreloading.current = false;
+    }
+  }, [filteredMarkers, isLoadingAirQuality, preloadedAirQualityData]);
+
+  useEffect(() => {
+    if (emissionsMode && filteredMarkers.length > 0) {
+      fetchAirQualityData();
+    }
+  }, [emissionsMode, filteredMarkers]);
+
+  // Efecto para fetchAirQualityData modificado
+  useEffect(() => {
+    if (emissionsMode) {
+      if (preloadedAirQualityData) {
+        // Usar datos precargados si están disponibles
+        setAirQualityData(preloadedAirQualityData);
+        setPreloadedAirQualityData(null); // Limpiar datos precargados
+
+        // Si hay más marcadores que los precargados, cargar el resto
+        if (filteredMarkers.length > 20) {
+          fetchAirQualityData();
+        }
+      } else {
+        // Si no hay datos precargados, cargar normalmente
+        fetchAirQualityData();
+      }
+    } else {
+      // Precargar datos cuando el modo emisiones está desactivado
+      preloadAirQualityData();
+    }
+  }, [emissionsMode, filteredMarkers, preloadedAirQualityData]);
 
   const filterCategories = useMemo(() => {
     return filterCategoryKeys.map((group) => ({
@@ -146,6 +366,13 @@ export default function Explore() {
   useEffect(() => {
     if (events.length > 0) {
       setMaxEventsToProcess(events.length);
+    }
+  }, [events.length]);
+
+  useEffect(() => {
+    if (events.length > 0) {
+      setMaxEventsToProcess(events.length);
+      preloadAirQualityData();
     }
   }, [events.length]);
 
@@ -433,9 +660,11 @@ export default function Explore() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size='large' color='#4285F4' />
-        <Text>{t('explore.loading')}</Text>
+      <View style={styles.loadingOverlay}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size='large' color='#4285F4' />
+          <Text style={styles.loadingText}>{t('Cargando mapa...')}</Text>
+        </View>
       </View>
     );
   }
@@ -460,6 +689,9 @@ export default function Explore() {
         onMapReady={handleMapReady}
         onMarkerPress={openDetailModal}
         onMyLocationPress={handleMyLocationPress}
+        emissionsMode={emissionsMode}
+        toggleEmissionsMode={toggleEmissionsMode}
+        airQualityData={airQualityData}
       />
 
       <FilterControls
@@ -563,13 +795,21 @@ export default function Explore() {
 
       {selectedEventDetail && (
         <EventDetailModal
-          event={selectedEventDetail}
           visible={detailModalVisible}
-          onClose={() => {
-            setDetailModalVisible(false);
-            setSelectedEventDetail(null);
-          }}
+          event={selectedEventDetail}
+          onClose={() => setDetailModalVisible(false)}
+          t={t}
         />
+      )}
+
+      {/* Indicador de carga para la calidad del aire */}
+      {emissionsMode && isLoadingAirQuality && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size='large' color='#4285F4' />
+            <Text style={styles.loadingText}>{t('Cargando emisiones...')}</Text>
+          </View>
+        </View>
       )}
     </View>
   );

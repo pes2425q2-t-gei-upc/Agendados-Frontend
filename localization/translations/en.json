@@ -89,6 +89,20 @@
       "title": "Select location",
       "search": "Search location...",
       "noResults": "No results found"
+    },
+    "emissions": {
+      "title": "Emissions Mode",
+      "noEvents": "No Events Found",
+      "noEventsWithLocation": "There are no events with location data to display air quality information.",
+      "errorFetchingData": "Error fetching air quality data. Please try again.",
+      "legend": "Air Quality Legend",
+      "good": "Good (0-700)",
+      "moderate": "Moderate (701-800)",
+      "poor": "Poor (801-1100)",
+      "unhealthy": "Unhealthy (1101-1500)",
+      "veryUnhealthy": "Very Unhealthy (1501-2000)",
+      "hazardous": "Hazardous (2001-3000)",
+      "extreme": "Extreme (3001+)"
     }
   },
   "eventDetails": {
