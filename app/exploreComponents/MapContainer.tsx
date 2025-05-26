@@ -47,8 +47,8 @@ export interface MapContainerProps {
 }
 
 export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
-  (props, forwardedRef) => {
-    const {
+  (
+    {
       locationPermission,
       visibleMarkers,
       onRegionChangeComplete,
@@ -58,33 +58,34 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
       emissionsMode,
       toggleEmissionsMode,
       airQualityData,
-    } = props;
-
-    const mapRef = useRef<MapViewType | null>(null);
+    },
+    ref
+  ) => {
+    const mapRef = useRef<MapViewType>(null);
+    const indexRef = useRef<Supercluster>(
+      new Supercluster({
+        radius: 40,
+        maxZoom: 20,
+      })
+    );
+    const [clusters, setClusters] = useState<any[]>([]);
+    const [region, setRegion] = useState<Region>(INITIAL_REGION);
+    const [legendVisible, setLegendVisible] = useState(false);
+    const legendContentHeight = useRef(new Animated.Value(0)).current;
+    // Nuevo estado para el botón de localización
+    const [locationButtonActive, setLocationButtonActive] = useState(false);
 
     const handleMapInstance = useCallback(
       (instance: MapViewType | null) => {
         mapRef.current = instance;
-        if (typeof forwardedRef === 'function') {
-          forwardedRef(instance);
-        } else if (forwardedRef && 'current' in forwardedRef) {
-          forwardedRef.current = instance;
+        if (typeof ref === 'function') {
+          ref(instance);
+        } else if (ref && 'current' in ref) {
+          ref.current = instance;
         }
       },
-      [forwardedRef]
+      [ref]
     );
-
-    const indexRef = useRef(
-      new Supercluster({
-        radius: 40,
-        maxZoom: 19,
-      })
-    );
-
-    const [clusters, setClusters] = useState<any[]>([]);
-    const [region, setRegion] = useState<Region>(INITIAL_REGION);
-    const [legendVisible, setLegendVisible] = useState(false); // Nuevo estado para la leyenda
-    const legendContentHeight = useRef(new Animated.Value(0)).current; // Ref para la altura del contenido de la leyenda
 
     const debouncedUpdate = useMemo(
       () =>
@@ -253,6 +254,17 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
       return Array.from(locationMap.values());
     }, [emissionsMode, airQualityData]);
 
+    // Función modificada para manejar el clic en el botón de Mi ubicación
+    const handleMyLocationPress = useCallback(() => {
+      setLocationButtonActive(true);
+      onMyLocationPress();
+
+      // Opcional: Resetear el estado después de un tiempo para simular efecto de "pulse"
+      setTimeout(() => {
+        setLocationButtonActive(false);
+      }, 1000);
+    }, [onMyLocationPress]);
+
     return (
       <>
         <MapView
@@ -298,11 +310,19 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
           )}
         </MapView>
 
+        {/* Botón de Mi ubicación modificado con color dinámico */}
         <TouchableOpacity
-          style={styles.myLocationButton}
-          onPress={onMyLocationPress}
+          style={[
+            styles.myLocationButton,
+            locationButtonActive && styles.myLocationButtonActive,
+          ]}
+          onPress={handleMyLocationPress}
         >
-          <Ionicons name='locate' size={24} color='#4285F4' />
+          <Ionicons
+            name='locate'
+            size={24}
+            color={locationButtonActive ? '#FFFFFF' : '#4285F4'}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity
