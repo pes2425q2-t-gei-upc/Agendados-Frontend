@@ -16,6 +16,7 @@ const Card = (props: {
   event: EventModel;
   onInfoPress: ((event: GestureResponderEvent) => void) | undefined;
 }) => {
+  console.log('Pressed!');
   const event = props.event;
   const name = event.title;
   const image = event.images[0]
@@ -62,16 +63,18 @@ const Card = (props: {
             <Ionicons name='location-outline' size={18} color='#fff' />
             <Text style={styles.tagText}>{place}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.infoButton}
-            onPress={props.onInfoPress}
-          >
-            <Ionicons
-              name='information-circle-outline'
-              size={30}
-              color='white'
-            />
-          </TouchableOpacity>
+          <View pointerEvents='box-none'>
+            <TouchableOpacity
+              style={styles.infoButton}
+              onPress={props.onInfoPress}
+            >
+              <Ionicons
+                name='information-circle-outline'
+                size={30}
+                color='white'
+              />
+            </TouchableOpacity>
+          </View>
         </View>
       </ImageBackground>
     </View>

@@ -402,7 +402,7 @@ export default function ProfileScreen() {
                     source={
                       event.images?.[0]
                         ? { uri: event.images[0].image_url }
-                        : require('@assets/images/FotoJazz.jpg')
+                        : require('@assets/images/Icono.jpg')
                     }
                     style={styles.eventImage}
                   />
