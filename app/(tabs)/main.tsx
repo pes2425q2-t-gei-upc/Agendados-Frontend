@@ -22,6 +22,7 @@ import Animated, {
   useAnimatedGestureHandler,
   interpolate,
 } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@components/cardEvent';
 import EventDetailModal from '@components/EventDetailModal';
@@ -209,32 +210,30 @@ export default function Main() {
 
   useEffect(() => {
     const checkWelcome = async () => {
-      await AsyncStorage.removeItem('hasSeenWelcome');
       const hasSeenWelcome = await AsyncStorage.getItem('hasSeenWelcome');
       if (!hasSeenWelcome) {
         setShowWelcome(true);
       }
     };
-
     checkWelcome();
   }, []);
 
   // Show loading screen
   if (loading) {
     return (
-      <View style={styles.pageContainer}>
+      <SafeAreaView style={styles.pageContainer}>
         <ActivityIndicator size='large' color={colors.primary} />
         <Text style={{ marginTop: 20, color: colors.text }}>
           Loading recommendations...
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // Show error screen
   if (error) {
     return (
-      <View style={styles.pageContainer}>
+      <SafeAreaView style={styles.pageContainer}>
         <Text style={{ color: colors.error, marginBottom: 20 }}>{error}</Text>
         <TouchableOpacity
           style={styles.retryButton}
@@ -242,14 +241,14 @@ export default function Main() {
         >
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // No more events to show
   if (currentIndex >= events.length) {
     return (
-      <View style={styles.pageContainer}>
+      <SafeAreaView style={styles.pageContainer}>
         <Text style={{ fontSize: 18, textAlign: 'center', margin: 20 }}>
           No more events to display!
         </Text>
@@ -262,7 +261,7 @@ export default function Main() {
         >
           <Text style={styles.retryButtonText}>Find more events</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -310,7 +309,13 @@ export default function Main() {
           }}
         />
       </View>
-      <Welcome visible={showWelcome} onClose={() => setShowWelcome(false)} />
+      <Welcome
+        visible={showWelcome}
+        onClose={async () => {
+          setShowWelcome(false);
+          await AsyncStorage.setItem('hasSeenWelcome', 'true');
+        }}
+      />
     </GestureHandlerRootView>
   );
 }

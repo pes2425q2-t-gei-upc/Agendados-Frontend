@@ -123,7 +123,8 @@ export default function AddFriendScreen() {
   // Renderizar un resultado de búsqueda de usuario
   const renderUserItem = ({ item }: { item: User }) => {
     const alreadyFriend = isFriend(item.id);
-    const isPending = hasPendingRequest(item.id);
+    const isPending =
+      hasPendingRequest(item.id) || processingIds.includes(item.id);
     const isProcessing = processingIds.includes(item.id);
 
     return (

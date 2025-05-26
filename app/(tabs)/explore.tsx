@@ -649,10 +649,6 @@ export default function Explore() {
     []
   );
 
-  const visibleMarkers = useMemo(() => {
-    return filteredMarkers;
-  }, [filteredMarkers]);
-
   const handleMyLocationPress = useCallback(() => {
     if (userLocation && mapRef.current && isMapReady.current) {
       mapRef.current.animateToRegion(
