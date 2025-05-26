@@ -148,28 +148,6 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
       [onRegionChangeComplete, debouncedUpdate]
     );
 
-    const getAirQualityColor = (quality: number) => {
-      if (quality <= 700) {
-        return 'rgba(0, 255, 0, 0.3)';
-      }
-      if (quality <= 800) {
-        return 'rgba(255, 255, 0, 0.3)';
-      }
-      if (quality <= 1100) {
-        return 'rgba(255, 165, 0, 0.3)';
-      }
-      if (quality <= 1500) {
-        return 'rgba(255, 0, 0, 0.3)';
-      }
-      if (quality <= 2000) {
-        return 'rgba(128, 0, 128, 0.3)';
-      }
-      if (quality <= 3000) {
-        return 'rgba(128, 0, 0, 0.3)';
-      }
-      return 'rgba(0, 0, 0, 0.3)';
-    };
-
     const renderClusters = () =>
       clusters.map((cluster) => {
         const [longitude, latitude] = cluster.geometry.coordinates;
