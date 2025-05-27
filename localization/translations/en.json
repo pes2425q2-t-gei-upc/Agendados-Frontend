@@ -175,7 +175,8 @@
       "premium": "Gold Level",
       "badgeTooltip": "Save more events to upgrade your profile badge!",
       "nextLevel": "Save {{count}} more events to reach the next level"
-    }
+    },
+    "profilePhotoUpdated": "Profile photo updated successfully!"
   },
   "settings": {
     "title": "Settings",
@@ -224,7 +225,8 @@
     "pushNotifications": "Push Notifications",
     "emailNotifications": "Email Notifications",
     "termsOfService": "Terms of Service",
-    "privacyPolicy": "Privacy Policy"
+    "privacyPolicy": "Privacy Policy",
+    "profilePhotoUpdated": "Profile photo updated successfully!"
   },
   "privacyPolicy": {
       "title": "PRIVACY POLICY",

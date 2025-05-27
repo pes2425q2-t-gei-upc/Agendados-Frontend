@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -46,6 +46,8 @@ export default function Main() {
   const [events, setEvents] = useState<EventModal[]>([]);
   const [showWelcome, setShowWelcome] = useState(false);
   const { refreshFavorites } = useFavorites();
+  const panRef = useRef(null);
+  const infoButtonRef = useRef(null);
 
   // Card state
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -281,7 +283,11 @@ export default function Main() {
         </View>
 
         {/* Current card with swipe gestures */}
-        <PanGestureHandler onGestureEvent={gestureHandler}>
+        <PanGestureHandler
+          ref={panRef}
+          onGestureEvent={gestureHandler}
+          waitFor={infoButtonRef}
+        >
           <Animated.View style={[styles.animatedCard, cardStyle]}>
             <Animated.Image
               source={Like}
@@ -296,6 +302,8 @@ export default function Main() {
             <Card
               event={currentEvent}
               onInfoPress={() => handleInfoButtonPress(currentEvent)}
+              simultaneousHandlers={panRef}
+              infoButtonRef={infoButtonRef}
             />
           </Animated.View>
         </PanGestureHandler>

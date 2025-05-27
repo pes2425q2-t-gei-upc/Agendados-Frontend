@@ -649,14 +649,20 @@ export default function Explore() {
     []
   );
 
+  // Coordenadas fijas para Barcelona
+  const BARCELONA_COORDS = {
+    latitude: 41.3891219,
+    longitude: 2.1134929,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  };
+
   const handleMyLocationPress = useCallback(() => {
-    if (userLocation && mapRef.current && isMapReady.current) {
-      mapRef.current.animateToRegion(
-        { ...userLocation, latitudeDelta: 0.01, longitudeDelta: 0.01 },
-        1000
-      );
+    if (mapRef.current && isMapReady.current) {
+      // Siempre centramos en las coordenadas específicas de Barcelona
+      mapRef.current.animateToRegion(BARCELONA_COORDS, 1000);
     }
-  }, [userLocation]);
+  }, []);
 
   if (loading) {
     return (

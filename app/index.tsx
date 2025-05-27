@@ -14,5 +14,4 @@ export default function Index() {
   } else {
     return <Redirect href='/registerLogin' />;
   }
-
 }

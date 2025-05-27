@@ -16,22 +16,21 @@
     "of": "de",
     "success": "Èxit",
     "retry": "Tornar-ho a provar"
-
   },
-  "emissions": {
-    "title": "Emissions Mode",
-    "noEvents": "No Events Found",
-    "noEventsWithLocation": "There are no events with location data to display air quality information.",
-    "errorFetchingData": "Error fetching air quality data. Please try again.",
-    "legend": "Air Quality Legend",
-    "good": "Good (0-700)",
-    "moderate": "Moderate (701-800)",
-    "poor": "Poor (801-1100)",
-    "unhealthy": "Unhealthy (1101-1500)",
-    "veryUnhealthy": "Very Unhealthy (1501-2000)",
-    "hazardous": "Hazardous (2001-3000)",
-    "extreme": "Extreme (3001+)"
-  },
+"emissions": {
+  "title": "Mode Emissions",
+  "noEvents": "No s'han trobat esdeveniments",
+  "noEventsWithLocation": "No hi ha esdeveniments amb dades de localització per mostrar la informació de la qualitat de l'aire.",
+  "errorFetchingData": "S'ha produït un error en obtenir les dades de qualitat de l'aire. Torna-ho a intentar.",
+  "legend": "Llegenda de Qualitat de l'Aire",
+  "good": "Bona (0-700)",
+  "moderate": "Moderada (701-800)",
+  "poor": "Dolenta (801-1100)",
+  "unhealthy": "Nociva per a la salut (1101-1500)",
+  "veryUnhealthy": "Molt nociva per a la salut (1501-2000)",
+  "hazardous": "Perillosa (2001-3000)",
+  "extreme": "Extrema (3001+)"
+},
   "navigation": {
     "home": "Inici",
     "explore": "Explorar",
@@ -39,8 +38,6 @@
     "profile": "Perfil",
     "settings": "Configuració",
     "chats": "Xats"
-
-    
   },
   "auth": {
     "login": "Iniciar Sessió",
@@ -120,7 +117,15 @@
     "from": "Des de",
     "to": "Fins a",
     "chat": "Xat",
-    "openChat": "Obrir Xat"
+    "openChat": "Obrir Xat",
+    "report": "Denunciar Esdeveniment",
+    "reportContent": "Denunciar Contingut",
+    "reportTitle": "Denunciar Esdeveniment",
+    "reportConfirm": "Estàs segur que vols denunciar aquest esdeveniment?",
+    "reportSuccess": "Denúncia Enviada",
+    "reportThankYou": "Gràcies pel teu comentari. Revisarem el contingut.",
+    "reportError": "S'ha produït un error en denunciar l'esdeveniment. Torna-ho a intentar.",
+    "reportedSuccess": "Denunciat"
   },
   "saved": {
     "title": "Esdeveniments desats",
@@ -158,6 +163,7 @@
     "preferences": "Preferències",
     "personalInfo": "Informació personal",
     "profile": "Perfil",
+    "profilePhotoUpdated": "¡Foto de perfil actualizada correctamente!",
     "joinedOn": "Membre des de maig de 2025",
     "savedEvents": "Desats",
     "attendedEvents": "Assistits",
@@ -223,7 +229,8 @@
     "pushNotifications": "Notificacions Push",
     "emailNotifications": "Notificacions per Correu",
     "termsOfService": "Termes de Servei",
-    "privacyPolicy": "Política de Privacitat"
+    "privacyPolicy": "Política de Privacitat",
+    "profilePhotoUpdated": "¡Foto de perfil actualizada correctamente!"
   },
   "privacyPolicy": {
     "title": "POLÍTICA DE PRIVACITAT",

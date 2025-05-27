@@ -215,6 +215,20 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
     marginBottom: spacing.xs,
   },
+  reportButton: {
+    alignItems: 'center',
+    backgroundColor: colors.error,
+    borderRadius: 8,
+    marginTop: spacing.xs,
+    opacity: 0.8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  reportButtonText: {
+    color: colors.lightText,
+    fontSize: 14,
+    fontWeight: '600',
+  },
   scrollContainer: {
     flex: 1,
   },
