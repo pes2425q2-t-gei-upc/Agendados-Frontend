@@ -47,9 +47,9 @@ export const uploadProfileImage = async (
     const response = await fetch(`${API_BASE}/api/users/profile/update-image`, {
       method: 'POST',
       headers: {
-        'Authorization': `Token ${token}`,
+        Authorization: `Token ${token}`,
         // 'Content-Type' NO se debe poner manualmente con FormData en RN
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
       body: formData,
     });
@@ -495,7 +495,10 @@ export const updateUserProfile = async (
   data: Partial<ProfileUpdateData>
 ): Promise<boolean> => {
   try {
-    console.log('[UpdateProfile] Attempting to update user profile with data:', data);
+    console.log(
+      '[UpdateProfile] Attempting to update user profile with data:',
+      data
+    );
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
@@ -506,8 +509,8 @@ export const updateUserProfile = async (
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Token ${token}`,
+        Accept: 'application/json',
+        Authorization: `Token ${token}`,
       },
       body: JSON.stringify(data),
       signal: controller.signal,
@@ -538,12 +541,14 @@ export const updateUserProfile = async (
 
     console.log('[UpdateProfile] Profile update API call successful.');
     return true; // Indicates success to the caller (AuthContext)
-
   } catch (error) {
-    const isTimeoutError = error instanceof Error && error.name === 'AbortError';
+    const isTimeoutError =
+      error instanceof Error && error.name === 'AbortError';
     if (isTimeoutError) {
       console.error('[UpdateProfile] Request timed out');
-      throw new Error('La solicitud de actualización de perfil ha tomado demasiado tiempo.');
+      throw new Error(
+        'La solicitud de actualización de perfil ha tomado demasiado tiempo.'
+      );
     }
 
     if (error instanceof Error) {

@@ -163,6 +163,7 @@
     "preferences": "Preferències",
     "personalInfo": "Informació personal",
     "profile": "Perfil",
+    "profilePhotoUpdated": "¡Foto de perfil actualizada correctamente!",
     "joinedOn": "Membre des de maig de 2025",
     "savedEvents": "Desats",
     "attendedEvents": "Assistits",
@@ -228,7 +229,8 @@
     "pushNotifications": "Notificacions Push",
     "emailNotifications": "Notificacions per Correu",
     "termsOfService": "Termes de Servei",
-    "privacyPolicy": "Política de Privacitat"
+    "privacyPolicy": "Política de Privacitat",
+    "profilePhotoUpdated": "¡Foto de perfil actualizada correctamente!"
   },
   "privacyPolicy": {
     "title": "POLÍTICA DE PRIVACITAT",
