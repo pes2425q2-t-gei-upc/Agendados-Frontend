@@ -10,6 +10,15 @@ const API_BASE =
 const TOKEN_KEY = 'user_auth_token';
 const USER_INFO_KEY = 'user_info';
 
+// Define type for profile update data that AuthService will handle
+interface ProfileUpdateData {
+  username?: string;
+  name?: string;
+  email?: string;
+  avatar?: string; // Crucial for the photo upload feature
+  // Add other fields that can be updated via this function
+}
+
 // Token management
 export const storeUserToken = async (token: string): Promise<void> => {
   await AsyncStorage.setItem(TOKEN_KEY, token);
@@ -431,6 +440,72 @@ export const changePassword = async (
     }
 
     throw error;
+  }
+};
+
+export const updateUserProfile = async (
+  token: string,
+  data: Partial<ProfileUpdateData>
+): Promise<boolean> => {
+  try {
+    console.log('[UpdateProfile] Attempting to update user profile with data:', data);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+
+    // Common endpoint for updating current user's profile is /api/users/me or /api/users/profile
+    // Using PATCH as it's for partial updates.
+    const response = await fetch(`${API_BASE}/api/users/me`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Token ${token}`,
+      },
+      body: JSON.stringify(data),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+    console.log('[UpdateProfile] Server response status:', response.status);
+
+    if (!response.ok) {
+      let errorDetails = `Server error: ${response.status}`;
+      try {
+        // Try to parse JSON error response from backend
+        const errorData = await response.json();
+        errorDetails = errorData?.message || JSON.stringify(errorData);
+      } catch (e) {
+        // If response is not JSON, use the raw text
+        errorDetails = await response.text();
+      }
+      console.error('[UpdateProfile] Error response:', errorDetails);
+      throw new Error(errorDetails);
+    }
+
+    // If the backend returns the updated user object and you need to use it:
+    // const updatedUserInfo = await response.json();
+    // await storeUserInfo(updatedUserInfo); // Update user info in AsyncStorage
+    // console.log('[UpdateProfile] Profile updated successfully via API and local storage updated.');
+    // return updatedUserInfo; // Or true, depending on what AuthContext expects
+
+    console.log('[UpdateProfile] Profile update API call successful.');
+    return true; // Indicates success to the caller (AuthContext)
+
+  } catch (error) {
+    const isTimeoutError = error instanceof Error && error.name === 'AbortError';
+    if (isTimeoutError) {
+      console.error('[UpdateProfile] Request timed out');
+      throw new Error('La solicitud de actualización de perfil ha tomado demasiado tiempo.');
+    }
+
+    if (error instanceof Error) {
+      console.error('[UpdateProfile] Error:', error.message);
+      throw new Error(`Error al actualizar el perfil: ${error.message}`);
+    } else {
+      console.error('[UpdateProfile] Unknown error:', error);
+      throw new Error('Error desconocido al actualizar el perfil.');
+    }
   }
 };
 
