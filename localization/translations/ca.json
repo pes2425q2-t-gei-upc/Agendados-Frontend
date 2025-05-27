@@ -16,22 +16,21 @@
     "of": "de",
     "success": "Èxit",
     "retry": "Tornar-ho a provar"
-
   },
-  "emissions": {
-    "title": "Emissions Mode",
-    "noEvents": "No Events Found",
-    "noEventsWithLocation": "There are no events with location data to display air quality information.",
-    "errorFetchingData": "Error fetching air quality data. Please try again.",
-    "legend": "Air Quality Legend",
-    "good": "Good (0-700)",
-    "moderate": "Moderate (701-800)",
-    "poor": "Poor (801-1100)",
-    "unhealthy": "Unhealthy (1101-1500)",
-    "veryUnhealthy": "Very Unhealthy (1501-2000)",
-    "hazardous": "Hazardous (2001-3000)",
-    "extreme": "Extreme (3001+)"
-  },
+"emissions": {
+  "title": "Mode Emissions",
+  "noEvents": "No s'han trobat esdeveniments",
+  "noEventsWithLocation": "No hi ha esdeveniments amb dades de localització per mostrar la informació de la qualitat de l'aire.",
+  "errorFetchingData": "S'ha produït un error en obtenir les dades de qualitat de l'aire. Torna-ho a intentar.",
+  "legend": "Llegenda de Qualitat de l'Aire",
+  "good": "Bona (0-700)",
+  "moderate": "Moderada (701-800)",
+  "poor": "Dolenta (801-1100)",
+  "unhealthy": "Nociva per a la salut (1101-1500)",
+  "veryUnhealthy": "Molt nociva per a la salut (1501-2000)",
+  "hazardous": "Perillosa (2001-3000)",
+  "extreme": "Extrema (3001+)"
+},
   "navigation": {
     "home": "Inici",
     "explore": "Explorar",
@@ -39,8 +38,6 @@
     "profile": "Perfil",
     "settings": "Configuració",
     "chats": "Xats"
-
-    
   },
   "auth": {
     "login": "Iniciar Sessió",
