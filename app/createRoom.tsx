@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Image,
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
@@ -15,9 +16,7 @@ import {
   View,
 } from 'react-native';
 
-import { useAuth } from '@context/authContext';
-import { Friendship } from '@models/Friendship';
-import { FriendshipService } from '@services/FriendshipService';
+import { useFriendship } from '@context/FriendshipContext';
 import RoomService from '@services/RoomService';
 import WebSocketService from '@services/WebSocketService';
 import { colors, spacing } from '@styles/globalStyles';
@@ -27,38 +26,18 @@ import ProtectedRoute from './components/ProtectedRoute';
 export default function CreateRoomScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { user } = useAuth();
 
   const [roomName, setRoomName] = useState('');
   const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
   const [searchText, setSearchText] = useState('');
-  const [Friends, setFriends] = useState<Friendship[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { friends } = useFriendship();
   const [loadingCreateRoom, setLoadingCreateRoom] = useState(false);
 
-  //Fetching friends from the API
-  useEffect(() => {
-    fetchFriends();
-  }, []);
-
-  const fetchFriends = async () => {
-    try {
-      const response = await FriendshipService.getFriends();
-      setFriends(response);
-    } catch (error) {
-      console.error('Error fetching friends:', error);
-      setError('Error fetching friends');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const filteredFriends = searchText
-    ? Friends.filter((friend) =>
+    ? friends.filter((friend) =>
         friend.user?.username.toLowerCase().includes(searchText.toLowerCase())
       )
-    : Friends;
+    : friends;
 
   const toggleFriendSelection = (friendId: number) => {
     setSelectedFriends((prev) => {
@@ -170,7 +149,7 @@ export default function CreateRoomScreen() {
 
           <View style={styles.friendsSection}>
             <Text style={styles.label}>
-              Invite Friends ({selectedFriends.length} selected)
+              Invite friends ({selectedFriends.length} selected)
             </Text>
 
             <View style={styles.searchContainer}>
@@ -189,39 +168,18 @@ export default function CreateRoomScreen() {
                 clearButtonMode='always'
               />
             </View>
-            {loading && (
-              <ActivityIndicator
-                size='small'
-                color={colors.primary}
-                style={{ marginTop: spacing.md }}
-              />
-            )}
-            {error && (
+            {!filteredFriends.length && searchText && (
               <Text
                 style={{
-                  color: colors.error,
                   textAlign: 'center',
+                  color: colors.textSecondary,
                   marginTop: spacing.md,
                 }}
               >
-                {error}
+                No friends found matching &quot;{searchText}&quot;.
               </Text>
             )}
-            {!loading &&
-              !error &&
-              filteredFriends.length === 0 &&
-              searchText && (
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    color: colors.textSecondary,
-                    marginTop: spacing.md,
-                  }}
-                >
-                  No friends found matching "{searchText}".
-                </Text>
-              )}
-            {!loading && !error && Friends.length === 0 && !searchText && (
+            {friends.length === 0 && !searchText && (
               <Text
                 style={{
                   textAlign: 'center',
@@ -233,20 +191,28 @@ export default function CreateRoomScreen() {
               </Text>
             )}
             <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
-              {filteredFriends.map((friend) => (
+              {filteredFriends.map(({ friend }) => (
                 <TouchableOpacity
-                  key={friend.id}
+                  key={friend!.id}
                   style={[
                     styles.friendItem,
-                    selectedFriends.includes(friend.id!) &&
+                    selectedFriends.includes(friend!.id!) &&
                       styles.selectedFriendItem,
                   ]}
-                  onPress={() => toggleFriendSelection(friend.id!)}
+                  onPress={() => toggleFriendSelection(friend!.id!)}
                 >
                   {/* You might want to add an avatar here */}
-                  <Text style={styles.friendName}>{friend.user?.username}</Text>
+                  <Ionicons
+                    name='person-circle-outline'
+                    size={50}
+                    color={colors.textSecondary}
+                    style={{ marginRight: spacing.sm }}
+                  />
+                  <Text style={styles.friendName}>
+                    {friend?.name ?? friend?.username}
+                  </Text>
                   <View style={styles.checkboxContainer}>
-                    {selectedFriends.includes(friend.id!) ? (
+                    {selectedFriends.includes(friend!.id!) ? (
                       <Ionicons
                         name='checkmark-circle'
                         size={24}
@@ -288,6 +254,13 @@ export default function CreateRoomScreen() {
 }
 
 const styles = StyleSheet.create({
+  avatar: {
+    backgroundColor: colors.border,
+    borderRadius: 30,
+    height: 50,
+    marginHorizontal: spacing.sm,
+    width: 50,
+  },
   backButton: {
     padding: spacing.xs,
   },
@@ -336,7 +309,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   friendName: {
-    color: colors.text,
+    color: 'black',
     flex: 1,
     fontSize: 16,
   },

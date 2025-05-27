@@ -21,10 +21,7 @@ const Card = (props: {
   const image = event.images[0]
     ? { uri: event.images[0].image_url }
     : require('../assets/images/agendadosbg.png');
-  const place =
-    typeof event.location?.town === 'string'
-      ? event.location.town
-      : 'Unknown Place';
+  const place = event.location?.town.name ?? 'Unknown Place';
   const cat = event.categories?.[0]?.name || 'Unknown Category';
   const date = event.date_ini
     ? new Date(event.date_ini).toLocaleDateString('es', {
