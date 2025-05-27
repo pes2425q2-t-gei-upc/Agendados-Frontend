@@ -113,15 +113,6 @@ export default function RoomDetailScreen() {
     }, 1000);
   };
 
-  const handleInvite = () => {
-    // This could be a share intent or a specific in-app invite mechanism
-    Alert.alert(
-      'Invite Friends',
-      `Share this room ID: ${currentRoom?.id}\nOr implement a friend invite system.`,
-      [{ text: 'OK' }]
-    );
-  };
-
   const handleLeave = () => {
     Alert.alert('Leave Room', 'Are you sure you want to leave this room?', [
       { text: 'Cancel', style: 'cancel' },
@@ -173,9 +164,6 @@ export default function RoomDetailScreen() {
             <Ionicons name='arrow-back' size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{currentRoom.name}</Text>
-          <TouchableOpacity style={styles.optionsButton} onPress={handleInvite}>
-            <Ionicons name='person-add-outline' size={24} color={colors.text} />
-          </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content}>
@@ -226,7 +214,9 @@ export default function RoomDetailScreen() {
                   >
                     <Image
                       source={{
-                        uri: participant.avatar ?? 'https://i.pravatar.cc/300', // Fallback placeholder
+                        uri:
+                          participant.avatar ??
+                          require('../assets/images/splash-icon.png'), // Fallback placeholder
                       }} // Placeholder avatar
                       style={styles.avatar}
                     />
