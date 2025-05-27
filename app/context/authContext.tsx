@@ -14,6 +14,7 @@ import {
   changePassword as apiChangePassword,
   storeUserToken,    // En lugar de saveUserToken
   storeUserInfo, 
+  updateUserProfile as apiUpdateUserProfile, // Assuming this will be the actual API call function in AuthService
 } from '../Services/AuthService';
 
 // Definir tipos de usuario
@@ -35,6 +36,7 @@ interface AuthContextType {
   login: (token: string, userInfo?: UserInfo) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
+  updateUserProfile: (data: Partial<UserInfo>) => Promise<boolean>;
   changePassword: (
     currentPassword: string,
     newPassword: string
@@ -50,6 +52,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   logout: async () => {},
   loading: true,
+  updateUserProfile: async () => false,
   changePassword: async () => false,
   getToken: () => null,
   getUsername: () => null,
@@ -149,6 +152,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateUserProfile = async (data: Partial<UserInfo>): Promise<boolean> => {
+    if (!userToken) {
+      console.error('updateUserProfile: No user token available');
+      return false;
+    }
+    if (!userInfo) {
+      console.error('updateUserProfile: No user info available');
+      return false;
+    }
+
+    setLoading(true);
+    try {
+      // In a real app, apiUpdateUserProfile would make the PATCH request
+      // For now, let's assume it's in AuthService and updates the backend
+      // and returns the updated user info or just a success status.
+      // const updatedUser = await apiUpdateUserProfile(userToken, data);
+
+      // For now, let's simulate a successful update and merge data locally
+      // This part needs to be replaced with actual API call logic
+      // If apiUpdateUserProfile returns the full updated user object:
+      // setUserInfo(updatedUser);
+      // await storeUserInfo(updatedUser);
+      
+      // If apiUpdateUserProfile just confirms success and we merge locally:
+      const newUserInfo = { ...userInfo, ...data };
+      setUserInfo(newUserInfo);
+      await storeUserInfo(newUserInfo);
+      console.log('✅ User profile updated locally');
+      // This is a placeholder for the actual API call
+      // You'll need to implement `updateUserProfile` in `AuthService.ts`
+      // and call it here, for example:
+      // const success = await apiUpdateUserProfile(userToken, data);
+      // if (success) { ... } else { throw new Error('API update failed'); }
+      // For demonstration, we'll assume success:
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+      return true;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      // Optionally, revert to old user info if API call fails
+      // setUserInfo(userInfo); 
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getToken = (): string | null => {
     return userToken;
   };
@@ -166,6 +216,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         logout,
         loading,
+        updateUserProfile,
         changePassword,
         getToken,
         getUsername,

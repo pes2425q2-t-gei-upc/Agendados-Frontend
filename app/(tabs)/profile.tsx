@@ -25,6 +25,7 @@ import { colors, spacing } from '@styles/globalStyles';
 import ProtectedRoute from 'app/components/ProtectedRoute';
 
 import ProfileAvatar from '../components/ProfileAvatar';
+import { uploadProfileImage } from '@services/AuthService';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -102,41 +103,71 @@ export default function ProfileScreen() {
   };
 
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        t('settings.permissionRequired'),
-        t('settings.galleryPermissionMessage')
-      );
-      return;
-    }
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-    if (!res.canceled && res.assets.length) {
-      await handleUpdateAvatar(res.assets[0].uri);
+    try {
+      console.log('[pickImage] Requesting media library permissions...');
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('[pickImage] Media library permission status:', permissionResult.status);
+
+      if (permissionResult.status !== 'granted') {
+        Alert.alert(
+          t('settings.permissionRequired'),
+          t('settings.galleryPermissionMessage')
+        );
+        return;
+      }
+
+      console.log('[pickImage] Launching image library...');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+      console.log('[pickImage] Image library result:', result);
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        console.log('[pickImage] Image selected:', result.assets[0].uri);
+        await handleUpdateAvatar(result.assets[0].uri);
+      } else {
+        console.log('[pickImage] Image selection canceled or no assets.');
+      }
+    } catch (error) {
+      console.error('[pickImage] Error:', error);
+      Alert.alert(t('common.error'), t('settings.galleryError'));
     }
   };
 
   const handleTakePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        t('settings.permissionRequired'),
-        t('settings.cameraPermissionMessage')
-      );
-      return;
-    }
-    const res = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-    if (!res.canceled && res.assets.length) {
-      await handleUpdateAvatar(res.assets[0].uri);
+    try {
+      console.log('[handleTakePhoto] Requesting camera permissions...');
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      console.log('[handleTakePhoto] Camera permission status:', permissionResult.status);
+
+      if (permissionResult.status !== 'granted') {
+        Alert.alert(
+          t('settings.permissionRequired'),
+          t('settings.cameraPermissionMessage')
+        );
+        return;
+      }
+
+      console.log('[handleTakePhoto] Launching camera...');
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+      console.log('[handleTakePhoto] Camera result:', result);
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        console.log('[handleTakePhoto] Photo taken:', result.assets[0].uri);
+        await handleUpdateAvatar(result.assets[0].uri);
+      } else {
+        console.log('[handleTakePhoto] Photo taking canceled or no assets.');
+      }
+    } catch (error) {
+      console.error('[handleTakePhoto] Error:', error);
+      Alert.alert(t('common.error'), t('settings.cameraError'));
     }
   };
 
@@ -146,10 +177,13 @@ export default function ProfileScreen() {
     }
     try {
       setUploadingAvatar(true);
-      // await uploadAvatar(userToken, uri);
-      await new Promise((r) => setTimeout(r, 1500));
-      await updateUserProfile({ avatar: uri });
-    } catch {
+      const updatedUser = await uploadProfileImage(userToken, uri);
+      if (updateUserProfile) {
+        await updateUserProfile({ avatar: updatedUser.profile_image });
+      }
+      Alert.alert(t('common.success'), t('settings.profilePhotoUpdated'));
+    } catch (error) {
+      console.error('[handleUpdateAvatar] Error:', error);
       Alert.alert(t('settings.error'), t('settings.updateProfileError'));
     } finally {
       setUploadingAvatar(false);
@@ -196,7 +230,7 @@ export default function ProfileScreen() {
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
             <ProfileAvatar
-              avatar={userInfo?.avatar ?? null}
+              avatar={userInfo?.profile_image ?? null}
               savedEventsCount={stats.savedEvents}
               isLoading={uploadingAvatar}
               onPress={showAvatarOptions}

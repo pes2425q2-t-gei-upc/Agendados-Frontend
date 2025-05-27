@@ -23,7 +23,9 @@
               "com.googleusercontent.apps.259177311342-m3as7g1cidrdtf7r858i285atqljusnq"
             ]
           }
-        ]
+        ],
+        "NSCameraUsageDescription": "This app needs access to your camera to allow you to take a photo for your profile.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to allow you to select a photo for your profile."
       }
     },
     "android": {
