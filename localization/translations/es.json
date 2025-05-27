@@ -117,7 +117,15 @@
     "from": "Desde",
     "to": "Hasta",
     "chat": "Chat",
-    "openChat": "Abrir Chat"
+    "openChat": "Abrir Chat",
+    "report": "Denunciar Evento",
+    "reportContent": "Denunciar Contenido",
+    "reportTitle": "Denunciar Evento",
+    "reportConfirm": "¿Estás seguro de que quieres denunciar este evento?",
+    "reportSuccess": "Denuncia Enviada",
+    "reportThankYou": "Gracias por tu feedback. Revisaremos el contenido.",
+    "reportError": "Error al denunciar el evento. Por favor, inténtalo de nuevo.",
+    "reportedSuccess": "Denunciado"
   },
   "saved": {
     "title": "Eventos guardados",

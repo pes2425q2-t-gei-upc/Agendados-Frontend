@@ -117,7 +117,15 @@
     "from": "Des de",
     "to": "Fins a",
     "chat": "Xat",
-    "openChat": "Obrir Xat"
+    "openChat": "Obrir Xat",
+    "report": "Denunciar Esdeveniment",
+    "reportContent": "Denunciar Contingut",
+    "reportTitle": "Denunciar Esdeveniment",
+    "reportConfirm": "Estàs segur que vols denunciar aquest esdeveniment?",
+    "reportSuccess": "Denúncia Enviada",
+    "reportThankYou": "Gràcies pel teu comentari. Revisarem el contingut.",
+    "reportError": "S'ha produït un error en denunciar l'esdeveniment. Torna-ho a intentar.",
+    "reportedSuccess": "Denunciat"
   },
   "saved": {
     "title": "Esdeveniments desats",
