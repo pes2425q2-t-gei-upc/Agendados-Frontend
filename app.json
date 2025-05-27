@@ -4,7 +4,7 @@
     "slug": "Agendados-Front",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/Icono.jpg",
+    "icon": "./assets/images/Icono.png",
     "scheme": "com.arnau.farran.agendados",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -31,7 +31,7 @@
     "android": {
       "package": "com.arnau.farran.AgendadosFront",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/Icono.jpg",
+        "foregroundImage": "./assets/images/Icono.png",
         "backgroundColor": "#ffffff"
       },
       "config": {

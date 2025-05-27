@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Text,
   ImageBackground,
@@ -7,17 +7,24 @@ import {
   TouchableOpacity,
   GestureResponderEvent,
 } from 'react-native';
+import { TapGestureHandler } from 'react-native-gesture-handler';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 
 import { Event as EventModel } from '@models/Event';
 import { styles } from '@styles/mainPageStyles';
 
-const Card = (props: {
+export default function Card({
+  event,
+  onInfoPress,
+  simultaneousHandlers,
+  infoButtonRef,
+}: {
   event: EventModel;
   onInfoPress: ((event: GestureResponderEvent) => void) | undefined;
-}) => {
+  simultaneousHandlers?: any; // Añade esta prop para pasar el handler del swipe
+  infoButtonRef: React.RefObject<any>;
+}) {
   console.log('Pressed!');
-  const event = props.event;
   const name = event.title;
   const image = event.images[0]
     ? { uri: event.images[0].image_url }
@@ -61,21 +68,26 @@ const Card = (props: {
             <Text style={styles.tagText}>{place}</Text>
           </View>
           <View pointerEvents='box-none'>
-            <TouchableOpacity
-              style={styles.infoButton}
-              onPress={props.onInfoPress}
+            <TapGestureHandler
+              ref={infoButtonRef}
+              onActivated={onInfoPress}
+              simultaneousHandlers={simultaneousHandlers}
             >
-              <Ionicons
-                name='information-circle-outline'
-                size={30}
-                color='white'
-              />
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.infoButton}
+                onPress={onInfoPress}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name='information-circle-outline'
+                  size={30}
+                  color='white'
+                />
+              </TouchableOpacity>
+            </TapGestureHandler>
           </View>
         </View>
       </ImageBackground>
     </View>
   );
-};
-
-export default Card;
+}
