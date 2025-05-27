@@ -19,6 +19,53 @@ interface ProfileUpdateData {
   // Add other fields that can be updated via this function
 }
 
+/**
+ * Sube la imagen de perfil al backend usando multipart/form-data
+ * @param token Token de autenticación
+ * @param imageUri URI local de la imagen (ej: file://...)
+ * @returns Objeto usuario actualizado (incluyendo la nueva URL de la imagen)
+ */
+export const uploadProfileImage = async (
+  token: string,
+  imageUri: string
+): Promise<any> => {
+  try {
+    // Extraer nombre de archivo
+    const filename = imageUri.split('/').pop() || `profile_${Date.now()}.jpg`;
+    // Determinar el tipo mime (por defecto image/jpeg)
+    const match = /\.([a-zA-Z0-9]+)$/.exec(filename);
+    const ext = match ? match[1].toLowerCase() : 'jpg';
+    const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
+
+    const formData = new FormData();
+    formData.append('profile_image', {
+      uri: imageUri,
+      name: filename,
+      type: mimeType,
+    } as any); // 'as any' para compatibilidad RN
+
+    const response = await fetch(`${API_BASE}/api/users/profile/update-image`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${token}`,
+        // 'Content-Type' NO se debe poner manualmente con FormData en RN
+        'Accept': 'application/json',
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error al subir la imagen de perfil: ${errorText}`);
+    }
+    const data = await response.json();
+    return data; // Usuario actualizado
+  } catch (error) {
+    console.error('[uploadProfileImage] Error:', error);
+    throw error;
+  }
+};
+
 // Token management
 export const storeUserToken = async (token: string): Promise<void> => {
   await AsyncStorage.setItem(TOKEN_KEY, token);

@@ -65,7 +65,7 @@ const Config = () => {
     }
     setUsername(userInfo.username ?? '');
     setEmail(userInfo.email ?? '');
-    setAvatar(userInfo.avatar ?? null);
+    setAvatar(userInfo.profile_image ?? null);
   }, [userInfo]);
 
   // Animaciones del header

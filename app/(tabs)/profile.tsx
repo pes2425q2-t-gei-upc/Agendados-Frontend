@@ -25,6 +25,7 @@ import { colors, spacing } from '@styles/globalStyles';
 import ProtectedRoute from 'app/components/ProtectedRoute';
 
 import ProfileAvatar from '../components/ProfileAvatar';
+import { uploadProfileImage } from '@services/AuthService';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -176,10 +177,13 @@ export default function ProfileScreen() {
     }
     try {
       setUploadingAvatar(true);
-      // await uploadAvatar(userToken, uri);
-      await new Promise((r) => setTimeout(r, 1500));
-      await updateUserProfile({ avatar: uri });
-    } catch {
+      const updatedUser = await uploadProfileImage(userToken, uri);
+      if (updateUserProfile) {
+        await updateUserProfile({ avatar: updatedUser.profile_image });
+      }
+      Alert.alert(t('common.success'), t('settings.profilePhotoUpdated'));
+    } catch (error) {
+      console.error('[handleUpdateAvatar] Error:', error);
       Alert.alert(t('settings.error'), t('settings.updateProfileError'));
     } finally {
       setUploadingAvatar(false);
@@ -226,7 +230,7 @@ export default function ProfileScreen() {
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
             <ProfileAvatar
-              avatar={userInfo?.avatar ?? null}
+              avatar={userInfo?.profile_image ?? null}
               savedEventsCount={stats.savedEvents}
               isLoading={uploadingAvatar}
               onPress={showAvatarOptions}
