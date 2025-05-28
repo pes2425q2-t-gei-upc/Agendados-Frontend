@@ -24,7 +24,6 @@ export default function Card({
   simultaneousHandlers?: any; // Añade esta prop para pasar el handler del swipe
   infoButtonRef: React.RefObject<any>;
 }) {
-  console.log('Pressed!');
   const name = event.title;
   const image = event.images[0]
     ? { uri: event.images[0].image_url }
