@@ -91,8 +91,7 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "expo-secure-store",
-      "expo-barcode-scanner"
+      "expo-secure-store"
     ],
     "extra": {
       "googleSignIn": {

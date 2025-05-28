@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   closeButton: {
     backgroundColor: colors.primary,
     borderRadius: 8,
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.text,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
   },
 });
