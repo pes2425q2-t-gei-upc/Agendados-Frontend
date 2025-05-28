@@ -213,11 +213,11 @@ export default function RoomDetailScreen() {
                     style={styles.participantContainer}
                   >
                     <Image
-                      source={{
-                        uri:
-                          participant.avatar ??
-                          require('../assets/images/splash-icon.png'), // Fallback placeholder
-                      }} // Placeholder avatar
+                      source={
+                        participant.avatar
+                          ? { uri: participant.avatar }
+                          : require('../assets/images/Icono.png')
+                      }
                       style={styles.avatar}
                     />
                     {/* <View style={[styles.onlineIndicator, participant.online && styles.online]} /> */}
