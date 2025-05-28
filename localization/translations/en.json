@@ -418,6 +418,26 @@
     "noFavorites": "No saved events",
     "noFavoritesDescription": "{{name}} hasn't saved any favorite events yet."
   },
+  "rooms": {
+    "title": "Rooms",
+    "createRoom": "Create Room",
+    "joinRoom": "Join Room",
+    "roomName": "Room name",
+    "enterRoomName": "Enter room name",
+    "qrCode": "QR Code",
+    "shareQRCode": "Share QR code to join",
+    "scanToJoin": "Scan this QR code to join the room",
+    "roomCode": "Room code",
+    "roomCreated": "Room created successfully!",
+    "roomCreateError": "Error creating room",
+    "shareRoom": "Share room",
+    "scanQRCode": "Scan QR Code",
+    "scanQRCodeDescription": "Scan a QR code to join a room",
+    "cameraPermissionTitle": "Camera Permission",
+    "cameraPermissionMessage": "We need camera access to scan QR codes",
+    "qrScanError": "Error scanning QR code",
+    "invalidQRCode": "Invalid QR code"
+  },
   "termsOfService": {
     "title": "Terms of Service",
     "lastUpdated": "Last updated: {{date}}",

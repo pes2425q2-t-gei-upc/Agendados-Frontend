@@ -414,7 +414,30 @@
   "requests": "Sol·licituds",
   "send": "Enviar Sol·licitud",
   "searchHelpText": "Escriu un nom o usuari per cercar amics.",
-    "total": "Total"
+    "total": "Total",
+    "favoritesOf": "Favorits de {{name}}",
+    "noFavorites": "Sense esdeveniments desats",
+    "noFavoritesDescription": "{{name}} encara no ha desat cap esdeveniment com a favorit."
+  },
+  "rooms": {
+    "title": "Sales",
+    "createRoom": "Crear Sala",
+    "joinRoom": "Unir-se a Sala",
+    "roomName": "Nom de la sala",
+    "enterRoomName": "Introdueix el nom de la sala",
+    "qrCode": "Codi QR",
+    "shareQRCode": "Compartir codi QR per unir-se",
+    "scanToJoin": "Escaneja aquest codi QR per unir-te a la sala",
+    "roomCode": "Codi de la sala",
+    "roomCreated": "Sala creada amb èxit!",
+    "roomCreateError": "Error al crear la sala",
+    "shareRoom": "Compartir sala",
+    "scanQRCode": "Escanejar Codi QR",
+    "scanQRCodeDescription": "Escaneja un codi QR per unir-te a una sala",
+    "cameraPermissionTitle": "Permís de Càmera",
+    "cameraPermissionMessage": "Necessitem accés a la càmera per escanejar codis QR",
+    "qrScanError": "Error en escanejar codi QR",
+    "invalidQRCode": "Codi QR invàlid"
   },
   "termsOfService": {
     "title": "Termes del Servei",

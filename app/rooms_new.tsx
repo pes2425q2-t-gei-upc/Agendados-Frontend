@@ -135,25 +135,23 @@ export default function RoomsScreen() {
             >
               <Ionicons name='arrow-back' size={24} color={colors.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>
-              {t('rooms.title') || 'Rooms'}
-            </Text>
+            <Text style={styles.headerTitle}>{t('rooms') || 'Rooms'}</Text>
             <View style={styles.placeholder} />
           </View>
 
           <View style={styles.content}>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>
-                {t('rooms.joinRoom') || 'Join a Room'}
+                {t('joinRoom') || 'Join a Room'}
               </Text>
               <Text style={styles.cardDescription}>
-                {t('rooms.enterRoomCodeDescription') ||
+                {t('enterRoomCodeDescription') ||
                   'Enter a room code to join an existing room'}
               </Text>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.codeInput}
-                  placeholder={t('rooms.enterRoomCode') || 'Enter room code'}
+                  placeholder={t('enterRoomCode') || 'Enter room code'}
                   value={roomCode}
                   onChangeText={setRoomCode}
                   placeholderTextColor={colors.textSecondary}
@@ -169,7 +167,7 @@ export default function RoomsScreen() {
                     disabled={!roomCode.trim() || LoadingJoinRoom}
                   >
                     <Text style={styles.joinButtonText}>
-                      {t('rooms.joinRoom') || 'Join Room'}
+                      {t('joinRoom') || 'Join Room'}
                     </Text>
                     <Ionicons
                       name='arrow-forward'
@@ -194,7 +192,7 @@ export default function RoomsScreen() {
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>{t('common.or') || 'OR'}</Text>
+              <Text style={styles.dividerText}>{t('or') || 'OR'}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -204,7 +202,7 @@ export default function RoomsScreen() {
             >
               <Ionicons name='add-circle' size={24} color={colors.lightText} />
               <Text style={styles.createRoomText}>
-                {t('rooms.createRoom') || 'Create New Room'}
+                {t('createNewRoom') || 'Create New Room'}
               </Text>
             </TouchableOpacity>
           </View>

@@ -19,7 +19,7 @@ import { colors, spacing } from '@styles/globalStyles';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import QRScanner from './components/QRScanner';
-
+// ...existing code...
 export default function RoomsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -30,10 +30,7 @@ export default function RoomsScreen() {
   const navigateToRoomByCode = async () => {
     setLoadingJoinRoom(true);
     if (!roomCode.trim()) {
-      Alert.alert(
-        'Error',
-        t('pleaseEnterRoomCode') || 'Please enter a room code'
-      );
+      Alert.alert('Error', 'Please enter a room code');
       setLoadingJoinRoom(false);
       return;
     }
@@ -135,25 +132,20 @@ export default function RoomsScreen() {
             >
               <Ionicons name='arrow-back' size={24} color={colors.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>
-              {t('rooms.title') || 'Rooms'}
-            </Text>
+            <Text style={styles.headerTitle}>Rooms</Text>
             <View style={styles.placeholder} />
           </View>
 
           <View style={styles.content}>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>
-                {t('rooms.joinRoom') || 'Join a Room'}
-              </Text>
+              <Text style={styles.cardTitle}>Join a Room</Text>
               <Text style={styles.cardDescription}>
-                {t('rooms.enterRoomCodeDescription') ||
-                  'Enter a room code to join an existing room'}
+                Enter a room code to join an existing room
               </Text>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.codeInput}
-                  placeholder={t('rooms.enterRoomCode') || 'Enter room code'}
+                  placeholder={t('enterRoomCode')}
                   value={roomCode}
                   onChangeText={setRoomCode}
                   placeholderTextColor={colors.textSecondary}
@@ -168,9 +160,7 @@ export default function RoomsScreen() {
                     onPress={navigateToRoomByCode}
                     disabled={!roomCode.trim() || LoadingJoinRoom}
                   >
-                    <Text style={styles.joinButtonText}>
-                      {t('rooms.joinRoom') || 'Join Room'}
-                    </Text>
+                    <Text style={styles.joinButtonText}>{t('joinRoom')}</Text>
                     <Ionicons
                       name='arrow-forward'
                       size={18}
@@ -194,7 +184,7 @@ export default function RoomsScreen() {
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>{t('common.or') || 'OR'}</Text>
+              <Text style={styles.dividerText}>OR</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -203,13 +193,11 @@ export default function RoomsScreen() {
               onPress={createNewRoom}
             >
               <Ionicons name='add-circle' size={24} color={colors.lightText} />
-              <Text style={styles.createRoomText}>
-                {t('rooms.createRoom') || 'Create New Room'}
-              </Text>
+              <Text style={styles.createRoomText}>Create New Room</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
-
+        
         <QRScanner
           visible={showQRScanner}
           onScan={handleQRScan}
@@ -314,11 +302,25 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  qrButton: {
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    borderColor: colors.primary,
+    borderRadius: 8,
+    borderWidth: 1,
+    justifyContent: 'center',
+    padding: spacing.md,
+    minWidth: 52,
+  },
   joinButton: {
     alignItems: 'center',
     backgroundColor: colors.primary,
     borderRadius: 8,
-    flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     padding: spacing.md,
@@ -339,15 +341,5 @@ const styles = StyleSheet.create({
   placeholder: {
     padding: spacing.xs,
     width: 24,
-  },
-  qrButton: {
-    alignItems: 'center',
-    backgroundColor: colors.backgroundAlt,
-    borderColor: colors.primary,
-    borderRadius: 8,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minWidth: 52,
-    padding: spacing.md,
   },
 });

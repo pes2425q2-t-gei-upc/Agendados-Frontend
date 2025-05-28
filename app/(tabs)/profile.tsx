@@ -598,7 +598,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.versionText}>Agendados v1.0.0</Text>
+        <Text style={styles.versionText}>Agendados v0.0.3</Text>
 
         {selectedEvent && (
           <EventDetailModal

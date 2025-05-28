@@ -1,7 +1,9 @@
 import { getUserToken } from '@services/AuthService';
 
 export default class RoomService {
-  static async createRoom(name: string, userIds: number[]): Promise<any> {
+  static async createRoom(
+    name: string
+  ): Promise<{ code: string; name: string }> {
     try {
       const token = await getUserToken();
       const response = await fetch(
@@ -15,11 +17,7 @@ export default class RoomService {
           body: JSON.stringify({ name }),
         }
       );
-      console.log(
-        'Response from createRoom:',
-        response.status,
-        response.statusText
-      );
+
       if (!response.ok) {
         throw new Error(
           `Failed to create room: ${response.status} ${response.statusText}`

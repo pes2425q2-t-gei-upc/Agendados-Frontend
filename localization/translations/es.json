@@ -14,6 +14,7 @@
     "edit": "Editar",
     "search": "Buscar",
     "of": "de",
+    "or": "O",
     "success": "Éxito",
     "retry": "Reintentar"
   },
@@ -422,6 +423,30 @@
     "noFavorites": "Sin eventos guardados",
     "noFavoritesDescription": "{{name}} aún no ha guardado ningún evento como favorito."
     },
+  "rooms": {
+    "title": "Salas",
+    "createRoom": "Crear Sala",
+    "joinRoom": "Unirse a Sala",
+    "enterRoomCode": "Introduce el código de la sala",
+    "enterRoomCodeDescription": "Introduce un código de sala para unirte a una sala existente",
+    "pleaseEnterRoomCode": "Por favor introduce un código de sala",
+    "requestingCameraPermission": "Solicitando permiso de cámara...",
+    "roomName": "Nombre de la sala",
+    "enterRoomName": "Introduce el nombre de la sala",
+    "qrCode": "Código QR",
+    "shareQRCode": "Compartir código QR para unirse",
+    "scanToJoin": "Escanea este código QR para unirte a la sala",
+    "roomCode": "Código de la sala",
+    "roomCreated": "¡Sala creada con éxito!",
+    "roomCreateError": "Error al crear la sala",
+    "shareRoom": "Compartir sala",
+    "scanQRCode": "Escanear Código QR",
+    "scanQRCodeDescription": "Apunta tu cámara a un código QR para escanearlo",
+    "cameraPermissionTitle": "Permiso de Cámara Requerido",
+    "cameraPermissionMessage": "Por favor concede permiso de cámara para escanear códigos QR",
+    "qrScanError": "Error al escanear código QR",
+    "invalidQRCode": "Código QR inválido"
+  },
   "termsOfService": {
     "title": "Términos de Servicio",
     "lastUpdated": "Última actualización: {{date}}",
