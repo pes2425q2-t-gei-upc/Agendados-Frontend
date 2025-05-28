@@ -71,7 +71,7 @@ export default function CreateRoomScreen() {
         } else if (state.error) {
           Alert.alert(
             t('common.error'),
-            `Failed to create room & connect: ${state.error}`
+            `${t('rooms.failedToCreateRoomConnect')} ${state.error}`
           );
           if (unsubscribeFunction) {
             unsubscribeFunction();
@@ -83,7 +83,7 @@ export default function CreateRoomScreen() {
       // Timeout for WebSocket response
       setTimeout(() => {
         if (loadingCreateRoom) {
-          Alert.alert(t('common.error'), 'Room creation timed out.');
+          Alert.alert(t('common.error'), t('rooms.roomCreationTimedOut'));
           if (unsubscribeFunction) {
             unsubscribeFunction();
           }
@@ -95,7 +95,8 @@ export default function CreateRoomScreen() {
       console.error('Error in handleCreateRoom:', error);
       Alert.alert(
         t('common.error'),
-        t('rooms.roomCreateError') + `: ${error.message ?? 'Unknown error'}`
+        t('rooms.roomCreateError') +
+          `: ${error.message ?? t('rooms.unknownError')}`
       );
       setLoadingCreateRoom(false);
     }
@@ -140,7 +141,10 @@ export default function CreateRoomScreen() {
             unsubscribeFunction();
           }
         } else if (state.error) {
-          Alert.alert(t('common.error'), `Failed to join room: ${state.error}`);
+          Alert.alert(
+            t('common.error'),
+            `${t('rooms.failedToJoinRoom')} ${state.error}`
+          );
           if (unsubscribeFunction) {
             unsubscribeFunction();
           }
@@ -149,7 +153,7 @@ export default function CreateRoomScreen() {
 
       // Timeout for WebSocket response
       setTimeout(() => {
-        Alert.alert(t('common.error'), 'Room join timed out.');
+        Alert.alert(t('common.error'), t('rooms.roomJoinTimedOut'));
         if (unsubscribeFunction) {
           unsubscribeFunction();
         }
@@ -282,21 +286,8 @@ export default function CreateRoomScreen() {
 }
 
 const styles = StyleSheet.create({
-  avatar: {
-    backgroundColor: colors.border,
-    borderRadius: 30,
-    height: 50,
-    marginHorizontal: spacing.sm,
-    width: 50,
-  },
   backButton: {
     padding: spacing.xs,
-  },
-  checkboxContainer: {
-    alignItems: 'center',
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
   },
   container: {
     backgroundColor: colors.background,

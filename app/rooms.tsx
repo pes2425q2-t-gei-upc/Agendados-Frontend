@@ -30,10 +30,7 @@ export default function RoomsScreen() {
   const navigateToRoomByCode = async () => {
     setLoadingJoinRoom(true);
     if (!roomCode.trim()) {
-      Alert.alert(
-        'Error',
-        t('pleaseEnterRoomCode') || 'Please enter a room code'
-      );
+      Alert.alert(t('common.error'), t('rooms.pleaseEnterRoomCode'));
       setLoadingJoinRoom(false);
       return;
     }
@@ -86,7 +83,10 @@ export default function RoomsScreen() {
           setLoadingJoinRoom(false);
         } else if (state.error) {
           hasNavigated = true;
-          Alert.alert('Error', `Failed to join room & connect: ${state.error}`);
+          Alert.alert(
+            t('common.error'),
+            `${t('rooms.failedToCreateRoomConnect')} ${state.error}`
+          );
           if (unsubscribeFunction) {
             unsubscribeFunction();
             unsubscribeFunction = null;
@@ -103,16 +103,13 @@ export default function RoomsScreen() {
           }
           if (LoadingJoinRoom) {
             setLoadingJoinRoom(false);
-            Alert.alert(
-              'Timeout',
-              'Could not join the room. Please try again.'
-            );
+            Alert.alert(t('rooms.timeout'), t('rooms.couldNotJoinRoom'));
           }
         }
       }, 10000);
     } catch (error) {
       console.error('Error joining room:', error);
-      Alert.alert('Error', 'Failed to join room. Please try again.');
+      Alert.alert(t('common.error'), t('rooms.failedToJoinRoomGeneric'));
       setLoadingJoinRoom(false);
     }
   };

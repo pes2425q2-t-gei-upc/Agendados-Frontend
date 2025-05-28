@@ -1,20 +1,21 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
-  TextInput,
-  FlatList,
-  TouchableOpacity,
-  Alert,
   StyleSheet,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
   SafeAreaView,
-  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Modal,
   ImageBackground,
+  ActivityIndicator,
 } from 'react-native';
 
 import { useAuth } from '@context/authContext';
@@ -65,6 +66,7 @@ const generateUserColor = (username: string) => {
 };
 
 export default function ChatScreen() {
+  const { t } = useTranslation();
   const [showRules, setShowRules] = useState(true);
   const { eventId, eventTitle } = useLocalSearchParams();
   const router = useRouter();
@@ -92,7 +94,7 @@ export default function ChatScreen() {
         setMessages((messages) => [
           ...messages,
           {
-            message: 'Conexión establecida con el servidor.',
+            message: t('chats.connectionEstablished'),
             timestamp: new Date().toISOString(),
             type: 'system',
           },
@@ -106,7 +108,7 @@ export default function ChatScreen() {
         if (data.message_history) {
           setMessages((_prev) => [
             {
-              message: 'Historial de mensajes',
+              message: t('chats.messageHistory'),
               timestamp: new Date().toISOString(),
               type: 'system',
             },
@@ -120,7 +122,7 @@ export default function ChatScreen() {
               user_id: msg.user_id,
             })),
             {
-              message: 'Nuevos mensajes',
+              message: t('chats.newMessages'),
               timestamp: new Date().toISOString(),
               type: 'system',
             },
@@ -155,7 +157,7 @@ export default function ChatScreen() {
         setMessages((messages) => [
           ...messages,
           {
-            message: 'Error al intentar conectar con el servidor.',
+            message: t('chats.connectionError'),
             timestamp: new Date().toISOString(),
             type: 'system',
           },
@@ -166,7 +168,7 @@ export default function ChatScreen() {
         setIsConnected(false);
       };
     },
-    [eventId, auth]
+    [eventId, auth, t]
   );
 
   const attemptReconnect = async () => {
@@ -174,7 +176,7 @@ export default function ChatScreen() {
     const currentUsername = auth.getUsername();
 
     if (!token || !currentUsername) {
-      Alert.alert('Error', 'No se ha encontrado el token de autenticación.');
+      Alert.alert(t('common.error'), t('chats.authTokenNotFound'));
       return false;
     }
 
@@ -201,7 +203,7 @@ export default function ChatScreen() {
     const currentUsername = auth.getUsername();
 
     if (!token || !currentUsername) {
-      Alert.alert('Error', 'No se ha encontrado el token de autenticación.', [
+      Alert.alert(t('common.error'), t('chats.authTokenNotFound'), [
         { text: 'OK', onPress: () => router.back() },
       ]);
       return;
@@ -223,7 +225,7 @@ export default function ChatScreen() {
 
   const handleSend = async () => {
     if (!inputText.trim()) {
-      Alert.alert('Error', 'Por favor, ingresa un mensaje.');
+      Alert.alert(t('common.error'), t('chats.enterMessage'));
       return;
     }
 
@@ -243,7 +245,7 @@ export default function ChatScreen() {
       setMessages((prev) => [
         ...prev,
         {
-          message: 'Intentando reconectar...',
+          message: t('chats.attemptingReconnect'),
           timestamp: new Date().toISOString(),
           type: 'system',
         },
@@ -259,10 +261,7 @@ export default function ChatScreen() {
       }
 
       // If we still couldn't send after reconnecting
-      Alert.alert(
-        'Error',
-        'No se pudo enviar el mensaje. Por favor, inténtalo de nuevo.'
-      );
+      Alert.alert(t('common.error'), t('chats.sendMessageError'));
     }
   };
 
@@ -275,29 +274,22 @@ export default function ChatScreen() {
         })
       );
     } else {
-      Alert.alert(
-        'Error',
-        'No se pudo eliminar el mensaje. La conexión está cerrada.'
-      );
+      Alert.alert(t('common.error'), t('chats.deleteMessageError'));
     }
   };
 
   const showDeleteConfirmation = (messageId: string | number) => {
-    Alert.alert(
-      'Eliminar mensaje',
-      '¿Estás seguro de que quieres eliminar este mensaje?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          onPress: () => handleDelete(messageId),
-          style: 'destructive',
-        },
-      ]
-    );
+    Alert.alert(t('chats.deleteMessage'), t('chats.deleteConfirmation'), [
+      {
+        text: t('common.cancel'),
+        style: 'cancel',
+      },
+      {
+        text: t('chats.delete'),
+        onPress: () => handleDelete(messageId),
+        style: 'destructive',
+      },
+    ]);
   };
 
   const renderMessage = ({ item }: { item: Message }) => (
@@ -362,31 +354,23 @@ export default function ChatScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.rulesContainer}>
-              <Text style={styles.rulesTitle}>Normas del Chat</Text>
+              <Text style={styles.rulesTitle}>{t('chats.chatRules')}</Text>
 
               <View style={styles.rulesList}>
-                <Text style={styles.ruleItem}>
-                  • Respeta a todos los participantes
-                </Text>
-                <Text style={styles.ruleItem}>
-                  • No insultes ni uses lenguaje ofensivo
-                </Text>
-                <Text style={styles.ruleItem}>
-                  • No hagas spam ni publicidad
-                </Text>
-                <Text style={styles.ruleItem}>
-                  • No compartas información personal
-                </Text>
-                <Text style={styles.ruleItem}>
-                  • Mantén las conversaciones relacionadas con el evento
-                </Text>
+                <Text style={styles.ruleItem}>• {t('chats.rule1')}</Text>
+                <Text style={styles.ruleItem}>• {t('chats.rule2')}</Text>
+                <Text style={styles.ruleItem}>• {t('chats.rule3')}</Text>
+                <Text style={styles.ruleItem}>• {t('chats.rule4')}</Text>
+                <Text style={styles.ruleItem}>• {t('chats.rule5')}</Text>
               </View>
 
               <TouchableOpacity
                 style={styles.acceptButton}
                 onPress={handleAcceptRules}
               >
-                <Text style={styles.acceptButtonText}>Aceptar</Text>
+                <Text style={styles.acceptButtonText}>
+                  {t('common.accept')}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -404,10 +388,10 @@ export default function ChatScreen() {
               <MaterialIcons name='arrow-back' size={24} color={colors.text} />
             </TouchableOpacity>
             <Text style={styles.title}>
-              Chat de{' '}
+              {t('chats.chatOf')}{' '}
               {eventTitle
                 ? `${eventTitle.slice(0, 24)}${eventTitle.length > 24 ? '...' : ''}`
-                : 'Evento'}
+                : t('chats.event')}
             </Text>
 
             {!isConnected && <ActivityIndicator style={styles.loading} />}
@@ -440,7 +424,7 @@ export default function ChatScreen() {
               style={styles.input}
               value={inputText}
               onChangeText={setInputText}
-              placeholder='Escribe un mensaje...'
+              placeholder={t('chats.writePlaceholder')}
               placeholderTextColor={colors.textSecondary}
               onSubmitEditing={handleSend}
               returnKeyType='send'
