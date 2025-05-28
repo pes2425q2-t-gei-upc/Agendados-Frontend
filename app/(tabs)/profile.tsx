@@ -21,11 +21,11 @@ import { useAuth } from '@context/authContext';
 import { useFavorites } from '@context/FavoritesContext';
 import { useFriendship } from '@context/FriendshipContext';
 import { Event } from '@models/Event';
+import { uploadProfileImage } from '@services/AuthService';
 import { colors, spacing } from '@styles/globalStyles';
 import ProtectedRoute from 'app/components/ProtectedRoute';
 
 import ProfileAvatar from '../components/ProfileAvatar';
-import { uploadProfileImage } from '@services/AuthService';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -104,9 +104,8 @@ export default function ProfileScreen() {
 
   const pickImage = async () => {
     try {
-      console.log('[pickImage] Requesting media library permissions...');
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      console.log('[pickImage] Media library permission status:', permissionResult.status);
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (permissionResult.status !== 'granted') {
         Alert.alert(
@@ -116,20 +115,15 @@ export default function ProfileScreen() {
         return;
       }
 
-      console.log('[pickImage] Launching image library...');
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.7,
       });
-      console.log('[pickImage] Image library result:', result);
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        console.log('[pickImage] Image selected:', result.assets[0].uri);
         await handleUpdateAvatar(result.assets[0].uri);
-      } else {
-        console.log('[pickImage] Image selection canceled or no assets.');
       }
     } catch (error) {
       console.error('[pickImage] Error:', error);
@@ -139,9 +133,8 @@ export default function ProfileScreen() {
 
   const handleTakePhoto = async () => {
     try {
-      console.log('[handleTakePhoto] Requesting camera permissions...');
-      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-      console.log('[handleTakePhoto] Camera permission status:', permissionResult.status);
+      const permissionResult =
+        await ImagePicker.requestCameraPermissionsAsync();
 
       if (permissionResult.status !== 'granted') {
         Alert.alert(
@@ -151,19 +144,14 @@ export default function ProfileScreen() {
         return;
       }
 
-      console.log('[handleTakePhoto] Launching camera...');
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.7,
       });
-      console.log('[handleTakePhoto] Camera result:', result);
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        console.log('[handleTakePhoto] Photo taken:', result.assets[0].uri);
         await handleUpdateAvatar(result.assets[0].uri);
-      } else {
-        console.log('[handleTakePhoto] Photo taking canceled or no assets.');
       }
     } catch (error) {
       console.error('[handleTakePhoto] Error:', error);
@@ -179,9 +167,10 @@ export default function ProfileScreen() {
       setUploadingAvatar(true);
       const updatedUser = await uploadProfileImage(userToken, uri);
       if (updateUserProfile) {
-        await updateUserProfile({ avatar: updatedUser.profile_image });
+        await updateUserProfile({ profile_image: updatedUser.profile_image });
       }
-      Alert.alert(t('common.success'), t('settings.profilePhotoUpdated'));
+      // Eliminamos el Alert que causaba la interrupción
+      // Solo mostramos alert en caso de error
     } catch (error) {
       console.error('[handleUpdateAvatar] Error:', error);
       Alert.alert(t('settings.error'), t('settings.updateProfileError'));
@@ -250,8 +239,12 @@ export default function ProfileScreen() {
             </View>
           </View>
           <TouchableOpacity
-            style={styles.settingsButton}
-            onPress={navigateToSettings}
+            style={[
+              styles.settingsButton,
+              uploadingAvatar && styles.disabledButton,
+            ]}
+            onPress={uploadingAvatar ? undefined : navigateToSettings}
+            disabled={uploadingAvatar}
           >
             <Ionicons name='settings-outline' size={24} color={colors.text} />
           </TouchableOpacity>
@@ -340,61 +333,6 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* — Sección de Amigos — */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('friends.title')}</Text>
-            <TouchableOpacity onPress={navigateToFriends}>
-              <Text style={styles.seeAllText}>{t('profile.seeAll')}</Text>
-            </TouchableOpacity>
-          </View>
-          {friends.length > 0 ? (
-            <View style={styles.friendsContainer}>
-              {friends.slice(0, 4).map(({ friend }, i) =>
-                friend ? (
-                  <TouchableOpacity
-                    key={i}
-                    style={styles.friendBubble}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/friends/[id]/events',
-                        params: {
-                          id: friend.id,
-                          name: friend.name ?? friend.username,
-                        },
-                      })
-                    }
-                  >
-                    <ProfileAvatar
-                      avatar={friend.avatar ?? null}
-                      savedEventsCount={0}
-                      size={60}
-                      showEditButton={false}
-                    />
-                    <Text style={styles.friendBubbleName} numberOfLines={1}>
-                      {friend.name ?? friend.username}
-                    </Text>
-                  </TouchableOpacity>
-                ) : null
-              )}
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.addFriendsButton}
-              onPress={navigateToFriends}
-            >
-              <Ionicons
-                name='people-outline'
-                size={24}
-                color={colors.primary}
-              />
-              <Text style={styles.addFriendsText}>
-                {t('friends.addFriend')}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
         {/* — Categorías Favoritas — */}
         {stats.likedCategories.length > 0 && (
           <View style={styles.sectionContainer}>
@@ -408,6 +346,65 @@ export default function ProfileScreen() {
                 </View>
               ))}
             </View>
+          </View>
+        )}
+
+        {/* — Amigos Destacados — */}
+        {friends.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                {t('profile.featuredFriends')}
+              </Text>
+              <TouchableOpacity onPress={navigateToFriends}>
+                <Text style={styles.seeAllText}>{t('profile.seeAll')}</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.friendsScrollContainer}
+            >
+              {friends.slice(0, 5).map((friendship, index) => {
+                const friendInfo = friendship.friend ?? friendship.user;
+                if (!friendInfo) {
+                  return null;
+                }
+
+                const friendName =
+                  friendInfo.name ?? friendInfo.username ?? 'Usuario';
+
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.friendCard}
+                    onPress={() =>
+                      router.push(`/friends/${friendInfo.id}/favorites`)
+                    }
+                  >
+                    <ProfileAvatar
+                      avatar={friendInfo.avatar ?? null}
+                      savedEventsCount={0}
+                      size={50}
+                      showEditButton={false}
+                    />
+                    <Text style={styles.friendCardName} numberOfLines={1}>
+                      {friendName}
+                    </Text>
+                    <View style={styles.friendCardAction}>
+                      <Ionicons
+                        name='bookmark-outline'
+                        size={16}
+                        color={colors.primary}
+                      />
+                      <Text style={styles.friendCardActionText}>
+                        {t('profile.viewFavorites')}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
         )}
 
@@ -520,7 +517,7 @@ export default function ProfileScreen() {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.actionButton}
             onPress={() =>
               Alert.alert('Notificaciones', 'Función en desarrollo')
@@ -539,7 +536,7 @@ export default function ProfileScreen() {
               size={20}
               color={colors.textSecondary}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity
             style={[styles.actionButton, styles.logoutButton]}
@@ -552,7 +549,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.versionText}>Agendados v1.0.0</Text>
+        <Text style={styles.versionText}>Agendados v0.0.3</Text>
 
         {selectedEvent && (
           <EventDetailModal
@@ -657,6 +654,7 @@ const styles = StyleSheet.create({
 
   categoryText: { color: colors.lightText, fontSize: 14, fontWeight: '500' },
   container: { backgroundColor: colors.background, flex: 1 },
+  disabledButton: { opacity: 0.5 },
   divider: {
     backgroundColor: colors.border,
     marginHorizontal: spacing.md,
@@ -682,8 +680,8 @@ const styles = StyleSheet.create({
   },
   eventCategoryText: { color: colors.lightText, fontSize: 10 },
   eventDate: { color: colors.textSecondary, fontSize: 12, marginBottom: 4 },
-  eventDetails: { padding: 8 },
 
+  eventDetails: { padding: 8 },
   eventImage: { height: 90, width: '100%' },
   eventTitle: {
     color: colors.text,
@@ -692,19 +690,40 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   eventsContainer: { flexDirection: 'row', justifyContent: 'space-between' },
-  friendBubble: { alignItems: 'center', width: '23%' },
 
-  friendBubbleName: {
-    color: colors.text,
-    fontSize: 12,
-    marginTop: 4,
-    textAlign: 'center',
-    width: '100%',
+  friendCard: {
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 12,
+    elevation: 2,
+    marginRight: spacing.md,
+    padding: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    width: 100,
   },
-  friendsContainer: {
+  friendCardAction: {
+    alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  friendCardActionText: {
+    color: colors.primary,
+    fontSize: 11,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  friendCardName: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '500',
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  friendsScrollContainer: {
+    paddingHorizontal: spacing.xs,
   },
   header: {
     paddingBottom: spacing.md,
@@ -712,12 +731,11 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
   },
   joinDate: { color: colors.textSecondary, fontSize: 14 },
-  loadingContainer: { alignItems: 'center', justifyContent: 'center' },
 
+  loadingContainer: { alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: colors.textSecondary, marginTop: 10 },
   logoutButton: { borderBottomWidth: 0, marginTop: spacing.xs },
   logoutIcon: {},
-
   logoutText: { color: colors.error, flex: 1, fontSize: 16, fontWeight: '500' },
   premiumBadgeContainer: {
     alignItems: 'center',

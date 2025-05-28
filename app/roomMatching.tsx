@@ -8,6 +8,7 @@ import React, {
   useRef,
   createRef,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -52,6 +53,7 @@ const VOTING_TIME_SECONDS = 12; // 12 seconds per vote
 const VOTING_DELAY_SECONDS = 3; // 3 second delay before voting starts
 
 export default function RoomMatching() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { refreshFavorites } = useFavorites();
 
@@ -94,7 +96,7 @@ export default function RoomMatching() {
         setCurrentEvent(newState.currentEvent);
 
         if (newState.error) {
-          Alert.alert('Room Error', newState.error);
+          Alert.alert(t('matching.roomError'), newState.error);
           router.replace('/rooms');
         }
 
@@ -167,6 +169,7 @@ export default function RoomMatching() {
     roomState.isVotingActive,
     roomState.currentEvent,
     showResults,
+    t,
   ]);
 
   // --- Countdown Timers ---
@@ -300,21 +303,17 @@ export default function RoomMatching() {
 
   // --- UI Rendering ---
   const handleLeaveRoom = () => {
-    Alert.alert(
-      'Leave Room',
-      'Are you sure you want to leave the matching process?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Leave',
-          style: 'destructive',
-          onPress: () => {
-            WebSocketService.leaveRoom();
-            router.replace('/rooms');
-          },
+    Alert.alert(t('matching.leaveRoom'), t('matching.leaveRoomConfirmation'), [
+      { text: t('matching.cancel'), style: 'cancel' },
+      {
+        text: t('matching.leave'),
+        style: 'destructive',
+        onPress: () => {
+          WebSocketService.leaveRoom();
+          router.replace('/rooms');
         },
-      ]
-    );
+      },
+    ]);
   };
 
   // Show loading screen
@@ -325,14 +324,14 @@ export default function RoomMatching() {
       <View style={styles.pageContainer}>
         <ActivityIndicator size='large' color={colors.primary} />
         <Text style={styles.statusText}>
-          Waiting for the next event...{' '}
-          {roomState.roomDetails?.isHost ? 'You can start the round.' : ''}
+          {t('matching.waitingNextEvent')}{' '}
+          {roomState.roomDetails?.isHost ? t('matching.youCanStartRound') : ''}
         </Text>
         <TouchableOpacity
           onPress={handleLeaveRoom}
           style={[styles.button, styles.leaveButton]}
         >
-          <Text style={styles.buttonText}>Leave Room</Text>
+          <Text style={styles.buttonText}>{t('matching.leaveRoomButton')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -364,8 +363,10 @@ export default function RoomMatching() {
             >
               <Text style={styles.timeText}>
                 {votingStarted
-                  ? `${timeRemaining}s remaining to vote`
-                  : `Get ready! Voting starts in ${timeRemaining - VOTING_TIME_SECONDS}s`}
+                  ? t('matching.timeRemainingToVote', { time: timeRemaining })
+                  : t('matching.getReadyVotingStarts', {
+                      time: timeRemaining - VOTING_TIME_SECONDS,
+                    })}
               </Text>
             </View>
           </View>
@@ -375,7 +376,7 @@ export default function RoomMatching() {
         {showResults && (
           <View style={styles.resultsContainer}>
             <Text style={styles.matchText}>
-              🎉 Match on {matchEvent!.title}! 🎉
+              {t('matching.matchOnEvent', { title: matchEvent!.title })}
             </Text>
           </View>
         )}
@@ -411,7 +412,7 @@ export default function RoomMatching() {
             <View style={styles.liveVotesContainer}>
               {!userVotedThisRound && (
                 <Text style={styles.liveVotesText}>
-                  Votes:{' '}
+                  {t('matching.votes')}{' '}
                   {roomState.votingResults.true_votes +
                     roomState.votingResults.false_votes}
                   {'/'}
@@ -419,7 +420,9 @@ export default function RoomMatching() {
                 </Text>
               )}
               {userVotedThisRound && (
-                <Text style={styles.votedText}>You have voted!</Text>
+                <Text style={styles.votedText}>
+                  {t('matching.youHaveVoted')}
+                </Text>
               )}
             </View>
           )}
@@ -427,14 +430,14 @@ export default function RoomMatching() {
         {/* Fallback if no event and not showing results (e.g., end of events) */}
         {!currentEvent && !showResults && roomState.isConnected && (
           <View style={styles.pageContainer}>
-            <Text style={styles.statusText}>
-              No more events in this room, or waiting for host.
-            </Text>
+            <Text style={styles.statusText}>{t('matching.noMoreEvents')}</Text>
             <TouchableOpacity
               onPress={handleLeaveRoom}
               style={[styles.button, styles.leaveButton]}
             >
-              <Text style={styles.buttonText}>Leave Room</Text>
+              <Text style={styles.buttonText}>
+                {t('matching.leaveRoomButtonFallback')}
+              </Text>
             </TouchableOpacity>
           </View>
         )}

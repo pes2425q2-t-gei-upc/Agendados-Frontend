@@ -1,6 +1,7 @@
+/* eslint-disable react-native/sort-styles */
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState, useEffect, useCallback, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -14,8 +15,6 @@ import {
   SafeAreaView,
 } from 'react-native';
 
-import { useAuth } from '@context/authContext'; // Assuming auth context to get user ID
-import { getUserInfo } from '@services/AuthService';
 import WebSocketService, {
   WebSocketServiceState,
 } from '@services/WebSocketService'; // Import WebSocketService
@@ -27,7 +26,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 export default function RoomDetailScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const user = getUserInfo(); // Get user info from auth service
   const { id: roomIdParam, isAdmin: isAdminParam } = useLocalSearchParams<{
     id: string;
     name: string;
@@ -60,7 +58,6 @@ export default function RoomDetailScreen() {
     const unsubscribe = WebSocketService.subscribe(handleStateUpdate);
 
     if (!WebSocketService.getState().isConnected) {
-      Alert.alert('Connection Error', 'Not Connected to Room.');
     } else {
       setLoading(false); // Already connected and in the room
     }
@@ -68,7 +65,7 @@ export default function RoomDetailScreen() {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [roomIdParam, t]);
 
   useEffect(() => {
     if (isStarting) {
@@ -83,19 +80,16 @@ export default function RoomDetailScreen() {
   }, [isStarting]);
 
   const currentRoom = roomState?.roomDetails;
-  const participants = currentRoom?.participants || [];
-  const isHost = currentRoom?.isHost || isAdminParam === '1';
+  const participants = currentRoom?.participants ?? [];
+  const isHost = currentRoom?.isHost ?? isAdminParam === '1';
 
   const handleStartMatching = () => {
     if (!currentRoom || !currentRoom.id) {
-      Alert.alert('Error', 'Room details not available.');
+      Alert.alert(t('common.error'), t('rooms.roomDetailsNotAvailable'));
       return;
     }
     if (participants.length < 2) {
-      Alert.alert(
-        'Cannot Start',
-        'At least two participants are needed to start matching.'
-      );
+      Alert.alert(t('rooms.cannotStart'), t('rooms.minTwoParticipants'));
       return;
     }
 
@@ -114,10 +108,10 @@ export default function RoomDetailScreen() {
   };
 
   const handleLeave = () => {
-    Alert.alert('Leave Room', 'Are you sure you want to leave this room?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('rooms.leaveRoom'), t('rooms.leaveRoomConfirmation'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Leave',
+        text: t('rooms.leave'),
         onPress: () => {
           if (currentRoom && currentRoom.id) {
             WebSocketService.leaveRoom();
@@ -133,7 +127,7 @@ export default function RoomDetailScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size='large' color={colors.primary} />
-        <Text style={styles.loadingText}>Loading room details...</Text>
+        <Text style={styles.loadingText}>{t('rooms.loadingRoomDetails')}</Text>
       </View>
     );
   }
@@ -142,12 +136,12 @@ export default function RoomDetailScreen() {
     return (
       <View style={styles.errorContainer}>
         <Ionicons name='alert-circle-outline' size={60} color={colors.error} />
-        <Text style={styles.errorText}>Room not found or unable to join.</Text>
+        <Text style={styles.errorText}>{t('rooms.roomNotFound')}</Text>
         <TouchableOpacity
           style={styles.backButtonError}
           onPress={() => router.replace('/rooms')}
         >
-          <Text style={styles.backButtonText}>Go to Rooms</Text>
+          <Text style={styles.backButtonText}>{t('rooms.goToRooms')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -168,7 +162,7 @@ export default function RoomDetailScreen() {
 
         <ScrollView style={styles.content}>
           <View style={styles.infoContainer}>
-            <Text style={styles.infoTitle}>Room Information</Text>
+            <Text style={styles.infoTitle}>{t('rooms.roomInformation')}</Text>
             <View style={styles.infoItem}>
               <Ionicons
                 name='cube-outline'
@@ -176,7 +170,9 @@ export default function RoomDetailScreen() {
                 color={colors.textSecondary}
                 style={styles.infoIcon}
               />
-              <Text style={styles.infoText}>Room ID: {currentRoom.id}</Text>
+              <Text style={styles.infoText}>
+                {t('rooms.roomId')}: {currentRoom.id}
+              </Text>
             </View>
             {isHost && (
               <View style={styles.infoItem}>
@@ -187,7 +183,7 @@ export default function RoomDetailScreen() {
                   style={styles.infoIcon}
                 />
                 <Text style={[styles.infoText, { color: colors.primary }]}>
-                  You are the host
+                  {t('rooms.youAreHost')}
                 </Text>
               </View>
             )}
@@ -195,11 +191,11 @@ export default function RoomDetailScreen() {
 
           <View style={styles.participantsContainer}>
             <Text style={styles.sectionTitle}>
-              Participants ({participants.length})
+              {t('rooms.participants')} ({participants.length})
             </Text>
             {participants.length === 0 ? (
               <Text style={styles.noParticipantsText}>
-                No other participants yet.
+                {t('rooms.noParticipants')}
               </Text>
             ) : (
               <ScrollView
@@ -233,7 +229,7 @@ export default function RoomDetailScreen() {
 
         <View style={styles.footer}>
           <TouchableOpacity style={styles.leaveButton} onPress={handleLeave}>
-            <Text style={styles.leaveButtonText}>Leave Room</Text>
+            <Text style={styles.leaveButtonText}>{t('rooms.leaveRoom')}</Text>
           </TouchableOpacity>
           {isHost && (
             <TouchableOpacity
@@ -248,14 +244,16 @@ export default function RoomDetailScreen() {
               {isStarting ? (
                 <ActivityIndicator color={colors.lightText} />
               ) : (
-                <Text style={styles.startButtonText}>Start Matching</Text>
+                <Text style={styles.startButtonText}>
+                  {t('rooms.startMatching')}
+                </Text>
               )}
             </TouchableOpacity>
           )}
           {!isHost && (
             <View style={styles.waitingForHostContainer}>
               <Text style={styles.waitingForHostText}>
-                Waiting for host to start...
+                {t('rooms.waitingForHost')}
               </Text>
             </View>
           )}
@@ -363,7 +361,7 @@ const styles = StyleSheet.create({
   },
   leaveButton: {
     alignItems: 'center',
-    backgroundColor: colors.errorBackground || '#FFCDD2', // Softer error color
+    backgroundColor: colors.background ?? '#FFCDD2', // Softer error color
     borderColor: colors.error,
     borderRadius: 8,
     borderWidth: 1,
@@ -405,7 +403,7 @@ const styles = StyleSheet.create({
   participantName: {
     color: colors.textSecondary,
     fontSize: 12,
-    marginTop: spacing.xxs,
+    marginTop: spacing.xs,
     textAlign: 'center',
   },
   participantsContainer: {

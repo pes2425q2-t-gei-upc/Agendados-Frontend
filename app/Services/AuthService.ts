@@ -31,7 +31,7 @@ export const uploadProfileImage = async (
 ): Promise<any> => {
   try {
     // Extraer nombre de archivo
-    const filename = imageUri.split('/').pop() || `profile_${Date.now()}.jpg`;
+    const filename = imageUri.split('/').pop() ?? `profile_${Date.now()}.jpg`;
     // Determinar el tipo mime (por defecto image/jpeg)
     const match = /\.([a-zA-Z0-9]+)$/.exec(filename);
     const ext = match ? match[1].toLowerCase() : 'jpg';
@@ -524,7 +524,7 @@ export const updateUserProfile = async (
       try {
         // Try to parse JSON error response from backend
         const errorData = await response.json();
-        errorDetails = errorData?.message || JSON.stringify(errorData);
+        errorDetails = errorData?.message ?? JSON.stringify(errorData);
       } catch (e) {
         // If response is not JSON, use the raw text
         errorDetails = await response.text();

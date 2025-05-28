@@ -24,6 +24,13 @@ export default function FriendsLayout() {
           presentation: 'modal',
         }}
       />
+      <Stack.Screen
+        name='[id]/favorites'
+        options={{
+          title: 'Friend Favorites',
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

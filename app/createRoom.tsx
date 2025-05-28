@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-native/no-unused-styles */
+/* eslint-disable react-native/no-inline-styles */
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Image,
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
@@ -14,9 +16,10 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Share,
 } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
 
-import { useFriendship } from '@context/FriendshipContext';
 import RoomService from '@services/RoomService';
 import WebSocketService from '@services/WebSocketService';
 import { colors, spacing } from '@styles/globalStyles';
@@ -24,41 +27,28 @@ import { colors, spacing } from '@styles/globalStyles';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function CreateRoomScreen() {
-  const { t } = useTranslation();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [roomName, setRoomName] = useState('');
-  const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
-  const [searchText, setSearchText] = useState('');
-  const { friends } = useFriendship();
   const [loadingCreateRoom, setLoadingCreateRoom] = useState(false);
-
-  const filteredFriends = searchText
-    ? friends.filter((friend) =>
-        friend.user?.username.toLowerCase().includes(searchText.toLowerCase())
-      )
-    : friends;
-
-  const toggleFriendSelection = (friendId: number) => {
-    setSelectedFriends((prev) => {
-      if (prev.includes(friendId)) {
-        return prev.filter((id) => id !== friendId);
-      } else {
-        return [...prev, friendId];
-      }
-    });
-  };
+  const [roomCreated, setRoomCreated] = useState(false);
+  const [roomCode, setRoomCode] = useState('');
 
   const handleCreateRoom = async () => {
     setLoadingCreateRoom(true);
     if (!roomName.trim()) {
-      Alert.alert('Error', 'Please enter a room name');
+      Alert.alert(t('common.error'), t('rooms.enterRoomName'));
       setLoadingCreateRoom(false);
       return;
     }
 
     try {
-      const response = await RoomService.createRoom(roomName, selectedFriends);
+      const response = await RoomService.createRoom(roomName, []);
+      setRoomCode(response.code);
+      setRoomCreated(true);
+
+      // Auto-connect to WebSocket after creating room (like original code)
       if (!WebSocketService.getState().isConnected) {
         await WebSocketService.connect(response.code, true, roomName);
       }
@@ -73,26 +63,19 @@ export default function CreateRoomScreen() {
           state.roomDetails.id === response.code &&
           state.isConnected
         ) {
-          router.push({
-            pathname: '/roomDetail',
-            params: {
-              id: state.roomDetails!.id,
-              name: state.roomDetails!.name,
-              isAdmin: state.roomDetails!.isHost ? '1' : '0',
-            },
-          });
+          // Don't auto-navigate, just show QR and let user choose when to join
           if (unsubscribeFunction) {
             unsubscribeFunction();
-          } // Clean up only if defined
+          }
           setLoadingCreateRoom(false);
         } else if (state.error) {
           Alert.alert(
-            'Error',
-            `Failed to create room & connect: ${state.error}`
+            t('common.error'),
+            `${t('rooms.failedToCreateRoomConnect')} ${state.error}`
           );
           if (unsubscribeFunction) {
             unsubscribeFunction();
-          } // Clean up only if defined
+          }
           setLoadingCreateRoom(false);
         }
       });
@@ -100,7 +83,7 @@ export default function CreateRoomScreen() {
       // Timeout for WebSocket response
       setTimeout(() => {
         if (loadingCreateRoom) {
-          Alert.alert('Error', 'Room creation timed out.');
+          Alert.alert(t('common.error'), t('rooms.roomCreationTimedOut'));
           if (unsubscribeFunction) {
             unsubscribeFunction();
           }
@@ -111,10 +94,82 @@ export default function CreateRoomScreen() {
     } catch (error: any) {
       console.error('Error in handleCreateRoom:', error);
       Alert.alert(
-        'Error',
-        `Failed to create room: ${error.message || 'Unknown error'}`
+        t('common.error'),
+        t('rooms.roomCreateError') +
+          `: ${error.message ?? t('rooms.unknownError')}`
       );
       setLoadingCreateRoom(false);
+    }
+  };
+
+  const handleJoinRoom = async () => {
+    // Check if already connected (should be from handleCreateRoom)
+    const currentState = WebSocketService.getState();
+    if (currentState.isConnected && currentState.roomDetails?.id === roomCode) {
+      // Navigate directly since we're already connected
+      router.push({
+        pathname: '/roomDetail',
+        params: {
+          id: currentState.roomDetails.id,
+          name: currentState.roomDetails.name,
+          isAdmin: currentState.roomDetails.isHost ? '1' : '0',
+        },
+      });
+    } else {
+      // Fallback: connect if not already connected
+      if (!currentState.isConnected) {
+        await WebSocketService.connect(roomCode, true, roomName);
+      }
+
+      let unsubscribeFunction: (() => void) | null = null;
+
+      unsubscribeFunction = WebSocketService.subscribe((state) => {
+        if (
+          state.roomDetails &&
+          state.roomDetails.id === roomCode &&
+          state.isConnected
+        ) {
+          router.push({
+            pathname: '/roomDetail',
+            params: {
+              id: state.roomDetails!.id,
+              name: state.roomDetails!.name,
+              isAdmin: state.roomDetails!.isHost ? '1' : '0',
+            },
+          });
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          }
+        } else if (state.error) {
+          Alert.alert(
+            t('common.error'),
+            `${t('rooms.failedToJoinRoom')} ${state.error}`
+          );
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          }
+        }
+      });
+
+      // Timeout for WebSocket response
+      setTimeout(() => {
+        Alert.alert(t('common.error'), t('rooms.roomJoinTimedOut'));
+        if (unsubscribeFunction) {
+          unsubscribeFunction();
+        }
+        WebSocketService.disconnect();
+      }, 10000);
+    }
+  };
+
+  const handleShareRoom = async () => {
+    try {
+      await Share.share({
+        message: `${t('rooms.scanToJoin')}: ${roomCode}`,
+        title: t('rooms.shareRoom'),
+      });
+    } catch (error) {
+      console.error('Error sharing room:', error);
     }
   };
   return (
@@ -131,122 +186,99 @@ export default function CreateRoomScreen() {
           >
             <Ionicons name='arrow-back' size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Create Room</Text>
+          <Text style={styles.headerTitle}>{t('rooms.createRoom')}</Text>
           <View style={{ width: 24 }} />
         </View>
 
         <ScrollView style={styles.content} keyboardShouldPersistTaps='handled'>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Room Name</Text>
-            <TextInput
-              style={styles.input}
-              value={roomName}
-              onChangeText={setRoomName}
-              placeholder='Enter room name'
-              placeholderTextColor={colors.textSecondary}
-            />
-          </View>
+          {!roomCreated ? (
+            // Room creation form
+            <>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>{t('rooms.roomName')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={roomName}
+                  onChangeText={setRoomName}
+                  placeholder={t('rooms.enterRoomName')}
+                  placeholderTextColor={colors.textSecondary}
+                />
+              </View>
+            </>
+          ) : (
+            // QR Code display
+            <View style={styles.qrContainer}>
+              <View style={styles.successContainer}>
+                <Ionicons
+                  name='checkmark-circle'
+                  size={48}
+                  color={colors.primary}
+                  style={styles.successIcon}
+                />
+                <Text style={styles.successTitle}>
+                  {t('rooms.roomCreated')}
+                </Text>
+                <Text style={styles.successSubtitle}>
+                  {t('rooms.roomCode')}: {roomCode}
+                </Text>
+              </View>
 
-          <View style={styles.friendsSection}>
-            <Text style={styles.label}>
-              Invite friends ({selectedFriends.length} selected)
-            </Text>
+              <View style={styles.qrCodeContainer}>
+                <Text style={styles.qrCodeTitle}>{t('rooms.qrCode')}</Text>
+                <Text style={styles.qrCodeSubtitle}>
+                  {t('rooms.scanToJoin')}
+                </Text>
 
-            <View style={styles.searchContainer}>
-              <Ionicons
-                name='search'
-                size={20}
-                color={colors.textSecondary}
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                value={searchText}
-                onChangeText={setSearchText}
-                placeholder='Search friends'
-                placeholderTextColor={colors.textSecondary}
-                clearButtonMode='always'
-              />
-            </View>
-            {!filteredFriends.length && searchText && (
-              <Text
-                style={{
-                  textAlign: 'center',
-                  color: colors.textSecondary,
-                  marginTop: spacing.md,
-                }}
-              >
-                No friends found matching &quot;{searchText}&quot;.
-              </Text>
-            )}
-            {friends.length === 0 && !searchText && (
-              <Text
-                style={{
-                  textAlign: 'center',
-                  color: colors.textSecondary,
-                  marginTop: spacing.md,
-                }}
-              >
-                You have no friends to invite yet.
-              </Text>
-            )}
-            <ScrollView nestedScrollEnabled={true} style={{ maxHeight: 200 }}>
-              {filteredFriends.map(({ friend }) => (
-                <TouchableOpacity
-                  key={friend!.id}
-                  style={[
-                    styles.friendItem,
-                    selectedFriends.includes(friend!.id!) &&
-                      styles.selectedFriendItem,
-                  ]}
-                  onPress={() => toggleFriendSelection(friend!.id!)}
-                >
-                  {/* You might want to add an avatar here */}
-                  <Ionicons
-                    name='person-circle-outline'
-                    size={50}
-                    color={colors.textSecondary}
-                    style={{ marginRight: spacing.sm }}
+                <View style={styles.qrCodeWrapper}>
+                  <QRCode
+                    value={roomCode}
+                    size={200}
+                    color={colors.text}
+                    backgroundColor={colors.background}
                   />
-                  <Text style={styles.friendName}>
-                    {friend?.name ?? friend?.username}
+                </View>
+
+                <TouchableOpacity
+                  style={styles.shareButton}
+                  onPress={handleShareRoom}
+                >
+                  <Ionicons name='share' size={20} color={colors.lightText} />
+                  <Text style={styles.shareButtonText}>
+                    {t('rooms.shareQRCode')}
                   </Text>
-                  <View style={styles.checkboxContainer}>
-                    {selectedFriends.includes(friend!.id!) ? (
-                      <Ionicons
-                        name='checkmark-circle'
-                        size={24}
-                        color={colors.primary}
-                      />
-                    ) : (
-                      <Ionicons
-                        name='ellipse-outline'
-                        size={24}
-                        color={colors.textSecondary}
-                      />
-                    )}
-                  </View>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+              </View>
+            </View>
+          )}
         </ScrollView>
 
         <View style={styles.footer}>
-          <TouchableOpacity
-            style={[
-              styles.createButton,
-              (!roomName.trim() || loadingCreateRoom) && styles.disabledButton,
-            ]}
-            onPress={handleCreateRoom}
-            disabled={!roomName.trim() || loadingCreateRoom}
-          >
-            {loadingCreateRoom ? (
-              <ActivityIndicator color={colors.lightText} />
-            ) : (
-              <Text style={styles.createButtonText}>Create Room</Text>
-            )}
-          </TouchableOpacity>
+          {!roomCreated ? (
+            <TouchableOpacity
+              style={[
+                styles.createButton,
+                (!roomName.trim() || loadingCreateRoom) &&
+                  styles.disabledButton,
+              ]}
+              onPress={handleCreateRoom}
+              disabled={!roomName.trim() || loadingCreateRoom}
+            >
+              {loadingCreateRoom ? (
+                <ActivityIndicator color={colors.lightText} />
+              ) : (
+                <Text style={styles.createButtonText}>
+                  {t('rooms.createRoom')}
+                </Text>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={handleJoinRoom}
+            >
+              <Text style={styles.createButtonText}>{t('rooms.joinRoom')}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </KeyboardAvoidingView>
     </ProtectedRoute>
@@ -254,21 +286,8 @@ export default function CreateRoomScreen() {
 }
 
 const styles = StyleSheet.create({
-  avatar: {
-    backgroundColor: colors.border,
-    borderRadius: 30,
-    height: 50,
-    marginHorizontal: spacing.sm,
-    width: 50,
-  },
   backButton: {
     padding: spacing.xs,
-  },
-  checkboxContainer: {
-    alignItems: 'center',
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
   },
   container: {
     backgroundColor: colors.background,
@@ -297,24 +316,6 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     borderTopWidth: 1,
     padding: spacing.md,
-  },
-  friendItem: {
-    alignItems: 'center',
-    backgroundColor: colors.backgroundAlt,
-    borderColor: 'transparent',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    marginBottom: spacing.sm,
-    padding: spacing.md,
-  },
-  friendName: {
-    color: 'black',
-    flex: 1,
-    fontSize: 16,
-  },
-  friendsSection: {
-    marginBottom: spacing.lg,
   },
   header: {
     alignItems: 'center',
@@ -347,27 +348,70 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: spacing.sm,
   },
-  searchContainer: {
+  qrCodeContainer: {
     alignItems: 'center',
     backgroundColor: colors.backgroundAlt,
-    borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    marginBottom: spacing.md,
-    paddingHorizontal: spacing.sm,
+    borderRadius: 16,
+    padding: spacing.xl,
+    width: '100%',
   },
-  searchIcon: {
-    marginRight: spacing.sm,
+  qrCodeSubtitle: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
   },
-  searchInput: {
+  qrCodeTitle: {
     color: colors.text,
-    flex: 1,
-    fontSize: 16,
-    padding: spacing.sm,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: spacing.sm,
+    textAlign: 'center',
   },
-  selectedFriendItem: {
-    backgroundColor: colors.primaryLight + '20',
-    borderColor: colors.primary, // Adding transparency
+  qrCodeWrapper: {
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    marginBottom: spacing.lg,
+    padding: spacing.md,
+  },
+  qrContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    paddingVertical: spacing.xl,
+  },
+  shareButton: {
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  shareButtonText: {
+    color: colors.lightText,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: spacing.sm,
+  },
+  successContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  successIcon: {
+    marginBottom: spacing.md,
+  },
+  successSubtitle: {
+    color: colors.textSecondary,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  successTitle: {
+    color: colors.text,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: spacing.sm,
+    textAlign: 'center',
   },
 });

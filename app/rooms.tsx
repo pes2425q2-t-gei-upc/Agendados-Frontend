@@ -15,51 +15,59 @@ import {
 } from 'react-native';
 
 import WebSocketService from '@services/WebSocketService';
-import { colors, spacing, typography } from '@styles/globalStyles';
+import { colors, spacing } from '@styles/globalStyles';
 
 import ProtectedRoute from './components/ProtectedRoute';
-// ...existing code...
+import QRScanner from './components/QRScanner';
+
 export default function RoomsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const [roomCode, setRoomCode] = useState('');
   const [LoadingJoinRoom, setLoadingJoinRoom] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
 
   const navigateToRoomByCode = async () => {
     setLoadingJoinRoom(true);
     if (!roomCode.trim()) {
-      Alert.alert('Error', 'Please enter a room code');
+      Alert.alert(t('common.error'), t('rooms.pleaseEnterRoomCode'));
       setLoadingJoinRoom(false);
       return;
     }
 
+    await joinRoom(roomCode.trim());
+  };
+
+  const handleQRScan = async (data: string) => {
+    setShowQRScanner(false);
+    setRoomCode(data);
+    await joinRoom(data);
+  };
+
+  const joinRoom = async (code: string) => {
     try {
       if (!WebSocketService.getState().isConnected) {
-        // Ensure connection is established for the specific room or generally
-        // Depending on WebSocketService.connect behavior, you might connect to the specific roomCode here
-        await WebSocketService.connect(roomCode, false, 'Unknown');
+        await WebSocketService.connect(code, false, 'Unknown');
       }
 
       let unsubscribeFunction: (() => void) | null = null;
-      let hasNavigated = false; // Flag to prevent multiple navigations
+      let hasNavigated = false;
 
       unsubscribeFunction = WebSocketService.subscribe((state) => {
         if (hasNavigated) {
-          // If navigation has already occurred for this attempt, do nothing.
-          // Also, ensure unsubscription happens if it hasn't already.
           if (unsubscribeFunction) {
             unsubscribeFunction();
-            unsubscribeFunction = null; // Prevent multiple calls to unsubscribe
+            unsubscribeFunction = null;
           }
           return;
         }
 
         if (
           state.roomDetails &&
-          state.roomDetails.id === roomCode &&
+          state.roomDetails.id === code &&
           state.isConnected
         ) {
-          hasNavigated = true; // Set the flag
+          hasNavigated = true;
           if (unsubscribeFunction) {
             unsubscribeFunction();
             unsubscribeFunction = null;
@@ -74,11 +82,11 @@ export default function RoomsScreen() {
           });
           setLoadingJoinRoom(false);
         } else if (state.error) {
-          // Consider if an error should also set hasNavigated to true
-          // to prevent further attempts from this specific subscription call.
-          // If an error occurs, we typically want to stop this attempt.
           hasNavigated = true;
-          Alert.alert('Error', `Failed to join room & connect: ${state.error}`);
+          Alert.alert(
+            t('common.error'),
+            `${t('rooms.failedToCreateRoomConnect')} ${state.error}`
+          );
           if (unsubscribeFunction) {
             unsubscribeFunction();
             unsubscribeFunction = null;
@@ -87,9 +95,6 @@ export default function RoomsScreen() {
         }
       });
 
-      // Safety net: If after a timeout no navigation or error has occurred,
-      // clean up and inform the user. This handles cases where the WebSocket
-      // state might not resolve as expected.
       setTimeout(() => {
         if (!hasNavigated) {
           if (unsubscribeFunction) {
@@ -97,18 +102,14 @@ export default function RoomsScreen() {
             unsubscribeFunction = null;
           }
           if (LoadingJoinRoom) {
-            // Check if still in loading state
             setLoadingJoinRoom(false);
-            Alert.alert(
-              'Timeout',
-              'Could not join the room. Please try again.'
-            );
+            Alert.alert(t('rooms.timeout'), t('rooms.couldNotJoinRoom'));
           }
         }
-      }, 10000); // 10-second timeout, adjust as needed
+      }, 10000);
     } catch (error) {
       console.error('Error joining room:', error);
-      Alert.alert('Error', 'Failed to join room. Please try again.');
+      Alert.alert(t('common.error'), t('rooms.failedToJoinRoomGeneric'));
       setLoadingJoinRoom(false);
     }
   };
@@ -131,46 +132,66 @@ export default function RoomsScreen() {
             >
               <Ionicons name='arrow-back' size={24} color={colors.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Rooms</Text>
+            <Text style={styles.headerTitle}>
+              {t('rooms.title') || 'Rooms'}
+            </Text>
             <View style={styles.placeholder} />
           </View>
 
           <View style={styles.content}>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Join a Room</Text>
+              <Text style={styles.cardTitle}>
+                {t('rooms.joinRoom') || 'Join a Room'}
+              </Text>
               <Text style={styles.cardDescription}>
-                Enter a room code to join an existing room
+                {t('rooms.enterRoomCodeDescription') ||
+                  'Enter a room code to join an existing room'}
               </Text>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.codeInput}
-                  placeholder='Enter room code'
+                  placeholder={t('rooms.enterRoomCode') || 'Enter room code'}
                   value={roomCode}
                   onChangeText={setRoomCode}
                   placeholderTextColor={colors.textSecondary}
                   autoCapitalize='characters'
                 />
-                <TouchableOpacity
-                  style={[
-                    styles.joinButton,
-                    !roomCode.trim() && styles.joinButtonDisabled,
-                  ]}
-                  onPress={navigateToRoomByCode}
-                  disabled={!roomCode.trim() || LoadingJoinRoom}
-                >
-                  <Text style={styles.joinButtonText}>Join Room</Text>
-                  <Ionicons
-                    name='arrow-forward'
-                    size={18}
-                    color={colors.lightText}
-                  />
-                </TouchableOpacity>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.joinButton,
+                      !roomCode.trim() && styles.joinButtonDisabled,
+                    ]}
+                    onPress={navigateToRoomByCode}
+                    disabled={!roomCode.trim() || LoadingJoinRoom}
+                  >
+                    <Text style={styles.joinButtonText}>
+                      {t('rooms.joinRoom') || 'Join Room'}
+                    </Text>
+                    <Ionicons
+                      name='arrow-forward'
+                      size={18}
+                      color={colors.lightText}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.qrButton}
+                    onPress={() => setShowQRScanner(true)}
+                    disabled={LoadingJoinRoom}
+                  >
+                    <Ionicons
+                      name='qr-code-outline'
+                      size={24}
+                      color={colors.primary}
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
+              <Text style={styles.dividerText}>{t('common.or') || 'OR'}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -179,10 +200,18 @@ export default function RoomsScreen() {
               onPress={createNewRoom}
             >
               <Ionicons name='add-circle' size={24} color={colors.lightText} />
-              <Text style={styles.createRoomText}>Create New Room</Text>
+              <Text style={styles.createRoomText}>
+                {t('rooms.createRoom') || 'Create New Room'}
+              </Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+
+        <QRScanner
+          visible={showQRScanner}
+          onScan={handleQRScan}
+          onClose={() => setShowQRScanner(false)}
+        />
       </SafeAreaView>
     </ProtectedRoute>
   );
@@ -191,6 +220,11 @@ export default function RoomsScreen() {
 const styles = StyleSheet.create({
   backButton: {
     padding: spacing.xs,
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   card: {
     backgroundColor: colors.backgroundAlt,
@@ -281,6 +315,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.primary,
     borderRadius: 8,
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     padding: spacing.md,
@@ -301,5 +336,15 @@ const styles = StyleSheet.create({
   placeholder: {
     padding: spacing.xs,
     width: 24,
+  },
+  qrButton: {
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    borderColor: colors.primary,
+    borderRadius: 8,
+    borderWidth: 1,
+    justifyContent: 'center',
+    minWidth: 52,
+    padding: spacing.md,
   },
 });

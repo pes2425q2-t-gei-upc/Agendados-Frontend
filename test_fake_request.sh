@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Script para probar la funcionalidad fake de solicitud de amistad
+
+echo "🚀 Probando funcionalidad FAKE de solicitud de amistad..."
+echo ""
+echo "✅ Cambios implementados:"
+echo "   - Estado fakeSentRequests añadido"
+echo "   - handleSendRequest modificado para ser 100% fake"
+echo "   - NO se envía nada al servidor"
+echo "   - Solicitud 'enviada' dura 10 segundos"
+echo "   - Después de 10s el estado se limpia automáticamente"
+echo ""
+echo "🎯 Para probar:"
+echo "   1. Abrir la app"
+echo "   2. Ir a Amigos > Añadir Amigo"
+echo "   3. Buscar un usuario"
+echo "   4. Presionar 'Enviar Solicitud'"
+echo "   5. Ver que inmediatamente muestra 'Solicitud enviada'"
+echo "   6. Esperar 10 segundos"
+echo "   7. Ver que el botón vuelve al estado normal"
+echo ""
+echo "⚠️  IMPORTANTE: Es 100% fake - no se envían datos reales al servidor"
+echo ""
+echo "🔧 Archivos modificados:"
+echo "   - app/friends/add.tsx"
+echo "   - FAKE_FRIEND_REQUEST.md (documentación)"

@@ -1,5 +1,6 @@
 // app/components/FriendsList.tsx
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
   View,
@@ -33,6 +34,8 @@ const FriendsList: React.FC<FriendsListProps> = ({
   onRemoveFriend,
   emptyMessage,
 }) => {
+  const router = useRouter();
+
   // Renderizar un item de amigo
   const renderFriendItem = ({ item }: { item: Friendship }) => {
     // Verificamos si tenemos datos válidos para mostrar
@@ -50,6 +53,10 @@ const FriendsList: React.FC<FriendsListProps> = ({
 
     const friendName = friendInfo.name ?? friendInfo.username ?? 'Usuario';
 
+    const handleViewFavorites = () => {
+      router.push(`/friends/${friendInfo.id}/favorites`);
+    };
+
     return (
       <View style={styles.friendItem}>
         <ProfileAvatar
@@ -62,16 +69,28 @@ const FriendsList: React.FC<FriendsListProps> = ({
           <Text style={styles.friendName}>{friendName}</Text>
           <Text style={styles.friendUsername}>@{friendInfo.username}</Text>
         </View>
-        <TouchableOpacity
-          style={styles.removeButton}
-          onPress={() => onRemoveFriend(item.id)}
-        >
-          <Ionicons
-            name='close-circle-outline'
-            size={24}
-            color={colors.error}
-          />
-        </TouchableOpacity>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={styles.favoritesButton}
+            onPress={handleViewFavorites}
+          >
+            <Ionicons
+              name='bookmark-outline'
+              size={20}
+              color={colors.primary}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.removeButton}
+            onPress={() => onRemoveFriend(item.id)}
+          >
+            <Ionicons
+              name='close-circle-outline'
+              size={24}
+              color={colors.error}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -103,6 +122,10 @@ const FriendsList: React.FC<FriendsListProps> = ({
 };
 
 const styles = StyleSheet.create({
+  actionButtons: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
   emptyContainer: {
     alignItems: 'center',
     flex: 1,
@@ -116,6 +139,10 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     textAlign: 'center',
   },
+  favoritesButton: {
+    marginRight: spacing.xs,
+    padding: 6,
+  },
   friendInfo: {
     flex: 1,
     marginLeft: spacing.md,
@@ -126,8 +153,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     elevation: 2,
     flexDirection: 'row',
-    marginBottom: 10,
     margin: spacing.xs,
+    marginBottom: 10,
     padding: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
