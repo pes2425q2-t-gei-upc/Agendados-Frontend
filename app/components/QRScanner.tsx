@@ -159,6 +159,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.background,
     flex: 1,
+    marginTop: spacing.xl,
   },
   grantButton: {
     backgroundColor: colors.primary,

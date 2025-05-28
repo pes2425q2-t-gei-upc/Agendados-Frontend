@@ -301,6 +301,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.primary,
     borderRadius: 8,
+    marginBottom: spacing.md,
     paddingVertical: spacing.md,
   },
   createButtonText: {

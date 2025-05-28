@@ -661,6 +661,20 @@ export default function Explore() {
     if (mapRef.current && isMapReady.current) {
       // Siempre centramos en las coordenadas específicas de Barcelona
       mapRef.current.animateToRegion(BARCELONA_COORDS, 1000);
+
+      // Forzar el refresh de la ubicación del usuario para que se muestre el punto azul
+      setTimeout(() => {
+        if (mapRef.current) {
+          mapRef.current.animateToRegion(
+            {
+              ...BARCELONA_COORDS,
+              latitudeDelta: 0.008, // Zoom un poco más cerca para ver mejor el punto
+              longitudeDelta: 0.008,
+            },
+            500
+          );
+        }
+      }, 1000);
     }
   }, []);
 

@@ -31,6 +31,13 @@ export default function FriendsLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name='[id]/events'
+        options={{
+          title: 'Friend Events',
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

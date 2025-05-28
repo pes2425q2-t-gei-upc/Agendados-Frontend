@@ -9,7 +9,6 @@ import React, {
   useState,
   useMemo,
 } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -26,9 +25,6 @@ import { styles } from '@styles/Explore';
 import { INITIAL_REGION } from 'app/constants/exploreConstants';
 
 import { EventMarker } from './EventMarker';
-
-// Dummy i18n t function – replace with actual i18n if needed
-const t = (key: string) => key;
 
 export type MapViewType = MapViewClustering & {
   animateToRegion(region: Region, duration?: number): void;
@@ -74,6 +70,16 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
     const legendContentHeight = useRef(new Animated.Value(0)).current;
     // Nuevo estado para el botón de localización
     const [locationButtonActive, setLocationButtonActive] = useState(false);
+    // Estado para mostrar marcador de ubicación fake del usuario
+    const [showFakeUserLocation, setShowFakeUserLocation] =
+      useState(locationPermission); // Se muestra si hay permisos
+
+    // Efecto para mantener sincronizado el estado del marcador fake con los permisos
+    useEffect(() => {
+      if (locationPermission && !showFakeUserLocation) {
+        setShowFakeUserLocation(true);
+      }
+    }, [locationPermission, showFakeUserLocation]);
 
     const handleMapInstance = useCallback(
       (instance: MapViewType | null) => {
@@ -257,12 +263,17 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
     // Función modificada para manejar el clic en el botón de Mi ubicación
     const handleMyLocationPress = useCallback(() => {
       setLocationButtonActive(true);
+      setShowFakeUserLocation(true); // Mostrar marcador fake de usuario permanentemente
+
+      // Llamar a la función padre para centrar el mapa
       onMyLocationPress();
 
       // Opcional: Resetear el estado después de un tiempo para simular efecto de "pulse"
       setTimeout(() => {
         setLocationButtonActive(false);
-      }, 1000);
+      }, 1500); // Aumentar el tiempo para que sea más visible
+
+      // El marcador fake permanece visible (no se oculta)
     }, [onMyLocationPress]);
 
     return (
@@ -273,6 +284,10 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
           initialRegion={INITIAL_REGION}
           showsUserLocation={locationPermission}
           showsMyLocationButton={false}
+          userLocationPriority='high' // Prioridad alta para la ubicación del usuario
+          userLocationUpdateInterval={1000} // Actualizar cada segundo
+          userLocationAnnotationTitle='Mi ubicación' // Título del punto de usuario
+          followsUserLocation={false} // No seguir automáticamente, solo mostrar
           onRegionChangeComplete={handleRegionChangeComplete}
           onMapReady={onMapReady}
           clusteringEnabled
@@ -307,6 +322,48 @@ export const MapContainer = forwardRef<MapViewType, MapContainerProps>(
               maxIntensity={1.0}
               weatheringFactor={0.2}
             />
+          )}
+
+          {/* Marcador fake de ubicación del usuario (Barcelona) */}
+          {showFakeUserLocation && (
+            <Marker
+              coordinate={{
+                latitude: 41.3891219,
+                longitude: 2.1134929,
+              }}
+              anchor={{ x: 0.5, y: 0.5 }}
+              identifier='user-location'
+            >
+              <View
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: 11,
+                  backgroundColor: '#4285F4',
+                  borderWidth: 4,
+                  borderColor: '#FFFFFF',
+                  shadowColor: '#4285F4',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 6,
+                  elevation: 8,
+                }}
+              >
+                {/* Punto central más pequeño para simular el estilo nativo */}
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: [{ translateX: -2 }, { translateY: -2 }],
+                    width: 4,
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: '#FFFFFF',
+                  }}
+                />
+              </View>
+            </Marker>
           )}
         </MapView>
 

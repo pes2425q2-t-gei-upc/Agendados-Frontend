@@ -24,10 +24,10 @@ const FeaturedFriends: React.FC<FeaturedFriendsProps> = ({
   const { t } = useTranslation();
   const router = useRouter();
 
-  // Navegar a la página de eventos del amigo
-  const navigateToFriendEvents = (friendId: number, friendName: string) => {
+  // Navegar a la página de favoritos del amigo
+  const navigateToFriendFavorites = (friendId: number, friendName: string) => {
     router.push({
-      pathname: '/friends/[id]/events',
+      pathname: '/friends/[id]/favorites',
       params: { id: friendId, name: friendName },
     });
   };
@@ -76,7 +76,7 @@ const FeaturedFriends: React.FC<FeaturedFriendsProps> = ({
               key={index}
               style={styles.friendBubble}
               onPress={() =>
-                navigateToFriendEvents(
+                navigateToFriendFavorites(
                   friend.id,
                   friend.name ?? friend.username
                 )
