@@ -1,6 +1,4 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import React, { useRef, useState } from 'react';
 import { TouchableOpacity, Animated, Alert } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -9,6 +7,7 @@ import { Event } from '@models/Event';
 import { colors } from '@styles/globalStyles';
 import { styles } from '@styles/SavedEventCard.styles';
 import { useFavorites } from 'app/context/FavoritesContext';
+import { CalendarService } from 'app/Services/CalendarService';
 
 import EventCard from './EventCard';
 
@@ -50,38 +49,8 @@ const SavedEventCard = ({ event, onRemoved }: SavedEventCardProps) => {
 
     setIsAddingToCalendar(true);
     try {
-      // Create ICS file content
-      const startDate = event.date_ini ? new Date(event.date_ini) : new Date();
-      const endDate = event.date_end
-        ? new Date(event.date_end)
-        : new Date(startDate.getTime() + 3600000); // Default 1 hour
-
-      const icsContent = [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//AgendadosApp//Event//ES',
-        'BEGIN:VEVENT',
-        `UID:${event.id}@agendados.app`,
-        `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-        `DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-        `DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-        `SUMMARY:${event.title || 'Sin título'}`,
-        `DESCRIPTION:${event.description || ''}`,
-        `LOCATION:${event.location || ''}`,
-        'END:VEVENT',
-        'END:VCALENDAR',
-      ].join('\r\n');
-
-      // Use Expo FileSystem and Sharing to save and share the file
-      const fileUri = `${FileSystem.documentDirectory}event-${event.id}.ics`;
-      await FileSystem.writeAsStringAsync(fileUri, icsContent);
-
-      const success = await Sharing.shareAsync(fileUri, {
-        mimeType: 'text/calendar',
-        dialogTitle: 'Guardar evento en calendario',
-      })
-        .then(() => true)
-        .catch(() => false);
+      // Use the improved CalendarService method
+      await CalendarService.addEventToCalendar(event);
     } catch (error) {
       console.error('Error adding event to calendar:', error);
       Alert.alert('Error', 'No se pudo añadir el evento al calendario');
@@ -125,7 +94,7 @@ const SavedEventCard = ({ event, onRemoved }: SavedEventCardProps) => {
         <TouchableOpacity
           style={[
             styles.calendarButton,
-            isAddingToCalendar && { opacity: 0.6 },
+            isAddingToCalendar && styles.disabledButton,
           ]}
           onPress={handleSaveToCalendar}
           disabled={isAddingToCalendar}

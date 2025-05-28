@@ -1,4 +1,8 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import * as Calendar from 'expo-calendar';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { Alert, Platform } from 'react-native';
 
 import { Location, Event as EventModal } from '@models/Event';
 
@@ -30,6 +34,7 @@ export class CalendarService {
 
       return tokens.accessToken;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error getting Google access token:', error);
       throw error;
     }
@@ -40,6 +45,7 @@ export class CalendarService {
    */
   public static async createCalendarEvent(event: EventModal): Promise<boolean> {
     try {
+      // eslint-disable-next-line no-console
       console.log('[CalendarService] Creating calendar event:', event.title);
 
       const accessToken = await this.getGoogleAccessToken();
@@ -70,6 +76,7 @@ export class CalendarService {
         },
       };
 
+      // eslint-disable-next-line no-console
       console.log('[CalendarService] Sending event to Google Calendar API');
 
       const controller = new AbortController();
@@ -92,6 +99,7 @@ export class CalendarService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
+        // eslint-disable-next-line no-console
         console.error(
           '[CalendarService] Google Calendar API error:',
           errorData
@@ -112,13 +120,14 @@ export class CalendarService {
           );
         } else {
           throw new Error(
-            errorData?.error?.message ||
+            errorData?.error?.message ??
               'Error al crear el evento en el calendario'
           );
         }
       }
 
       const createdEvent = await response.json();
+      // eslint-disable-next-line no-console
       console.log(
         '[CalendarService] Event created successfully:',
         createdEvent.id
@@ -130,12 +139,14 @@ export class CalendarService {
         error instanceof Error && error.name === 'AbortError';
 
       if (isTimeoutError) {
+        // eslint-disable-next-line no-console
         console.error('[CalendarService] Request timed out');
         throw new Error(
           'La solicitud ha tomado demasiado tiempo. Por favor, inténtalo de nuevo.'
         );
       }
 
+      // eslint-disable-next-line no-console
       console.error('[CalendarService] Error creating calendar event:', error);
       throw error;
     }
@@ -155,6 +166,7 @@ export class CalendarService {
       const tokens = await GoogleSignin.getTokens();
       return !!tokens.accessToken;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(
         '[CalendarService] Error checking calendar permissions:',
         error
@@ -190,6 +202,7 @@ export class CalendarService {
 
       return await this.hasCalendarPermissions();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(
         '[CalendarService] Error requesting calendar permissions:',
         error
@@ -198,7 +211,204 @@ export class CalendarService {
     }
   }
 
-  private static formatLocation(location: Location): string {
+  /**
+   * Add event to native device calendar
+   */
+  public static async addToNativeCalendar(event: EventModal): Promise<boolean> {
+    try {
+      // Request calendar permissions
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permisos requeridos',
+          'Necesitamos acceso al calendario para guardar eventos.'
+        );
+        return false;
+      }
+
+      // Get default calendar
+      const calendars = await Calendar.getCalendarsAsync(
+        Calendar.EntityTypes.EVENT
+      );
+      const defaultCalendar =
+        calendars.find(
+          (cal) => cal.source.name === 'Default' || cal.isPrimary
+        ) ?? calendars[0];
+
+      if (!defaultCalendar) {
+        throw new Error('No se encontró un calendario disponible');
+      }
+
+      // Create the event
+      const eventDetails = {
+        title: event.title,
+        startDate: new Date(event.date_ini),
+        endDate: new Date(event.date_end),
+        timeZone: 'Europe/Madrid',
+        location: this.formatLocation(event.location),
+        notes: this.formatDescription(event),
+        calendarId: defaultCalendar.id,
+        alarms: [
+          { relativeOffset: -60 }, // 1 hour before
+          { relativeOffset: -1440 }, // 1 day before
+        ],
+      };
+
+      await Calendar.createEventAsync(defaultCalendar.id, eventDetails);
+      return true;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error adding event to native calendar:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create and share ICS file with better compatibility
+   */
+  public static async createAndShareICS(event: EventModal): Promise<boolean> {
+    try {
+      const startDate = event.date_ini ? new Date(event.date_ini) : new Date();
+      const endDate = event.date_end
+        ? new Date(event.date_end)
+        : new Date(startDate.getTime() + 3600000);
+
+      // Format dates in UTC for better compatibility
+      const formatDateForICS = (date: Date): string => {
+        return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+      };
+
+      // Escape special characters in ICS format
+      const escapeICSText = (text: string): string => {
+        return text
+          .replace(/\\/g, '\\\\')
+          .replace(/;/g, '\\;')
+          .replace(/,/g, '\\,')
+          .replace(/\n/g, '\\n')
+          .replace(/\r/g, '');
+      };
+
+      // Create proper ICS content with better formatting
+      const icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Agendados//Event Calendar//ES',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        `UID:${event.id}-${Date.now()}@agendados.app`,
+        `DTSTAMP:${formatDateForICS(new Date())}`,
+        `DTSTART:${formatDateForICS(startDate)}`,
+        `DTEND:${formatDateForICS(endDate)}`,
+        `SUMMARY:${escapeICSText(event.title ?? 'Sin título')}`,
+        `DESCRIPTION:${escapeICSText(event.description ?? '')}`,
+        `LOCATION:${escapeICSText(this.formatLocation(event.location))}`,
+        'STATUS:CONFIRMED',
+        'TRANSP:OPAQUE',
+        'BEGIN:VALARM',
+        'TRIGGER:-PT1H',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:Recordatorio del evento',
+        'END:VALARM',
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\r\n');
+
+      // Create file with better naming and ensure directory exists
+      const fileName = `evento-${event.id}-${Date.now()}.ics`;
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+      // Ensure directory exists
+      const dirUri = FileSystem.documentDirectory;
+      if (!dirUri) {
+        throw new Error('No se pudo acceder al directorio de documentos');
+      }
+
+      const dirInfo = await FileSystem.getInfoAsync(dirUri);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(dirUri, { intermediates: true });
+      }
+
+      await FileSystem.writeAsStringAsync(fileUri, icsContent, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      // Verify file was created
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      if (!fileInfo.exists) {
+        throw new Error('No se pudo crear el archivo de calendario');
+      }
+
+      // Share with specific options for calendar apps
+      const shareOptions = {
+        mimeType: 'text/calendar',
+        dialogTitle: 'Agregar al Calendario',
+        ...(Platform.OS === 'ios' && { UTI: 'com.apple.ical.ics' }),
+      };
+
+      await Sharing.shareAsync(fileUri, shareOptions);
+      return true;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error creating and sharing ICS:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Enhanced method to add event to calendar with multiple options
+   */
+  public static async addEventToCalendar(event: EventModal): Promise<boolean> {
+    try {
+      // First try Google Calendar API if user is signed in
+      const hasGoogleAuth = await this.hasCalendarPermissions();
+
+      if (hasGoogleAuth) {
+        try {
+          const success = await this.createCalendarEvent(event);
+          if (success) {
+            Alert.alert(
+              'Éxito',
+              'Evento agregado a Google Calendar correctamente'
+            );
+            return true;
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            'Google Calendar failed, trying native calendar:',
+            error
+          );
+        }
+      }
+
+      // Fallback to native calendar
+      try {
+        const success = await this.addToNativeCalendar(event);
+        if (success) {
+          Alert.alert('Éxito', 'Evento agregado al calendario del dispositivo');
+          return true;
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.warn('Native calendar failed, trying ICS file:', error);
+      }
+
+      // Final fallback to ICS file sharing
+      await this.createAndShareICS(event);
+      return true;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('All calendar methods failed:', error);
+      Alert.alert(
+        'Error',
+        'No se pudo agregar el evento al calendario. Inténtalo de nuevo.'
+      );
+      return false;
+    }
+  }
+
+  private static formatLocation(location: Location | undefined): string {
     if (!location) {
       return '';
     }
@@ -221,7 +431,7 @@ export class CalendarService {
   }
 
   private static formatDescription(event: EventModal): string {
-    let description = event.description || '';
+    let description = event.description ?? '';
 
     // Add additional event info to description
     if (event.categories && event.categories.length > 0) {
@@ -232,7 +442,7 @@ export class CalendarService {
       description += `\n\nInfo Tickets: ${event.info_tickets}`;
     }
 
-    if (event.links[0]?.link) {
+    if (event.links?.[0]?.link) {
       description += `\n\nMás información: ${event.links[0].link}`;
     }
 

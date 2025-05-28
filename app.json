@@ -25,11 +25,19 @@
           }
         ],
         "NSCameraUsageDescription": "This app needs access to your camera to allow you to take a photo for your profile.",
-        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to allow you to select a photo for your profile."
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to allow you to select a photo for your profile.",
+        "NSCalendarsUsageDescription": "This app needs access to your calendar to add events from Agendados.",
+        "NSRemindersUsageDescription": "This app needs access to your reminders to create calendar events."
       }
     },
     "android": {
       "package": "com.arnau.farran.AgendadosFront",
+      "permissions": [
+        "READ_CALENDAR",
+        "WRITE_CALENDAR",
+        "https://www.googleapis.com/auth/calendar"
+
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/Icono.png",
         "backgroundColor": "#ffffff"
@@ -91,7 +99,8 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-calendar"
     ],
     "extra": {
       "googleSignIn": {

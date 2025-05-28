@@ -37,4 +37,7 @@ export const styles = StyleSheet.create({
     marginVertical: spacing.xs,
     width: 50,
   },
+  disabledButton: {
+    opacity: 0.6,
+  },
 });
