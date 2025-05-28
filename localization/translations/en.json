@@ -360,6 +360,7 @@
     "footer": "This privacy policy was last updated on May 23, 2025. We reserve the right to update this policy at any time to reflect changes in our practices or applicable law."
   },
   "home": {
+    "loadingRecommendations": "Loading recommendations...",
     "events": {
       "nearYou": "Near you",
       "popular": "Popular",

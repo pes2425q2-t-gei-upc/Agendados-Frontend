@@ -363,6 +363,7 @@
   
   },
   "home": {
+    "loadingRecommendations": "Carregant recomanacions...",
     "events": {
       "nearYou": "A prop teu",
       "popular": "Populars",

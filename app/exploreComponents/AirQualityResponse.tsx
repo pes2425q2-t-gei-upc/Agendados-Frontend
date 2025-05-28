@@ -33,7 +33,8 @@ export const getAirQualityLevel = async (
     );
 
     if (!response.ok) {
-      throw new Error('Error fetching air quality: ${response.status}');
+      console.log(`HTTP error status: ${response.status}`);
+      throw new Error(`Error fetching air quality: ${response.status}`);
     }
 
     const data = await response.json();

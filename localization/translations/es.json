@@ -366,6 +366,7 @@
   
   },
   "home": {
+    "loadingRecommendations": "Cargando recomendaciones...",
     "events": {
       "nearYou": "Cerca de ti",
       "popular": "Populares",

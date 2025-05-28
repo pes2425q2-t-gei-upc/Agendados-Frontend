@@ -333,55 +333,6 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* — Sección de Amigos — */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('friends.title')}</Text>
-            <TouchableOpacity onPress={navigateToFriends}>
-              <Text style={styles.seeAllText}>{t('profile.seeAll')}</Text>
-            </TouchableOpacity>
-          </View>
-          {friends.length > 0 ? (
-            <View style={styles.friendsContainer}>
-              {friends.slice(0, 4).map(({ friend }, i) =>
-                friend ? (
-                  <TouchableOpacity
-                    key={i}
-                    style={styles.friendBubble}
-                    onPress={() =>
-                      router.push(`/friends/${friend.id}/favorites`)
-                    }
-                  >
-                    <ProfileAvatar
-                      avatar={friend.avatar ?? null}
-                      savedEventsCount={0}
-                      size={60}
-                      showEditButton={false}
-                    />
-                    <Text style={styles.friendBubbleName} numberOfLines={1}>
-                      {friend.name ?? friend.username}
-                    </Text>
-                  </TouchableOpacity>
-                ) : null
-              )}
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.addFriendsButton}
-              onPress={navigateToFriends}
-            >
-              <Ionicons
-                name='people-outline'
-                size={24}
-                color={colors.primary}
-              />
-              <Text style={styles.addFriendsText}>
-                {t('friends.addFriend')}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
         {/* — Categorías Favoritas — */}
         {stats.likedCategories.length > 0 && (
           <View style={styles.sectionContainer}>
@@ -740,14 +691,6 @@ const styles = StyleSheet.create({
   },
   eventsContainer: { flexDirection: 'row', justifyContent: 'space-between' },
 
-  friendBubble: { alignItems: 'center', width: '23%' },
-  friendBubbleName: {
-    color: colors.text,
-    fontSize: 12,
-    marginTop: 4,
-    textAlign: 'center',
-    width: '100%',
-  },
   friendCard: {
     alignItems: 'center',
     backgroundColor: colors.backgroundAlt,
@@ -778,11 +721,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: spacing.xs,
     textAlign: 'center',
-  },
-  friendsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
   },
   friendsScrollContainer: {
     paddingHorizontal: spacing.xs,

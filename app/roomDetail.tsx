@@ -58,7 +58,6 @@ export default function RoomDetailScreen() {
     const unsubscribe = WebSocketService.subscribe(handleStateUpdate);
 
     if (!WebSocketService.getState().isConnected) {
-      Alert.alert(t('rooms.connectionError'), t('rooms.notConnectedToRoom'));
     } else {
       setLoading(false); // Already connected and in the room
     }

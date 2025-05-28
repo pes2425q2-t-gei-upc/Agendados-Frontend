@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -41,6 +42,7 @@ const Dislike = require('@assets/images/RedColor.png');
 const SWIPE_VELOCITY = 800;
 
 export default function Main() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<EventModal[]>([]);
@@ -226,7 +228,7 @@ export default function Main() {
       <SafeAreaView style={styles.pageContainer}>
         <ActivityIndicator size='large' color={colors.primary} />
         <Text style={{ marginTop: 20, color: colors.text }}>
-          Loading recommendations...
+          {t('home.loadingRecommendations')}
         </Text>
       </SafeAreaView>
     );
