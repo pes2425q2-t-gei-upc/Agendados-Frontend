@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundAlt,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: Platform.OS === 'ios' ? 40 : 0,
+    paddingTop: Platform.OS === 'ios' ? 80 : 0,
     padding: spacing.md,
   },
   headerTitle: {

@@ -5,6 +5,10 @@ export interface UserDTO {
   name?: string;
   email: string;
   avatar?: string;
+  profile_image?: string;
+  profile_picture?: string;
+  image?: string;
+  photo?: string;
   createdAt: string;
   // Campos adicionales
 }
@@ -22,7 +26,13 @@ export class User implements UserDTO {
     this.username = user.username;
     this.name = user.name;
     this.email = user.email;
-    this.avatar = user.avatar;
+    // Buscar imagen de perfil en diferentes campos posibles
+    this.avatar =
+      user.avatar ??
+      user.profile_image ??
+      user.profile_picture ??
+      user.image ??
+      user.photo;
     this.createdAt = user.createdAt;
   }
 }

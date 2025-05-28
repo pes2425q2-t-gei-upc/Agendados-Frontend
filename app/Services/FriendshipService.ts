@@ -32,9 +32,17 @@ export class FriendshipService {
     }
     const raw: any[] = await res.json();
     const dtos: FriendshipDTO[] = raw.map((item) => ({
-      id: item.id,
+      id: item.id ?? Date.now() + Math.random(), // Fallback ID if not provided
       status: 'accepted',
-      friend: item,
+      friend: {
+        ...item, // Preservar todos los campos del backend
+        // Asegurar que tenemos los campos mínimos requeridos
+        id: item.id,
+        username: item.username,
+        email: item.email,
+        createdAt:
+          item.createdAt ?? item.created_at ?? new Date().toISOString(),
+      },
     }));
     return dtos.map((dto) => new Friendship(dto));
   }
