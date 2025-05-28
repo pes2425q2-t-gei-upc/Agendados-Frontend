@@ -1,7 +1,13 @@
 /* eslint-disable react-native/no-inline-styles */
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  createRef,
+} from 'react';
 import {
   View,
   Text,
@@ -69,6 +75,7 @@ export default function RoomMatching() {
 
   // Event detail modal state
   const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const infoButtonRef = createRef<any>();
 
   // Values for animations
   const { width: screenWidth } = useWindowDimensions();
@@ -393,6 +400,7 @@ export default function RoomMatching() {
                 <Card
                   event={currentEvent!}
                   onInfoPress={() => handleInfoButtonPress()}
+                  infoButtonRef={infoButtonRef}
                 />
               </Animated.View>
             </PanGestureHandler>
