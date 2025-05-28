@@ -1,5 +1,4 @@
 // c:\\Proyectos\\Agendados-Frontend\\app\\Services\\WebSocketService.ts
-import { useAuth } from '@context/authContext';
 import { Event as EventModal } from '@models/Event';
 import { User } from '@models/User';
 import { getUserToken } from '@services/AuthService';

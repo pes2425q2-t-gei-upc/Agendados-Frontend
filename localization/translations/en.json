@@ -15,7 +15,8 @@
     "search": "Search",
     "of": "of",
     "success": "Success",
-    "retry": "Retry"
+    "retry": "Retry",
+    "grantPermission": "Grant Permission"
   },
   "navigation": {
     "home": "Home",

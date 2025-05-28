@@ -44,10 +44,53 @@ export default function CreateRoomScreen() {
     }
 
     try {
-      const response = await RoomService.createRoom(roomName);
+      const response = await RoomService.createRoom(roomName, []);
       setRoomCode(response.code);
       setRoomCreated(true);
-      setLoadingCreateRoom(false);
+
+      // Auto-connect to WebSocket after creating room (like original code)
+      if (!WebSocketService.getState().isConnected) {
+        await WebSocketService.connect(response.code, true, roomName);
+      }
+
+      // Create a reference for storing the unsubscribe function
+      let unsubscribeFunction: (() => void) | null = null;
+
+      // Subscribe to WebSocket state changes to know when the room is ready
+      unsubscribeFunction = WebSocketService.subscribe((state) => {
+        if (
+          state.roomDetails &&
+          state.roomDetails.id === response.code &&
+          state.isConnected
+        ) {
+          // Don't auto-navigate, just show QR and let user choose when to join
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          }
+          setLoadingCreateRoom(false);
+        } else if (state.error) {
+          Alert.alert(
+            t('common.error'),
+            `Failed to create room & connect: ${state.error}`
+          );
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          }
+          setLoadingCreateRoom(false);
+        }
+      });
+
+      // Timeout for WebSocket response
+      setTimeout(() => {
+        if (loadingCreateRoom) {
+          Alert.alert(t('common.error'), 'Room creation timed out.');
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          }
+          setLoadingCreateRoom(false);
+          WebSocketService.disconnect();
+        }
+      }, 10000);
     } catch (error: any) {
       console.error('Error in handleCreateRoom:', error);
       Alert.alert(
@@ -59,47 +102,60 @@ export default function CreateRoomScreen() {
   };
 
   const handleJoinRoom = async () => {
-    if (!WebSocketService.getState().isConnected) {
-      await WebSocketService.connect(roomCode, true, roomName);
+    // Check if already connected (should be from handleCreateRoom)
+    const currentState = WebSocketService.getState();
+    if (currentState.isConnected && currentState.roomDetails?.id === roomCode) {
+      // Navigate directly since we're already connected
+      router.push({
+        pathname: '/roomDetail',
+        params: {
+          id: currentState.roomDetails.id,
+          name: currentState.roomDetails.name,
+          isAdmin: currentState.roomDetails.isHost ? '1' : '0',
+        },
+      });
+    } else {
+      // Fallback: connect if not already connected
+      if (!currentState.isConnected) {
+        await WebSocketService.connect(roomCode, true, roomName);
+      }
+
+      let unsubscribeFunction: (() => void) | null = null;
+
+      unsubscribeFunction = WebSocketService.subscribe((state) => {
+        if (
+          state.roomDetails &&
+          state.roomDetails.id === roomCode &&
+          state.isConnected
+        ) {
+          router.push({
+            pathname: '/roomDetail',
+            params: {
+              id: state.roomDetails!.id,
+              name: state.roomDetails!.name,
+              isAdmin: state.roomDetails!.isHost ? '1' : '0',
+            },
+          });
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          }
+        } else if (state.error) {
+          Alert.alert(t('common.error'), `Failed to join room: ${state.error}`);
+          if (unsubscribeFunction) {
+            unsubscribeFunction();
+          }
+        }
+      });
+
+      // Timeout for WebSocket response
+      setTimeout(() => {
+        Alert.alert(t('common.error'), 'Room join timed out.');
+        if (unsubscribeFunction) {
+          unsubscribeFunction();
+        }
+        WebSocketService.disconnect();
+      }, 10000);
     }
-
-    // Create a reference for storing the unsubscribe function
-    let unsubscribeFunction: (() => void) | null = null;
-
-    // Subscribe to WebSocket state changes to know when the room is ready
-    unsubscribeFunction = WebSocketService.subscribe((state) => {
-      if (
-        state.roomDetails &&
-        state.roomDetails.id === roomCode &&
-        state.isConnected
-      ) {
-        router.push({
-          pathname: '/roomDetail',
-          params: {
-            id: state.roomDetails!.id,
-            name: state.roomDetails!.name,
-            isAdmin: state.roomDetails!.isHost ? '1' : '0',
-          },
-        });
-        if (unsubscribeFunction) {
-          unsubscribeFunction();
-        }
-      } else if (state.error) {
-        Alert.alert(t('common.error'), `Failed to join room: ${state.error}`);
-        if (unsubscribeFunction) {
-          unsubscribeFunction();
-        }
-      }
-    });
-
-    // Timeout for WebSocket response
-    setTimeout(() => {
-      Alert.alert(t('common.error'), 'Room join timed out.');
-      if (unsubscribeFunction) {
-        unsubscribeFunction();
-      }
-      WebSocketService.disconnect();
-    }, 10000);
   };
 
   const handleShareRoom = async () => {
@@ -133,16 +189,18 @@ export default function CreateRoomScreen() {
         <ScrollView style={styles.content} keyboardShouldPersistTaps='handled'>
           {!roomCreated ? (
             // Room creation form
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('rooms.roomName')}</Text>
-              <TextInput
-                style={styles.input}
-                value={roomName}
-                onChangeText={setRoomName}
-                placeholder={t('rooms.enterRoomName')}
-                placeholderTextColor={colors.textSecondary}
-              />
-            </View>
+            <>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>{t('rooms.roomName')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={roomName}
+                  onChangeText={setRoomName}
+                  placeholder={t('rooms.enterRoomName')}
+                  placeholderTextColor={colors.textSecondary}
+                />
+              </View>
+            </>
           ) : (
             // QR Code display
             <View style={styles.qrContainer}>
@@ -268,24 +326,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     padding: spacing.md,
   },
-  friendItem: {
-    alignItems: 'center',
-    backgroundColor: colors.backgroundAlt,
-    borderColor: 'transparent',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    marginBottom: spacing.sm,
-    padding: spacing.md,
-  },
-  friendName: {
-    color: 'black',
-    flex: 1,
-    fontSize: 16,
-  },
-  friendsSection: {
-    marginBottom: spacing.lg,
-  },
   header: {
     alignItems: 'center',
     backgroundColor: colors.backgroundAlt,
@@ -349,29 +389,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingVertical: spacing.xl,
-  },
-  searchContainer: {
-    alignItems: 'center',
-    backgroundColor: colors.backgroundAlt,
-    borderColor: colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: 'row',
-    marginBottom: spacing.md,
-    paddingHorizontal: spacing.sm,
-  },
-  searchIcon: {
-    marginRight: spacing.sm,
-  },
-  searchInput: {
-    color: colors.text,
-    flex: 1,
-    fontSize: 16,
-    padding: spacing.sm,
-  },
-  selectedFriendItem: {
-    backgroundColor: colors.primaryLight + '20',
-    borderColor: colors.primary,
   },
   shareButton: {
     alignItems: 'center',

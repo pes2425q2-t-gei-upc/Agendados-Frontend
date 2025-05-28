@@ -15,7 +15,8 @@
     "search": "Cercar",
     "of": "de",
     "success": "Èxit",
-    "retry": "Tornar-ho a provar"
+    "retry": "Tornar-ho a provar",
+    "grantPermission": "Atorgar permís"
   },
 "emissions": {
   "title": "Mode Emissions",
