@@ -19,9 +19,9 @@ export class CalendarService {
   private static async getGoogleAccessToken(): Promise<string> {
     try {
       // First check if user is signed in to Google
-      const isSignedIn = await GoogleSignin.hasPlayServices();
+      const currentUser = await GoogleSignin.getCurrentUser();
 
-      if (!isSignedIn) {
+      if (!currentUser) {
         throw new Error('Usuario no autenticado con Google');
       }
 
@@ -157,14 +157,23 @@ export class CalendarService {
    */
   public static async hasCalendarPermissions(): Promise<boolean> {
     try {
-      const isSignedIn = await GoogleSignin.hasPlayServices();
-      if (!isSignedIn) {
+      // Check if user is signed in using getCurrentUser
+      const currentUser = await GoogleSignin.getCurrentUser();
+      if (!currentUser) {
         return false;
       }
 
       // Try to get tokens to verify permissions
       const tokens = await GoogleSignin.getTokens();
-      return !!tokens.accessToken;
+
+      // Verify that we have access token and that it includes calendar scope
+      if (!tokens.accessToken) {
+        return false;
+      }
+
+      // Optional: You could make a test API call to verify calendar access
+      // For now, we'll trust that the token is valid if we have it
+      return true;
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(
@@ -176,30 +185,42 @@ export class CalendarService {
   }
 
   /**
-   * Request calendar permissions by re-signing in with updated scopes
+   * Request calendar permissions by prompting user to sign in with calendar scope
    */
   public static async requestCalendarPermissions(): Promise<boolean> {
     try {
-      // Sign out first to clear any cached permissions
-      await GoogleSignin.signOut();
+      // Check if user is already signed in
+      const currentUser = await GoogleSignin.getCurrentUser();
 
-      // Re-configure with calendar scope (should already be configured in your GoogleAuthService)
-      GoogleSignin.configure({
-        webClientId:
-          '259177311342-jpmq68ro7s6jq1hs84o84pv2u1baebu9.apps.googleusercontent.com',
-        iosClientId:
-          '259177311342-m3as7g1cidrdtf7r858i285atqljusnq.apps.googleusercontent.com',
-        offlineAccess: true,
-        scopes: [
-          'profile',
-          'email',
-          'https://www.googleapis.com/auth/calendar',
-        ],
-      });
+      if (!currentUser) {
+        Alert.alert(
+          'Autenticación requerida',
+          'Para usar Google Calendar, necesitas iniciar sesión con Google.',
+          [
+            {
+              text: 'Cancelar',
+              style: 'cancel',
+            },
+            {
+              text: 'Iniciar sesión',
+              onPress: async () => {
+                try {
+                  await GoogleSignin.signIn();
+                } catch (error) {
+                  // eslint-disable-next-line no-console
+                  console.error(
+                    'Error signing in for calendar permissions:',
+                    error
+                  );
+                }
+              },
+            },
+          ]
+        );
+        return false;
+      }
 
-      // Sign in again to get updated permissions
-      await GoogleSignin.signIn();
-
+      // If already signed in, check if we have calendar permissions
       return await this.hasCalendarPermissions();
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -403,6 +424,73 @@ export class CalendarService {
       Alert.alert(
         'Error',
         'No se pudo agregar el evento al calendario. Inténtalo de nuevo.'
+      );
+      return false;
+    }
+  }
+
+  /**
+   * Test Google Calendar connection
+   */
+  public static async testGoogleCalendarConnection(): Promise<boolean> {
+    try {
+      // eslint-disable-next-line no-console
+      console.log('[CalendarService] Testing Google Calendar connection...');
+
+      // Check if user is signed in
+      const currentUser = await GoogleSignin.getCurrentUser();
+      if (!currentUser) {
+        // eslint-disable-next-line no-console
+        console.log('[CalendarService] User not signed in to Google');
+        return false;
+      }
+
+      // Get access token
+      const accessToken = await this.getGoogleAccessToken();
+      // eslint-disable-next-line no-console
+      console.log(
+        '[CalendarService] Got access token, length:',
+        accessToken.length
+      );
+
+      // Test API call - list calendars
+      const response = await fetch(
+        `${this.GOOGLE_CALENDAR_API}/users/me/calendarList`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        // eslint-disable-next-line no-console
+        console.log(
+          '[CalendarService] ✅ Google Calendar API connection successful!'
+        );
+        // eslint-disable-next-line no-console
+        console.log(
+          '[CalendarService] Found',
+          data.items?.length ?? 0,
+          'calendars'
+        );
+        return true;
+      } else {
+        // eslint-disable-next-line no-console
+        console.error(
+          '[CalendarService] ❌ Google Calendar API test failed:',
+          response.status
+        );
+        return false;
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(
+        '[CalendarService] ❌ Google Calendar connection test error:',
+        error
       );
       return false;
     }

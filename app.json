@@ -34,9 +34,7 @@
       "package": "com.arnau.farran.AgendadosFront",
       "permissions": [
         "READ_CALENDAR",
-        "WRITE_CALENDAR",
-        "https://www.googleapis.com/auth/calendar"
-
+        "WRITE_CALENDAR"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/Icono.png",
@@ -90,7 +88,8 @@
         {
           "scopes": [
             "profile",
-            "email"
+            "email",
+            "https://www.googleapis.com/auth/calendar"
           ],
           "iosClientId": "259177311342-m3as7g1cidrdtf7r858i285atqljusnq.apps.googleusercontent.com",
           "androidClientId": "259177311342-m226u0jikrh0oeipt6i3mar912i5ilo3.apps.googleusercontent.com",
@@ -106,7 +105,8 @@
       "googleSignIn": {
         "scopes": [
           "profile",
-          "email"
+          "email",
+          "https://www.googleapis.com/auth/calendar"
         ]
       },
       "googleWebClientId": "259177311342-jpmq68ro7s6jq1hs84o84pv2u1baebu9.apps.googleusercontent.com",
