@@ -41,6 +41,14 @@ const WELCOME_STEPS = [
     tabHighlight: 'saved',
   },
   {
+    title: 'Chats y Partidas Privadas',
+    description:
+      'Accede a tus chats recientes o crea salas privadas para escoger los mejores eventos con tu grupo',
+    icon: 'chatbubbles',
+    position: { top: '40%', left: '10%' }, // Nuevo paso, 40-60% aprox
+    tabHighlight: 'chats',
+  },
+  {
     title: 'Visualiza tu perfil',
     description: 'Visualiza los logros y características de tu perfil',
     icon: 'person',
@@ -82,7 +90,8 @@ export const Welcome = ({
       main: 0,
       explore: 1,
       saved: 2,
-      profile: 3,
+      chats: 3,
+      profile: 4,
     };
 
     const index = tabPositions[tab];
@@ -90,7 +99,7 @@ export const Welcome = ({
       return null;
     }
 
-    const tabWidth = Dimensions.get('window').width / 4;
+    const tabWidth = Dimensions.get('window').width / 5;
     const iconSize = 30;
     const left = index * tabWidth + tabWidth / 2 - iconSize / 2 - 12;
 
