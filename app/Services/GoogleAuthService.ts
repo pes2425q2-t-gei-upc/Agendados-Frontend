@@ -42,7 +42,7 @@ export const useGoogleAuth = () => {
       iosClientId:
         '259177311342-m3as7g1cidrdtf7r858i285atqljusnq.apps.googleusercontent.com',
       offlineAccess: true, // If you need a refresh token
-      scopes: ['profile', 'email'],
+      scopes: ['profile', 'email', 'https://www.googleapis.com/auth/calendar'],
     });
 
     // Check if user is already signed in
