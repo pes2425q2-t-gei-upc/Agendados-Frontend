@@ -1,4 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import React, { useRef, useState } from 'react';
 import { TouchableOpacity, Animated, Alert } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -7,7 +9,6 @@ import { Event } from '@models/Event';
 import { colors } from '@styles/globalStyles';
 import { styles } from '@styles/SavedEventCard.styles';
 import { useFavorites } from 'app/context/FavoritesContext';
-import { CalendarService } from 'app/Services/CalendarService';
 
 import EventCard from './EventCard';
 
@@ -43,71 +44,52 @@ const SavedEventCard = ({ event, onRemoved }: SavedEventCardProps) => {
   };
 
   const handleSaveToCalendar = async () => {
-    if (isAddingToCalendar) {
+    if (!event.id) {
       return;
     }
 
+    setIsAddingToCalendar(true);
     try {
-      setIsAddingToCalendar(true);
+      // Create ICS file content
+      const startDate = event.date_ini ? new Date(event.date_ini) : new Date();
+      const endDate = event.date_end
+        ? new Date(event.date_end)
+        : new Date(startDate.getTime() + 3600000); // Default 1 hour
 
-      // Check if user has calendar permissions
-      const hasPermissions = await CalendarService.hasCalendarPermissions();
+      const icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//AgendadosApp//Event//ES',
+        'BEGIN:VEVENT',
+        `UID:${event.id}@agendados.app`,
+        `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+        `DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+        `DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+        `SUMMARY:${event.title || 'Sin título'}`,
+        `DESCRIPTION:${event.description || ''}`,
+        `LOCATION:${event.location || ''}`,
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\r\n');
 
-      if (!hasPermissions) {
-        Alert.alert(
-          'Permisos requeridos',
-          'Para guardar eventos en tu calendario, necesitamos acceso a Google Calendar.',
-          [
-            { text: 'Cancelar', style: 'cancel' },
-            {
-              text: 'Conceder permisos',
-              onPress: async () => {
-                const granted =
-                  await CalendarService.requestCalendarPermissions();
-                if (granted) {
-                  await createCalendarEvent();
-                } else {
-                  Alert.alert(
-                    'Error',
-                    'No se pudieron obtener los permisos del calendario'
-                  );
-                }
-              },
-            },
-          ]
-        );
-        return;
-      }
+      // Use Expo FileSystem and Sharing to save and share the file
+      const fileUri = `${FileSystem.documentDirectory}event-${event.id}.ics`;
+      await FileSystem.writeAsStringAsync(fileUri, icsContent);
 
-      await createCalendarEvent();
+      const success = await Sharing.shareAsync(fileUri, {
+        mimeType: 'text/calendar',
+        dialogTitle: 'Guardar evento en calendario',
+      })
+        .then(() => true)
+        .catch(() => false);
     } catch (error) {
       console.error('Error adding event to calendar:', error);
-
-      let errorMessage = 'No se pudo agregar el evento al calendario';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-
-      Alert.alert('Error', errorMessage);
+      Alert.alert('Error', 'No se pudo añadir el evento al calendario');
     } finally {
       setIsAddingToCalendar(false);
       swipeableRef.current?.close();
     }
   };
-
-  const createCalendarEvent = async () => {
-    try {
-      await CalendarService.createCalendarEvent(event);
-
-      Alert.alert('¡Éxito!', 'El evento se ha agregado a tu Google Calendar.', [
-        { text: 'OK' },
-      ]);
-    } catch (error) {
-      throw error; // Re-throw to be handled by handleSaveToCalendar
-    }
-  };
-
-  // ...existing code for renderRightActions and renderLeftActions...
 
   const renderRightActions = (
     progress: Animated.AnimatedInterpolation<number>

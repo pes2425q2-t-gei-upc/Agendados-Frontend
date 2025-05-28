@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     width: 80,
   },
   calendarButton: {
