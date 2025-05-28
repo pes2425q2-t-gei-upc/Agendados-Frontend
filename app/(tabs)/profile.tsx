@@ -23,9 +23,10 @@ import { useFriendship } from '@context/FriendshipContext';
 import { Event } from '@models/Event';
 import { uploadProfileImage } from '@services/AuthService';
 import { colors, spacing } from '@styles/globalStyles';
-import ProtectedRoute from 'app/components/ProtectedRoute';
 
+import FeaturedFriends from '../components/FeaturedFriends';
 import ProfileAvatar from '../components/ProfileAvatar';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -350,63 +351,11 @@ export default function ProfileScreen() {
         )}
 
         {/* — Amigos Destacados — */}
-        {friends.length > 0 && (
-          <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>
-                {t('profile.featuredFriends')}
-              </Text>
-              <TouchableOpacity onPress={navigateToFriends}>
-                <Text style={styles.seeAllText}>{t('profile.seeAll')}</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.friendsScrollContainer}
-            >
-              {friends.slice(0, 5).map((friendship, index) => {
-                const friendInfo = friendship.friend ?? friendship.user;
-                if (!friendInfo) {
-                  return null;
-                }
-
-                const friendName =
-                  friendInfo.name ?? friendInfo.username ?? 'Usuario';
-
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.friendCard}
-                    onPress={() =>
-                      router.push(`/friends/${friendInfo.id}/favorites`)
-                    }
-                  >
-                    <ProfileAvatar
-                      avatar={friendInfo.avatar ?? null}
-                      savedEventsCount={0}
-                      size={50}
-                      showEditButton={false}
-                    />
-                    <Text style={styles.friendCardName} numberOfLines={1}>
-                      {friendName}
-                    </Text>
-                    <View style={styles.friendCardAction}>
-                      <Ionicons
-                        name='bookmark-outline'
-                        size={16}
-                        color={colors.primary}
-                      />
-                      <Text style={styles.friendCardActionText}>
-                        {t('profile.viewFavorites')}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
+        <FeaturedFriends
+          friends={friends}
+          isLoading={false}
+          onSeeAllPress={navigateToFriends}
+        />
 
         {/* — Eventos Recientes — */}
         {recentEvents.length > 0 && (
@@ -600,12 +549,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.md,
   },
-  addFriendsText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '500',
-    marginLeft: spacing.sm,
-  },
   avatarContainer: { alignItems: 'center', flexDirection: 'row' },
   badgeLevelContainer: {
     backgroundColor: colors.backgroundAlt,
@@ -703,27 +646,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     width: 100,
-  },
-  friendCardAction: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    marginTop: spacing.xs,
-  },
-  friendCardActionText: {
-    color: colors.primary,
-    fontSize: 11,
-    fontWeight: '500',
-    marginLeft: 4,
-  },
-  friendCardName: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '500',
-    marginTop: spacing.xs,
-    textAlign: 'center',
-  },
-  friendsScrollContainer: {
-    paddingHorizontal: spacing.xs,
   },
   header: {
     paddingBottom: spacing.md,
