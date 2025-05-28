@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-unused-styles */
 // app/config.tsx
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -13,7 +14,6 @@ import {
   TextInput,
   Image,
   Alert,
-  Switch,
   ActivityIndicator,
   Modal,
   Platform,
@@ -28,6 +28,8 @@ import { changeLanguage } from 'localization/i18n';
 
 import LanguageSelector from '../components/LanguageSelector';
 
+import { uploadProfileImage } from './Services/AuthService'; // Importar el servicio
+
 const HEADER_MAX_HEIGHT = 240;
 const NAV_BAR_HEIGHT = 56;
 const STATUS_BAR = Platform.select({
@@ -38,7 +40,8 @@ const STATUS_BAR = Platform.select({
 const Config = () => {
   const router = useRouter();
   const { t } = useTranslation();
-  const { userInfo, loading, changePassword } = useAuth();
+  const { userInfo, loading, changePassword, userToken, updateUserProfile } =
+    useAuth(); // Añadir userToken y updateUserProfile
   const scrollY = useRef(new Animated.Value(0)).current;
 
   // Estados de perfil
@@ -49,8 +52,8 @@ const Config = () => {
   // Edición de username
   const [isEditingUsername, setIsEditingUsername] = useState(false);
 
-  // Cargando (guardado/permisos)
-  const [isLoading, setIsLoading] = useState(false);
+  // Cargando (guardado/permisos/subida)
+  const [isSaving, setIsSaving] = useState(false); // Renombrado desde isLoading para claridad
 
   // Modal de cambio de contraseña
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
@@ -105,16 +108,42 @@ const Config = () => {
 
   const handleLanguageChange = async (lang: 'es' | 'en' | 'ca') => {
     try {
-      setIsLoading(true);
+      setIsSaving(true);
       await changeLanguage(lang);
     } catch {
       Alert.alert(t('settings.error'), t('settings.languageChangeError'));
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
   // Avatar
+  const handleAvatarUpdate = async (imageUri: string) => {
+    if (!userToken || !updateUserProfile) {
+      Alert.alert(t('settings.error'), t('settings.updateProfileErrorNoAuth'));
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const updatedUser = await uploadProfileImage(userToken, imageUri);
+      if (updatedUser && updatedUser.profile_image) {
+        await updateUserProfile({ profile_image: updatedUser.profile_image }); // Changed 'avatar' to 'profile_image'
+        setAvatar(updatedUser.profile_image);
+        // Eliminamos el Alert que causaba la interrupción
+      } else {
+        throw new Error(t('settings.avatarUpdateResponseError'));
+      }
+    } catch (error: any) {
+      console.error('Error updating avatar:', error);
+      Alert.alert(
+        t('settings.error'),
+        error.message ?? t('settings.updateProfileError')
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -132,8 +161,9 @@ const Config = () => {
     });
     if (!result.canceled && result.assets?.length) {
       const uri = result.assets[0].uri;
-      setAvatar(uri);
-      handleSaveProfile({ avatar: uri });
+      // setAvatar(uri); // Se actualiza en handleAvatarUpdate tras éxito
+      // handleSaveProfile({ avatar: uri }); // Reemplazado por handleAvatarUpdate
+      await handleAvatarUpdate(uri);
     }
   };
 
@@ -153,8 +183,9 @@ const Config = () => {
     });
     if (!result.canceled && result.assets?.length) {
       const uri = result.assets[0].uri;
-      setAvatar(uri);
-      handleSaveProfile({ avatar: uri });
+      // setAvatar(uri); // Se actualiza en handleAvatarUpdate tras éxito
+      // handleSaveProfile({ avatar: uri }); // Reemplazado por handleAvatarUpdate
+      await handleAvatarUpdate(uri);
     }
   };
 
@@ -170,20 +201,7 @@ const Config = () => {
       { cancelable: true }
     );
 
-  // Guardar perfil (mock)
-  const handleSaveProfile = async (_data: any) => {
-    try {
-      setIsLoading(true);
-      await new Promise((r) => setTimeout(r, 1000));
-      Alert.alert(t('settings.success'), t('settings.profileUpdated'));
-    } catch {
-      Alert.alert(t('settings.error'), t('settings.updateProfileError'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSaveUsername = () => {
+  const handleSaveUsername = async () => {
     if (username.trim().length < 3) {
       Alert.alert(
         t('settings.validationError'),
@@ -191,8 +209,24 @@ const Config = () => {
       );
       return;
     }
-    handleSaveProfile({ username });
-    setIsEditingUsername(false);
+    if (!updateUserProfile) {
+      Alert.alert(t('settings.error'), t('settings.updateProfileErrorNoAuth'));
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await updateUserProfile({ username });
+      Alert.alert(t('settings.success'), t('settings.profileUpdated'));
+      setIsEditingUsername(false);
+    } catch (error: any) {
+      console.error('Error saving username:', error);
+      Alert.alert(
+        t('settings.error'),
+        error.message ?? t('settings.updateProfileError')
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Cambio de contraseña
@@ -219,7 +253,7 @@ const Config = () => {
       return;
     }
     try {
-      setIsLoading(true);
+      setIsSaving(true);
       const ok = await changePassword(currentPassword, newPassword);
       if (ok) {
         setCurrentPassword('');
@@ -237,7 +271,7 @@ const Config = () => {
       console.error('changePassword error:', err);
       Alert.alert(t('settings.error'), t('settings.passwordChangeError'));
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -301,11 +335,11 @@ const Config = () => {
               />
             </View>
             <TouchableOpacity
-              style={[styles.saveButton, isLoading && styles.disabledButton]}
+              style={[styles.saveButton, isSaving && styles.disabledButton]}
               onPress={handleChangePassword}
-              disabled={isLoading}
+              disabled={isSaving}
             >
-              {isLoading ? (
+              {isSaving ? (
                 <ActivityIndicator size='small' color={colors.lightText} />
               ) : (
                 <Text style={styles.saveButtonText}>
@@ -344,12 +378,19 @@ const Config = () => {
           <Animated.View
             style={[styles.headerAvatarContainer, { opacity: headerOpacity }]}
           >
-            <TouchableOpacity onPress={showAvatarOptions}>
+            <TouchableOpacity
+              onPress={isSaving ? undefined : showAvatarOptions}
+            >
               {avatar ? (
                 <Image source={{ uri: avatar }} style={styles.headerAvatar} />
               ) : (
                 <View style={styles.headerAvatarPlaceholder}>
                   <Ionicons name='person' size={30} color='white' />
+                </View>
+              )}
+              {isSaving && (
+                <View style={[styles.loadingOverlay, { borderRadius: 30 }]}>
+                  <ActivityIndicator size='small' color={colors.lightText} />
                 </View>
               )}
             </TouchableOpacity>
@@ -409,7 +450,9 @@ const Config = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('profile.personalInfo')}</Text>
             <View style={styles.avatarContainer}>
-              <TouchableOpacity onPress={showAvatarOptions}>
+              <TouchableOpacity
+                onPress={isSaving ? undefined : showAvatarOptions}
+              >
                 {avatar ? (
                   <Image source={{ uri: avatar }} style={styles.avatar} />
                 ) : (
@@ -417,9 +460,19 @@ const Config = () => {
                     <Ionicons name='person' size={60} color={colors.border} />
                   </View>
                 )}
-                <View style={styles.avatarEditButton}>
-                  <Ionicons name='camera' size={20} color={colors.lightText} />
-                </View>
+                {isSaving ? (
+                  <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size='small' color={colors.lightText} />
+                  </View>
+                ) : (
+                  <View style={styles.avatarEditButton}>
+                    <Ionicons
+                      name='camera'
+                      size={20}
+                      color={colors.lightText}
+                    />
+                  </View>
+                )}
               </TouchableOpacity>
             </View>
             <View style={styles.profileItem}>
@@ -488,7 +541,10 @@ const Config = () => {
           {/* Privacidad */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('settings.privacy')}</Text>
-            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/TermsOfService')}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/TermsOfService')}
+            >
               <Ionicons
                 name='document-text-outline'
                 size={22}
@@ -503,7 +559,10 @@ const Config = () => {
                 color={colors.textSecondary}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/PrivacyPolicy')}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push('/PrivacyPolicy')}
+            >
               <Ionicons
                 name='shield-checkmark-outline'
                 size={22}
@@ -652,6 +711,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 14,
     marginBottom: 4,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 50,
+    justifyContent: 'center',
   },
   menuItem: {
     alignItems: 'center',

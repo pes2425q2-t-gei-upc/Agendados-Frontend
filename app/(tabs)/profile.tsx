@@ -21,11 +21,11 @@ import { useAuth } from '@context/authContext';
 import { useFavorites } from '@context/FavoritesContext';
 import { useFriendship } from '@context/FriendshipContext';
 import { Event } from '@models/Event';
+import { uploadProfileImage } from '@services/AuthService';
 import { colors, spacing } from '@styles/globalStyles';
 import ProtectedRoute from 'app/components/ProtectedRoute';
 
 import ProfileAvatar from '../components/ProfileAvatar';
-import { uploadProfileImage } from '@services/AuthService';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -105,8 +105,12 @@ export default function ProfileScreen() {
   const pickImage = async () => {
     try {
       console.log('[pickImage] Requesting media library permissions...');
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      console.log('[pickImage] Media library permission status:', permissionResult.status);
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log(
+        '[pickImage] Media library permission status:',
+        permissionResult.status
+      );
 
       if (permissionResult.status !== 'granted') {
         Alert.alert(
@@ -140,8 +144,12 @@ export default function ProfileScreen() {
   const handleTakePhoto = async () => {
     try {
       console.log('[handleTakePhoto] Requesting camera permissions...');
-      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-      console.log('[handleTakePhoto] Camera permission status:', permissionResult.status);
+      const permissionResult =
+        await ImagePicker.requestCameraPermissionsAsync();
+      console.log(
+        '[handleTakePhoto] Camera permission status:',
+        permissionResult.status
+      );
 
       if (permissionResult.status !== 'granted') {
         Alert.alert(
@@ -179,9 +187,10 @@ export default function ProfileScreen() {
       setUploadingAvatar(true);
       const updatedUser = await uploadProfileImage(userToken, uri);
       if (updateUserProfile) {
-        await updateUserProfile({ avatar: updatedUser.profile_image });
+        await updateUserProfile({ profile_image: updatedUser.profile_image });
       }
-      Alert.alert(t('common.success'), t('settings.profilePhotoUpdated'));
+      // Eliminamos el Alert que causaba la interrupción
+      // Solo mostramos alert en caso de error
     } catch (error) {
       console.error('[handleUpdateAvatar] Error:', error);
       Alert.alert(t('settings.error'), t('settings.updateProfileError'));
@@ -250,8 +259,9 @@ export default function ProfileScreen() {
             </View>
           </View>
           <TouchableOpacity
-            style={styles.settingsButton}
-            onPress={navigateToSettings}
+            style={[styles.settingsButton, uploadingAvatar && { opacity: 0.5 }]}
+            onPress={uploadingAvatar ? undefined : navigateToSettings}
+            disabled={uploadingAvatar}
           >
             <Ionicons name='settings-outline' size={24} color={colors.text} />
           </TouchableOpacity>
@@ -657,6 +667,7 @@ const styles = StyleSheet.create({
 
   categoryText: { color: colors.lightText, fontSize: 14, fontWeight: '500' },
   container: { backgroundColor: colors.background, flex: 1 },
+  disabledButton: { opacity: 0.5 },
   divider: {
     backgroundColor: colors.border,
     marginHorizontal: spacing.md,
@@ -682,8 +693,8 @@ const styles = StyleSheet.create({
   },
   eventCategoryText: { color: colors.lightText, fontSize: 10 },
   eventDate: { color: colors.textSecondary, fontSize: 12, marginBottom: 4 },
-  eventDetails: { padding: 8 },
 
+  eventDetails: { padding: 8 },
   eventImage: { height: 90, width: '100%' },
   eventTitle: {
     color: colors.text,
@@ -692,8 +703,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   eventsContainer: { flexDirection: 'row', justifyContent: 'space-between' },
-  friendBubble: { alignItems: 'center', width: '23%' },
 
+  friendBubble: { alignItems: 'center', width: '23%' },
   friendBubbleName: {
     color: colors.text,
     fontSize: 12,
@@ -712,12 +723,11 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
   },
   joinDate: { color: colors.textSecondary, fontSize: 14 },
-  loadingContainer: { alignItems: 'center', justifyContent: 'center' },
 
+  loadingContainer: { alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: colors.textSecondary, marginTop: 10 },
   logoutButton: { borderBottomWidth: 0, marginTop: spacing.xs },
   logoutIcon: {},
-
   logoutText: { color: colors.error, flex: 1, fontSize: 16, fontWeight: '500' },
   premiumBadgeContainer: {
     alignItems: 'center',

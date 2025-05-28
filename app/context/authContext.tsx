@@ -12,9 +12,8 @@ import {
   getUserInfo,
   removeUserToken,
   changePassword as apiChangePassword,
-  storeUserToken,    // En lugar de saveUserToken
-  storeUserInfo, 
-  updateUserProfile as apiUpdateUserProfile, // Assuming this will be the actual API call function in AuthService
+  storeUserToken, // En lugar de saveUserToken
+  storeUserInfo,
 } from '../Services/AuthService';
 
 // Definir tipos de usuario
@@ -23,6 +22,7 @@ interface UserInfo {
   username?: string;
   name?: string;
   email?: string;
+  profile_image?: string;
   avatar?: string;
   createdAt?: string;
   [key: string]: any;
@@ -73,10 +73,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log('🔍 Checking for stored token...');
         const token = await getUserToken();
         const user = await getUserInfo();
-        
+
         console.log('🔍 Token found:', !!token);
         console.log('🔍 User found:', !!user);
-  
+
         if (token) {
           setUserToken(token);
           setUserInfo(user);
@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
       }
     };
-  
+
     loadToken();
   }, []);
 
@@ -102,10 +102,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (user) {
         await storeUserInfo(user);
       }
-      
+
       // Actualizar estado local
       setUserToken(token);
-      setUserInfo(user || null);
+      setUserInfo(user ?? null);
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Error saving auth data:', error);
@@ -152,7 +152,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateUserProfile = async (data: Partial<UserInfo>): Promise<boolean> => {
+  const updateUserProfile = async (
+    data: Partial<UserInfo>
+  ): Promise<boolean> => {
     if (!userToken) {
       console.error('updateUserProfile: No user token available');
       return false;
@@ -164,35 +166,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     setLoading(true);
     try {
-      // In a real app, apiUpdateUserProfile would make the PATCH request
-      // For now, let's assume it's in AuthService and updates the backend
-      // and returns the updated user info or just a success status.
-      // const updatedUser = await apiUpdateUserProfile(userToken, data);
+      // Normalizar los datos: si viene avatar o profile_image, asegurarse de que ambos estén sincronizados
+      const normalizedData = { ...data };
 
-      // For now, let's simulate a successful update and merge data locally
-      // This part needs to be replaced with actual API call logic
-      // If apiUpdateUserProfile returns the full updated user object:
-      // setUserInfo(updatedUser);
-      // await storeUserInfo(updatedUser);
-      
-      // If apiUpdateUserProfile just confirms success and we merge locally:
-      const newUserInfo = { ...userInfo, ...data };
+      if (data.avatar && !data.profile_image) {
+        normalizedData.profile_image = data.avatar;
+      } else if (data.profile_image && !data.avatar) {
+        normalizedData.avatar = data.profile_image;
+      }
+
+      // Fusionar con la información existente
+      const newUserInfo = { ...userInfo, ...normalizedData };
+
+      // Asegurarse de que ambos campos estén sincronizados
+      if (newUserInfo.profile_image) {
+        newUserInfo.avatar = newUserInfo.profile_image;
+      } else if (newUserInfo.avatar) {
+        newUserInfo.profile_image = newUserInfo.avatar;
+      }
+
       setUserInfo(newUserInfo);
       await storeUserInfo(newUserInfo);
       console.log('✅ User profile updated locally');
-      // This is a placeholder for the actual API call
-      // You'll need to implement `updateUserProfile` in `AuthService.ts`
-      // and call it here, for example:
-      // const success = await apiUpdateUserProfile(userToken, data);
-      // if (success) { ... } else { throw new Error('API update failed'); }
-      // For demonstration, we'll assume success:
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
 
       return true;
     } catch (error) {
       console.error('Error updating user profile:', error);
-      // Optionally, revert to old user info if API call fails
-      // setUserInfo(userInfo); 
       return false;
     } finally {
       setLoading(false);
