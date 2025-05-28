@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-native/no-unused-styles */
+/* eslint-disable react-native/no-inline-styles */
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState } from 'react';
 import {
-  Image,
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
@@ -24,7 +25,6 @@ import { colors, spacing } from '@styles/globalStyles';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function CreateRoomScreen() {
-  const { t } = useTranslation();
   const router = useRouter();
 
   const [roomName, setRoomName] = useState('');
@@ -112,7 +112,7 @@ export default function CreateRoomScreen() {
       console.error('Error in handleCreateRoom:', error);
       Alert.alert(
         'Error',
-        `Failed to create room: ${error.message || 'Unknown error'}`
+        `Failed to create room: ${error.message ?? 'Unknown error'}`
       );
       setLoadingCreateRoom(false);
     }

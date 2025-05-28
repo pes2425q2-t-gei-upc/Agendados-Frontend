@@ -104,13 +104,8 @@ export default function ProfileScreen() {
 
   const pickImage = async () => {
     try {
-      console.log('[pickImage] Requesting media library permissions...');
       const permissionResult =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-      console.log(
-        '[pickImage] Media library permission status:',
-        permissionResult.status
-      );
 
       if (permissionResult.status !== 'granted') {
         Alert.alert(
@@ -120,20 +115,15 @@ export default function ProfileScreen() {
         return;
       }
 
-      console.log('[pickImage] Launching image library...');
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.7,
       });
-      console.log('[pickImage] Image library result:', result);
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        console.log('[pickImage] Image selected:', result.assets[0].uri);
         await handleUpdateAvatar(result.assets[0].uri);
-      } else {
-        console.log('[pickImage] Image selection canceled or no assets.');
       }
     } catch (error) {
       console.error('[pickImage] Error:', error);
@@ -143,13 +133,8 @@ export default function ProfileScreen() {
 
   const handleTakePhoto = async () => {
     try {
-      console.log('[handleTakePhoto] Requesting camera permissions...');
       const permissionResult =
         await ImagePicker.requestCameraPermissionsAsync();
-      console.log(
-        '[handleTakePhoto] Camera permission status:',
-        permissionResult.status
-      );
 
       if (permissionResult.status !== 'granted') {
         Alert.alert(
@@ -159,19 +144,14 @@ export default function ProfileScreen() {
         return;
       }
 
-      console.log('[handleTakePhoto] Launching camera...');
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.7,
       });
-      console.log('[handleTakePhoto] Camera result:', result);
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        console.log('[handleTakePhoto] Photo taken:', result.assets[0].uri);
         await handleUpdateAvatar(result.assets[0].uri);
-      } else {
-        console.log('[handleTakePhoto] Photo taking canceled or no assets.');
       }
     } catch (error) {
       console.error('[handleTakePhoto] Error:', error);
@@ -259,7 +239,10 @@ export default function ProfileScreen() {
             </View>
           </View>
           <TouchableOpacity
-            style={[styles.settingsButton, uploadingAvatar && { opacity: 0.5 }]}
+            style={[
+              styles.settingsButton,
+              uploadingAvatar && styles.disabledButton,
+            ]}
             onPress={uploadingAvatar ? undefined : navigateToSettings}
             disabled={uploadingAvatar}
           >
@@ -366,13 +349,7 @@ export default function ProfileScreen() {
                     key={i}
                     style={styles.friendBubble}
                     onPress={() =>
-                      router.push({
-                        pathname: '/friends/[id]/events',
-                        params: {
-                          id: friend.id,
-                          name: friend.name ?? friend.username,
-                        },
-                      })
+                      router.push(`/friends/${friend.id}/favorites`)
                     }
                   >
                     <ProfileAvatar
@@ -418,6 +395,65 @@ export default function ProfileScreen() {
                 </View>
               ))}
             </View>
+          </View>
+        )}
+
+        {/* — Amigos Destacados — */}
+        {friends.length > 0 && (
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                {t('profile.featuredFriends')}
+              </Text>
+              <TouchableOpacity onPress={navigateToFriends}>
+                <Text style={styles.seeAllText}>{t('profile.seeAll')}</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.friendsScrollContainer}
+            >
+              {friends.slice(0, 5).map((friendship, index) => {
+                const friendInfo = friendship.friend ?? friendship.user;
+                if (!friendInfo) {
+                  return null;
+                }
+
+                const friendName =
+                  friendInfo.name ?? friendInfo.username ?? 'Usuario';
+
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.friendCard}
+                    onPress={() =>
+                      router.push(`/friends/${friendInfo.id}/favorites`)
+                    }
+                  >
+                    <ProfileAvatar
+                      avatar={friendInfo.avatar ?? null}
+                      savedEventsCount={0}
+                      size={50}
+                      showEditButton={false}
+                    />
+                    <Text style={styles.friendCardName} numberOfLines={1}>
+                      {friendName}
+                    </Text>
+                    <View style={styles.friendCardAction}>
+                      <Ionicons
+                        name='bookmark-outline'
+                        size={16}
+                        color={colors.primary}
+                      />
+                      <Text style={styles.friendCardActionText}>
+                        {t('profile.viewFavorites')}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
         )}
 
@@ -530,7 +566,7 @@ export default function ProfileScreen() {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.actionButton}
             onPress={() =>
               Alert.alert('Notificaciones', 'Función en desarrollo')
@@ -549,7 +585,7 @@ export default function ProfileScreen() {
               size={20}
               color={colors.textSecondary}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity
             style={[styles.actionButton, styles.logoutButton]}
@@ -712,10 +748,44 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
   },
+  friendCard: {
+    alignItems: 'center',
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 12,
+    elevation: 2,
+    marginRight: spacing.md,
+    padding: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    width: 100,
+  },
+  friendCardAction: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginTop: spacing.xs,
+  },
+  friendCardActionText: {
+    color: colors.primary,
+    fontSize: 11,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  friendCardName: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '500',
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
   friendsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: spacing.sm,
+  },
+  friendsScrollContainer: {
+    paddingHorizontal: spacing.xs,
   },
   header: {
     paddingBottom: spacing.md,

@@ -173,6 +173,8 @@
     "editProfile": "Editar Perfil",
     "logoutConfirmation": "Confirmación de cierre de sesión",
     "logoutMessage": "¿Estás seguro de que quieres cerrar sesión?",
+    "featuredFriends": "Amigos Destacados",
+    "viewFavorites": "Ver favoritos",
     "badgeLevels": {
       "basic": "Nivel Plateado",
       "intermediate": "Nivel Verde",
@@ -415,7 +417,10 @@
     "pending": "pendientes",
     "friends": "Amigos",
     "requests": "Solicitudes",
-    "total": "Total"
+    "total": "Total",
+    "favoritesOf": "Favoritos de {{name}}",
+    "noFavorites": "Sin eventos guardados",
+    "noFavoritesDescription": "{{name}} aún no ha guardado ningún evento como favorito."
     },
   "termsOfService": {
     "title": "Términos de Servicio",

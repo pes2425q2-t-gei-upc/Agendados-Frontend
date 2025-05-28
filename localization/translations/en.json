@@ -168,6 +168,8 @@
     "personalInfo": "Personal Information",
     "logoutConfirmation": "Logout confirmation",
     "logoutMessage": "Are you sure you want to log out?",
+    "featuredFriends": "Featured Friends",
+    "viewFavorites": "View favorites",
     "badgeLevels": {
       "basic": "Silver Level",
       "intermediate": "Green Level",
@@ -411,7 +413,10 @@
     "requests": "Requests",
     "send": "Send Request",
     "searchHelpText": "Type a name or username to find friends.",
-    "total": "Total"
+    "total": "Total",
+    "favoritesOf": "{{name}}'s Favorites",
+    "noFavorites": "No saved events",
+    "noFavoritesDescription": "{{name}} hasn't saved any favorite events yet."
   },
   "termsOfService": {
     "title": "Terms of Service",
