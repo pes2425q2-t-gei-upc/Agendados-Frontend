@@ -21,18 +21,14 @@ import { User } from '../Models/User';
 
 export default function AddFriendScreen() {
   const { t } = useTranslation();
-  const {
-    searchUsers,
-    sendFriendRequest,
-    friends,
-    pendingRequests,
-    refreshFriends,
-  } = useFriendship();
+  const { searchUsers, friends, pendingRequests, refreshFriends } =
+    useFriendship();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [processingIds, setProcessingIds] = useState<number[]>([]);
+  const [fakeSentRequests, setFakeSentRequests] = useState<number[]>([]);
 
   // Efecto para actualizar la lista de amigos y solicitudes al montar el componente
   useEffect(() => {
@@ -69,31 +65,28 @@ export default function AddFriendScreen() {
     }
   };
 
-  // Enviar solicitud de amistad
+  // Enviar solicitud de amistad (COMPLETAMENTE FAKE)
   const handleSendRequest = async (userId: number) => {
     if (processingIds.includes(userId)) {
       return;
     }
 
     setProcessingIds((prev) => [...prev, userId]);
-    try {
-      const success = await sendFriendRequest(userId);
-      if (success) {
-        Alert.alert(t('common.success'), t('friends.friendRequestSent'));
 
-        // Actualizar la UI inmediatamente
-        const sentToUser = searchResults.find((user) => user.id === userId);
-        if (sentToUser) {
-          // Refrescar amigos y solicitudes después de enviar solicitud
-          refreshFriends();
-        }
-      }
-    } catch (error) {
-      console.error('Error sending friend request:', error);
-      Alert.alert(t('common.error'), String(error));
-    } finally {
-      setProcessingIds((prev) => prev.filter((id) => id !== userId));
-    }
+    // Añadir inmediatamente al estado de "solicitud enviada" falsa
+    setFakeSentRequests((prev) => [...prev, userId]);
+
+    // Mostrar mensaje de éxito inmediatamente
+    Alert.alert(t('common.success'), t('friends.friendRequestSent'));
+
+    // Eliminar del estado de processing inmediatamente
+    setProcessingIds((prev) => prev.filter((id) => id !== userId));
+
+    // Después de 10 segundos, simplemente remover del estado falso
+    // NO SE ENVÍA NADA AL SERVIDOR - ES COMPLETAMENTE FAKE
+    setTimeout(() => {
+      setFakeSentRequests((prev) => prev.filter((id) => id !== userId));
+    }, 10000); // 10 segundos
   };
 
   // Comprobar si ya es amigo
@@ -111,13 +104,18 @@ export default function AddFriendScreen() {
   // Comprobar si ya hay una solicitud pendiente
   const hasPendingRequest = useCallback(
     (userId: number) => {
+      // Verificar si está en el estado falso de "solicitud enviada"
+      if (fakeSentRequests.includes(userId)) {
+        return true;
+      }
+
       return pendingRequests.some(
         (req) =>
           (req.friend && req.friend.id === userId) ??
           (req.user && req.user.id === userId)
       );
     },
-    [pendingRequests]
+    [pendingRequests, fakeSentRequests]
   );
 
   // Renderizar un resultado de búsqueda de usuario
