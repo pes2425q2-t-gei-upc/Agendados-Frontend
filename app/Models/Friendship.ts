@@ -46,13 +46,6 @@ export class Friendship {
     if (friendship.user) {
       this.user = new User(friendship.user);
     }
-
-    console.log('Creando objeto Friendship:', {
-      id: this.id,
-      hasFriend: !!this.friend,
-      hasUser: !!this.user,
-      status: this.status,
-    });
   }
 
   isValid(): boolean {
