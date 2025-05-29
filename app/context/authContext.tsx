@@ -14,6 +14,7 @@ import {
   changePassword as apiChangePassword,
   storeUserToken, // En lugar de saveUserToken
   storeUserInfo,
+  getUserProfile, // Agregar esta importación
 } from '../Services/AuthService';
 
 // Definir tipos de usuario
@@ -107,8 +108,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUserToken(token);
       setUserInfo(user ?? null);
       setIsAuthenticated(true);
+
+      // Refresh del perfil del usuario después del login exitoso
+      try {
+        const updatedProfile = await getUserProfile(token);
+        if (updatedProfile) {
+          // Actualizar con la información más reciente del servidor
+          setUserInfo(updatedProfile);
+          await storeUserInfo(updatedProfile);
+        }
+      } catch (profileError) {
+        // Si falla el refresh del perfil, no afecta el login principal
+        // Solo registramos el error silenciosamente
+        if (profileError instanceof Error) {
+          // Error al refrescar perfil, pero el login fue exitoso
+        }
+      }
     } catch (error) {
-      console.error('Error saving auth data:', error);
       throw error;
     }
   };

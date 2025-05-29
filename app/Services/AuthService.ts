@@ -10,6 +10,29 @@ const API_BASE =
 const TOKEN_KEY = 'user_auth_token';
 const USER_INFO_KEY = 'user_info';
 
+// Define types for API responses and user data
+interface UserData {
+  id?: number | string;
+  username?: string;
+  name?: string;
+  email?: string;
+  avatar?: string;
+  profile_image?: string;
+  createdAt?: string;
+  [key: string]: unknown;
+}
+
+interface LoginResponse {
+  token: string;
+  user?: UserData;
+  message?: string;
+}
+
+interface ApiResponse {
+  message?: string;
+  [key: string]: unknown;
+}
+
 // Define type for profile update data that AuthService will handle
 interface ProfileUpdateData {
   username?: string;
@@ -81,11 +104,11 @@ export const removeUserToken = async (): Promise<void> => {
 };
 
 // User info storage
-export const storeUserInfo = async (userInfo: any): Promise<void> => {
+export const storeUserInfo = async (userInfo: UserData): Promise<void> => {
   await AsyncStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
 };
 
-export const getUserInfo = async (): Promise<any | null> => {
+export const getUserInfo = async (): Promise<UserData | null> => {
   const userInfo = await AsyncStorage.getItem(USER_INFO_KEY);
   return userInfo ? JSON.parse(userInfo) : null;
 };
@@ -93,7 +116,7 @@ export const getUserInfo = async (): Promise<any | null> => {
 export const login = async (
   username: string,
   password: string
-): Promise<any> => {
+): Promise<LoginResponse> => {
   try {
     console.log('[Login] Attempting login with username');
 
@@ -119,10 +142,9 @@ export const login = async (
     const responseText = await response.text();
 
     // Try to parse it as JSON if possible
-    let data: any;
+    let data: LoginResponse;
     try {
       data = JSON.parse(responseText);
-      console.log('[Login] Response parsed successfully as JSON');
     } catch (e) {
       console.error(
         '[Login] Response is not valid JSON:',
@@ -523,7 +545,7 @@ export const updateUserProfile = async (
       let errorDetails = `Server error: ${response.status}`;
       try {
         // Try to parse JSON error response from backend
-        const errorData = await response.json();
+        const errorData = (await response.json()) as ApiResponse;
         errorDetails = errorData?.message ?? JSON.stringify(errorData);
       } catch (e) {
         // If response is not JSON, use the raw text
@@ -557,6 +579,53 @@ export const updateUserProfile = async (
     } else {
       console.error('[UpdateProfile] Unknown error:', error);
       throw new Error('Error desconocido al actualizar el perfil.');
+    }
+  }
+};
+
+export const getUserProfile = async (token: string): Promise<UserData> => {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30-second timeout
+
+    const response = await fetch(`${API_BASE}/api/users/me`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Token ${token}`,
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      let errorDetails = `Server error: ${response.status}`;
+      try {
+        const errorData = (await response.json()) as ApiResponse;
+        errorDetails = errorData?.message ?? JSON.stringify(errorData);
+      } catch (e) {
+        errorDetails = await response.text();
+      }
+      throw new Error(errorDetails);
+    }
+
+    const userProfile = (await response.json()) as UserData;
+    return userProfile;
+  } catch (error) {
+    const isTimeoutError =
+      error instanceof Error && error.name === 'AbortError';
+    if (isTimeoutError) {
+      throw new Error(
+        'La solicitud de obtener el perfil ha tomado demasiado tiempo.'
+      );
+    }
+
+    if (error instanceof Error) {
+      throw new Error(`Error al obtener el perfil: ${error.message}`);
+    } else {
+      throw new Error('Error desconocido al obtener el perfil.');
     }
   }
 };
