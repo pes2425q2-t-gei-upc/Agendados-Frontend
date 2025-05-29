@@ -421,6 +421,7 @@
     "pending": "pendiente",
     "friends": "Amigos",
     "requests": "Solicitudes",
+    "sendRequestErrorGeneric": "Ya has enviado la solicitud de amistad.",
     "total": "Total",
     "favoritesOf": "Favoritos de {{name}}",
     "noFavorites": "Sin eventos guardados",

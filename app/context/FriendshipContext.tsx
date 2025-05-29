@@ -112,15 +112,10 @@ export const FriendshipProvider: React.FC<{ children: ReactNode }> = ({
   const sendFriendRequest = async (friendId: number): Promise<boolean> => {
     try {
       await FriendshipService.sendFriendRequest(friendId);
-
-      // Refrescar amigos y solicitudes después de enviar solicitud
       refreshFriends();
       return true;
     } catch (error) {
       console.error('Error sending friend request:', error);
-      setErrorMessage(
-        'Error al enviar solicitud de amistad. Por favor, inténtalo de nuevo.'
-      );
       return false;
     }
   };

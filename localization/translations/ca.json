@@ -416,6 +416,7 @@
   "friends": "Amics",
   "requests": "Sol·licituds",
   "send": "Enviar Sol·licitud",
+  "sendRequestErrorGeneric": "Ja has enviat la sol·licitud d'amistat.",
   "searchHelpText": "Escriu un nom o usuari per cercar amics.",
     "total": "Total",
     "favoritesOf": "Favorits de {{name}}",

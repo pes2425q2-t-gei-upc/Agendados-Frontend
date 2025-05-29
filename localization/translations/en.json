@@ -415,6 +415,7 @@
     "friends": "Friends",
     "requests": "Requests",
     "send": "Send Request",
+    "sendRequestErrorGeneric": "You already sent a friend request.",
     "searchHelpText": "Type a name or username to find friends.",
     "total": "Total",
     "favoritesOf": "{{name}}'s Favorites",
