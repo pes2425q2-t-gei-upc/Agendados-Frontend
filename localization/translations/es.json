@@ -17,7 +17,8 @@
     "or": "O",
     "success": "Éxito",
     "retry": "Reintentar",
-    "grantPermission": "Conceder Permiso"
+    "grantPermission": "Conceder Permiso",
+    "accept": "Aceptar"
   },
 "emissions": {
   "title": "Modo de Emisiones",
