@@ -90,7 +90,7 @@ export default function FriendEventsScreen() {
           source={
             item.images && item.images.length > 0
               ? { uri: item.images[0].image_url }
-              : require('@assets/images/FotoJazz.jpg')
+              : require('@assets/images/Icono.png')
           }
           style={styles.eventImage}
         />

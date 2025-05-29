@@ -15,14 +15,17 @@
     "search": "Search",
     "of": "of",
     "success": "Success",
-    "retry": "Retry"
+    "retry": "Retry",
+    "grantPermission": "Grant Permission",
+    "accept": "Accept"
   },
   "navigation": {
     "home": "Home",
     "explore": "Explore",
     "saved": "Saved",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "chats": "Chats"
   },
   "auth": {
     "login": "Login",
@@ -38,12 +41,21 @@
     "completeFields": "Please complete all fields",
     "invalidEmail": "Please enter a valid email",
     "passwordLength": "Password must be at least 6 characters",
-    "loginError": "Error logging in. Please try again.",
+    "loginError": "Login error. Please try again.",
+    "usernameRequired": "Username is required.",
+    "passwordRequired": "Password is required.",
     "registerError": "Error registering user. Please try again.",
     "noAccount": "Don't have an account?",
     "registerNow": "Register now",
     "haveAccount": "Already have an account?",
-    "loginNow": "Login now"
+    "loginNow": "Login now",
+    "orContinueWith": "or continue with",
+    "userNotFound": "Usuario o contraseña incorrectos",
+    "invalidCredentials": "Credenciales inválidas",
+    "accountBlocked": "Cuenta bloqueada o sin permisos",
+    "serverError": "Error del servidor. Inténtalo más tarde",
+    "userExists": "El usuario o email ya existe",
+    "badRequest": "Datos inválidos. Verifica la información"
   },
   "explore": {
     "search": {
@@ -79,6 +91,20 @@
       "title": "Select location",
       "search": "Search location...",
       "noResults": "No results found"
+    },
+    "emissions": {
+      "title": "Emissions Mode",
+      "noEvents": "No Events Found",
+      "noEventsWithLocation": "There are no events with location data to display air quality information.",
+      "errorFetchingData": "Error fetching air quality data. Please try again.",
+      "legend": "Air Quality Legend",
+      "good": "Good (0-700)",
+      "moderate": "Moderate (701-800)",
+      "poor": "Poor (801-1100)",
+      "unhealthy": "Unhealthy (1101-1500)",
+      "veryUnhealthy": "Very Unhealthy (1501-2000)",
+      "hazardous": "Hazardous (2001-3000)",
+      "extreme": "Extreme (3001+)"
     }
   },
   "eventDetails": {
@@ -133,7 +159,7 @@
     "catalan": "Català",
     "english": "English",
     "profile": "Profile",
-    "joinedOn": "Joined on {{date}}",
+    "joinedOn": "Joined on May 2025",
     "savedEvents": "Saved Events",
     "attendedEvents": "Attended",
     "favoriteCategories": "Favorite Categories",
@@ -144,6 +170,8 @@
     "personalInfo": "Personal Information",
     "logoutConfirmation": "Logout confirmation",
     "logoutMessage": "Are you sure you want to log out?",
+    "featuredFriends": "Featured Friends",
+    "viewFavorites": "View favorites",
     "badgeLevels": {
       "basic": "Silver Level",
       "intermediate": "Green Level",
@@ -151,7 +179,8 @@
       "premium": "Gold Level",
       "badgeTooltip": "Save more events to upgrade your profile badge!",
       "nextLevel": "Save {{count}} more events to reach the next level"
-    }
+    },
+    "profilePhotoUpdated": "Profile photo updated successfully!"
   },
   "settings": {
     "title": "Settings",
@@ -200,9 +229,139 @@
     "pushNotifications": "Push Notifications",
     "emailNotifications": "Email Notifications",
     "termsOfService": "Terms of Service",
-    "privacyPolicy": "Privacy Policy"
+    "privacyPolicy": "Privacy Policy",
+    "profilePhotoUpdated": "Profile photo updated successfully!"
+  },
+  "privacyPolicy": {
+      "title": "PRIVACY POLICY",
+      "lastUpdated": "Last updated {{date}}",
+      "summaryTitle": "SUMMARY OF KEY POINTS",
+      "summaryIntro": "This summary provides key points from our Privacy Notice, but you can find out more details about any of these topics by using our table of contents below to find the section you are looking for.",
+      "tableOfContents": "TABLE OF CONTENTS",
+      "toc": {
+        "informationCollect": "WHAT INFORMATION DO WE COLLECT?",
+        "processInformation": "HOW DO WE PROCESS YOUR INFORMATION?",
+        "legalBases": "WHAT LEGAL BASES DO WE RELY ON TO PROCESS YOUR PERSONAL INFORMATION?",
+        "shareInformation": "WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?",
+        "cookiesTracking": "DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?",
+        "socialLogins": "HOW DO WE HANDLE YOUR SOCIAL LOGINS?",
+        "keepInformation": "HOW LONG DO WE KEEP YOUR INFORMATION?",
+        "informationSafe": "HOW DO WE KEEP YOUR INFORMATION SAFE?",
+        "privacyRights": "WHAT ARE YOUR PRIVACY RIGHTS?",
+        "doNotTrack": "CONTROLS FOR DO-NOT-TRACK FEATURES",
+        "updates": "DO WE MAKE UPDATES TO THIS NOTICE?",
+        "contact": "HOW CAN YOU CONTACT US ABOUT THIS NOTICE?",
+        "reviewData": "HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?"
+      },
+      "section1": {
+        "title": "WHAT INFORMATION DO WE COLLECT?",
+        "personalInfo": {
+          "title": "Personal information you disclose to us",
+          "inShort": "In Short: We collect personal information that you provide to us.",
+          "description": "We collect personal information that you voluntarily provide to us when you register on the Services, express an interest in obtaining information about us or our products and Services, when you participate in activities on the Services, or otherwise when you contact us.",
+          "provided": "Personal Information Provided by You",
+          "providedDescription": "The personal information that we collect depends on the context of your interactions with us and the Services, the choices you make, and the products and features you use. The personal information we collect may include the following:",
+          "phoneNumbers": "phone numbers",
+          "names": "names",
+          "emails": "email addresses",
+          "addresses": "mailing addresses",
+          "usernames": "usernames",
+          "authData": "contact or authentication data",
+          "preferences": "contact preferences"
+        },
+        "sensitiveInfo": {
+          "title": "Sensitive Information",
+          "description": "We do not process sensitive information."
+        },
+        "socialMedia": {
+          "title": "Social Media Login Data",
+          "description": "We may provide you with the option to register with us using your existing social media account details, like your Facebook, X, or other social media account. If you choose to register in this way, we will collect certain profile information about you from the social media provider."
+        },
+        "appData": {
+          "title": "Application Data",
+          "description": "If you use our application(s), we also may collect the following information if you choose to provide us with access or permission:",
+          "geolocation": "Geolocation Information. We may request access or permission to track location-based information from your mobile device to provide certain location-based services.",
+          "deviceAccess": "Mobile Device Access. We may request access or permission to certain features from your mobile device, including your mobile device's calendar, camera, storage, and other features.",
+          "pushNotifications": "Push Notifications. We may request to send you push notifications regarding your account or certain features of the application(s)."
+        }
+      },
+      "section2": {
+        "title": "HOW DO WE PROCESS YOUR INFORMATION?",
+        "inShort": "In Short: We process your information to provide, improve, and administer our Services, communicate with you, for security and fraud prevention, and to comply with law.",
+        "description": "We process your personal information for a variety of reasons, depending on how you interact with our Services, including:",
+        "accountCreation": "To facilitate account creation and authentication and otherwise manage user accounts. We may process your information so you can create and log in to your account, as well as keep your account in working order.",
+        "vitalInterests": "To save or protect an individual's vital interest. We may process your information when necessary to save or protect an individual's vital interest, such as to prevent harm."
+      },
+      "section3": {
+        "title": "WHAT LEGAL BASES DO WE RELY ON TO PROCESS YOUR INFORMATION?",
+        "inShort": "In Short: We only process your personal information when we believe it is necessary and we have a valid legal reason to do so under applicable law.",
+        "description": "The General Data Protection Regulation (GDPR) and UK GDPR require us to explain the valid legal bases we rely on in order to process your personal information. As such, we may rely on the following legal bases to process your personal information:",
+        "consent": "Consent. We may process your information if you have given us permission to use your personal information for a specific purpose. You can withdraw your consent at any time.",
+        "legalObligations": "Legal Obligations. We may process your information where we believe it is necessary for compliance with our legal obligations.",
+        "vitalInterests": "Vital Interests. We may process your information where we believe it is necessary to protect your vital interests or the vital interests of a third party."
+      },
+      "section4": {
+        "title": "WHEN AND WITH WHOM DO WE SHARE YOUR PERSONAL INFORMATION?",
+        "inShort": "In Short: We may share information in specific situations described in this section and/or with specific third parties.",
+        "description": "We may need to share your personal information in the following situations:",
+        "businessTransfers": "Business Transfers. We may share or transfer your information in connection with, or during negotiations of, any merger, sale of company assets, financing, or acquisition of all or a portion of our business to another company.",
+        "googleMaps": "When we use Google Maps Platform APIs. We may share your information with certain Google Maps Platform APIs to provide location-based services."
+      },
+      "section5": {
+        "title": "DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?",
+        "inShort": "In Short: We may use cookies and other tracking technologies to collect and store your information.",
+        "description": "We may use cookies and similar tracking technologies to gather information when you interact with our Services. Some online tracking technologies help us maintain the security of our Services and your account, prevent crashes, fix bugs, save your preferences, and assist with basic site functions."
+      },
+      "section6": {
+        "title": "HOW DO WE HANDLE YOUR SOCIAL LOGINS?",
+        "inShort": "In Short: If you choose to register or log in to our Services using a social media account, we may have access to certain information about you.",
+        "description": "Our Services offer you the ability to register and log in using your third-party social media account details. Where you choose to do this, we will receive certain profile information about you from your social media provider."
+      },
+      "section7": {
+        "title": "HOW LONG DO WE KEEP YOUR INFORMATION?",
+        "inShort": "In Short: We keep your information for as long as necessary to fulfill the purposes outlined in this Privacy Notice unless otherwise required by law.",
+        "description": "We will only keep your personal information for as long as it is necessary for the purposes set out in this Privacy Notice, unless a longer retention period is required or permitted by law."
+      },
+      "section8": {
+        "title": "HOW DO WE KEEP YOUR INFORMATION SAFE?",
+        "inShort": "In Short: We aim to protect your personal information through a system of organizational and technical security measures.",
+        "description": "We have implemented appropriate and reasonable technical and organizational security measures designed to protect the security of any personal information we process. However, despite our safeguards and efforts to secure your information, no electronic transmission over the Internet or information storage technology can be guaranteed to be 100% secure."
+      },
+      "section9": {
+        "title": "WHAT ARE YOUR PRIVACY RIGHTS?",
+        "inShort": "In Short: In some regions, you have rights that allow you greater access to and control over your personal information. You may review, change, or terminate your account at any time.",
+        "description": "In some regions (like the EEA, UK, and Switzerland), you have certain rights under applicable data protection laws. These may include the right to request access and obtain a copy of your personal information, to request rectification or erasure, to restrict the processing of your personal information, and to data portability.",
+        "withdrawConsent": {
+          "title": "Withdrawing your consent",
+          "description": "If we are relying on your consent to process your personal information, you have the right to withdraw your consent at any time. You can withdraw your consent at any time by contacting us."
+        },
+        "accountInfo": {
+          "title": "Account Information",
+          "description": "If you would at any time like to review or change the information in your account or terminate your account, you can:",
+          "loginSettings": "Log in to your account settings and update your user account."
+        }
+      },
+      "section10": {
+        "title": "CONTROLS FOR DO-NOT-TRACK FEATURES",
+        "description": "Most web browsers and some mobile operating systems and mobile applications include a Do-Not-Track (DNT) feature or setting you can activate to signal your privacy preference not to have data about your online browsing activities monitored and collected. We do not currently respond to DNT browser signals."
+      },
+      "section11": {
+        "title": "DO WE MAKE UPDATES TO THIS NOTICE?",
+        "inShort": "In Short: Yes, we will update this notice as necessary to stay compliant with relevant laws.",
+        "description": "We may update this Privacy Notice from time to time. The updated version will be indicated by an updated 'Revised' date at the top of this Privacy Notice. If we make material changes to this Privacy Notice, we may notify you either by prominently posting a notice of such changes or by directly sending you a notification."
+      },
+      "section12": {
+        "title": "HOW CAN YOU CONTACT US ABOUT THIS NOTICE?",
+        "description": "If you have questions or comments about this notice, you may contact us by post at:"
+    },
+     "section13": {
+      "title": "HOW CAN YOU REVIEW, UPDATE, OR DELETE THE DATA WE COLLECT FROM YOU?",
+      "description": "Based on the applicable laws of your country, you may have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information. You may also have the right to withdraw your consent to our processing of your personal information."
+    },
+    "footer": "This privacy policy was last updated on May 23, 2025. We reserve the right to update this policy at any time to reflect changes in our practices or applicable law."
   },
   "home": {
+    "loadingRecommendations": "Loading recommendations...",
     "events": {
       "nearYou": "Near you",
       "popular": "Popular",
@@ -251,6 +410,158 @@
     "noUsersFound": "No users found",
     "alreadyFriend": "Already friends",
     "friendRequestSent": "Request sent",
-    "send": "Send Request"
+    "pendingRequest": "Pending",
+    "pending": "pending",
+    "friends": "Friends",
+    "requests": "Requests",
+    "send": "Send Request",
+    "searchHelpText": "Type a name or username to find friends.",
+    "total": "Total",
+    "favoritesOf": "{{name}}'s Favorites",
+    "noFavorites": "No saved events",
+    "noFavoritesDescription": "{{name}} hasn't saved any favorite events yet."
+  },
+  "rooms": {
+    "title": "Rooms",
+    "createRoom": "Create Room",
+    "joinRoom": "Join Room",
+    "enterRoomCode": "Enter room code",
+    "enterRoomCodeDescription": "Enter a room code to join an existing room",
+    "pleaseEnterRoomCode": "Please enter a room code",
+    "roomName": "Room name",
+    "enterRoomName": "Enter room name",
+    "qrCode": "QR Code",
+    "shareQRCode": "Share QR code to join",
+    "scanToJoin": "Scan this QR code to join the room",
+    "roomCode": "Room code",
+    "roomCreated": "Room created successfully!",
+    "roomCreateError": "Error creating room",
+    "shareRoom": "Share room",
+    "scanQRCode": "Scan QR Code",
+    "scanQRCodeDescription": "Scan a QR code to join a room",
+    "cameraPermissionTitle": "Camera Permission",
+    "cameraPermissionMessage": "We need camera access to scan QR codes",
+    "qrScanError": "Error scanning QR code",
+    "invalidQRCode": "Invalid QR code",
+    "roomInformation": "Room Information",
+    "roomId": "Room ID",
+    "youAreHost": "You are the host",
+    "participants": "Participants",
+    "noParticipants": "No other participants yet.",
+    "leaveRoom": "Leave Room",
+    "startMatching": "Start Matching",
+    "waitingForHost": "Waiting for host to start...",
+    "cannotStart": "Cannot Start",
+    "atLeastTwoParticipants": "At least two participants are needed to start matching.",
+    "leaveRoomConfirm": "Are you sure you want to leave this room?",
+    "leave": "Leave",
+    "roomNotFound": "Room not found or unable to join.",
+    "goToRooms": "Go to Rooms",
+    "loadingRoomDetails": "Loading room details...",
+    "roomDetailsNotAvailable": "Room details not available.",
+    "connectionError": "Connection Error",
+    "notConnectedToRoom": "Not connected to room.",
+    "joinARoomTitle": "Join a Room",
+    "createNewRoom": "Create New Room",
+    "minTwoParticipants": "At least two participants are needed to start matching.",
+    "leaveRoomConfirmation": "Are you sure you want to leave this room?",
+    "roomCreationTimedOut": "Room creation timed out.",
+    "failedToCreateRoomConnect": "Failed to create room & connect:",
+    "failedToJoinRoom": "Failed to join room:",
+    "roomJoinTimedOut": "Room join timed out.",
+    "unknownError": "Unknown error",
+    "timeout": "Timeout",
+    "couldNotJoinRoom": "Could not join the room. Please try again.",
+    "failedToJoinRoomGeneric": "Failed to join room. Please try again."
+  },
+  "matching": {
+    "roomError": "Room Error",
+    "leaveRoom": "Leave Room",
+    "leaveRoomConfirmation": "Are you sure you want to leave the matching process?",
+    "cancel": "Cancel",
+    "leave": "Leave",
+    "waitingNextEvent": "Waiting for the next event...",
+    "youCanStartRound": "You can start the round.",
+    "leaveRoomButton": "Leave Room",
+    "timeRemainingToVote": "{{time}}s remaining to vote",
+    "getReadyVotingStarts": "Get ready! Voting starts in {{time}}s",
+    "matchOnEvent": "🎉 Match on {{title}}! 🎉",
+    "votes": "Votes:",
+    "youHaveVoted": "You have voted!",
+    "noMoreEvents": "No more events in this room, or waiting for host.",
+    "leaveRoomButtonFallback": "Leave Room"
+  },
+  "chats": {
+    "title": "Chats",
+    "noChats": "No chat conversations yet",
+    "startChatting": "Join event chats to start conversations",
+    "errorLoadingChats": "Error loading chats",
+    "loading": "Loading chats...",
+    "chatRules": "Chat Rules",
+    "rule1": "Respect all participants",
+    "rule2": "No insults or offensive language",
+    "rule3": "No spam or advertising",
+    "rule4": "Don't share personal information",
+    "rule5": "Keep conversations related to the event",
+    "chatOf": "Chat of",
+    "event": "Event",
+    "writePlaceholder": "Type a message...",
+    "messageHistory": "Message history",
+    "newMessages": "New messages",
+    "connectionEstablished": "Connection established with server.",
+    "connectionError": "Error connecting to server.",
+    "attemptingReconnect": "Attempting to reconnect...",
+    "authTokenNotFound": "Authentication token not found",
+    "enterMessage": "Please enter a message.",
+    "sendMessageError": "Could not send message. Please try again.",
+    "deleteMessageError": "Could not delete message. Connection is closed.",
+    "deleteMessage": "Delete message",
+    "deleteConfirmation": "Are you sure you want to delete this message?",
+    "delete": "Delete"
+  },
+  "termsOfService": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: {{date}}",
+    "intro": {
+      "title": "Welcome to Agendados",
+      "description": "These Terms of Service govern your use of our application. Please read them carefully before using our services."
+    },
+    "section1": {
+      "title": "Acceptance of Terms",
+      "content": "By accessing and using this application, you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to abide by the above, please do not use this service."
+    },
+    "section2": {
+      "title": "Description of Service",
+      "content": "Agendados is a scheduling and appointment management application that allows users to organize their time, set appointments, and manage their calendar efficiently."
+    },
+    "section3": {
+      "title": "User Registration and Account",
+      "content": "To use certain features of our service, you must register for an account. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account."
+    },
+    "section4": {
+      "title": "User Responsibilities",
+      "content": "You agree to use the service only for lawful purposes and in a way that does not infringe the rights of, restrict or inhibit anyone else's use and enjoyment of the service."
+    },
+    "section5": {
+      "title": "Privacy and Data Protection",
+      "content": "Your privacy is important to us. Please review our Privacy Policy, which also governs your use of the service, to understand our practices regarding your personal information."
+    },
+    "section6": {
+      "title": "Modifications to Terms",
+      "content": "We reserve the right to change or modify these terms at any time. Any changes will be effective immediately upon posting. Your continued use of the service after such changes constitutes acceptance of the new terms."
+    },
+    "section7": {
+      "title": "Service Availability",
+      "content": "We strive to provide continuous service availability, but we do not guarantee that the service will be uninterrupted or error-free. We may suspend or terminate the service for maintenance or other reasons."
+    },
+    "section8": {
+      "title": "Limitation of Liability",
+      "content": "The service is provided on an 'AS IS' and 'AS AVAILABLE' basis. We disclaim all warranties and will not be liable for any damages arising from the use of this service, except as required by law."
+    },
+    "section9": {
+      "title": "Contact Information",
+      "content": "If you have any questions about these Terms of Service, please contact us at the following address:"
+    },
+    "footer": "By using Agendados, you acknowledge that you have read and understood these Terms of Service."
   }
 }

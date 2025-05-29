@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -22,6 +23,7 @@ import Animated, {
   useAnimatedGestureHandler,
   interpolate,
 } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Card from '@components/cardEvent';
 import EventDetailModal from '@components/EventDetailModal';
@@ -40,11 +42,14 @@ const Dislike = require('@assets/images/RedColor.png');
 const SWIPE_VELOCITY = 800;
 
 export default function Main() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<EventModal[]>([]);
   const [showWelcome, setShowWelcome] = useState(false);
   const { refreshFavorites } = useFavorites();
+  const panRef = useRef(null);
+  const infoButtonRef = useRef(null);
 
   // Card state
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -209,32 +214,30 @@ export default function Main() {
 
   useEffect(() => {
     const checkWelcome = async () => {
-      await AsyncStorage.removeItem('hasSeenWelcome');
       const hasSeenWelcome = await AsyncStorage.getItem('hasSeenWelcome');
       if (!hasSeenWelcome) {
         setShowWelcome(true);
       }
     };
-
     checkWelcome();
   }, []);
 
   // Show loading screen
   if (loading) {
     return (
-      <View style={styles.pageContainer}>
+      <SafeAreaView style={styles.pageContainer}>
         <ActivityIndicator size='large' color={colors.primary} />
         <Text style={{ marginTop: 20, color: colors.text }}>
-          Loading recommendations...
+          {t('home.loadingRecommendations')}
         </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // Show error screen
   if (error) {
     return (
-      <View style={styles.pageContainer}>
+      <SafeAreaView style={styles.pageContainer}>
         <Text style={{ color: colors.error, marginBottom: 20 }}>{error}</Text>
         <TouchableOpacity
           style={styles.retryButton}
@@ -242,14 +245,14 @@ export default function Main() {
         >
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // No more events to show
   if (currentIndex >= events.length) {
     return (
-      <View style={styles.pageContainer}>
+      <SafeAreaView style={styles.pageContainer}>
         <Text style={{ fontSize: 18, textAlign: 'center', margin: 20 }}>
           No more events to display!
         </Text>
@@ -262,7 +265,7 @@ export default function Main() {
         >
           <Text style={styles.retryButtonText}>Find more events</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -282,7 +285,11 @@ export default function Main() {
         </View>
 
         {/* Current card with swipe gestures */}
-        <PanGestureHandler onGestureEvent={gestureHandler}>
+        <PanGestureHandler
+          ref={panRef}
+          onGestureEvent={gestureHandler}
+          waitFor={infoButtonRef}
+        >
           <Animated.View style={[styles.animatedCard, cardStyle]}>
             <Animated.Image
               source={Like}
@@ -297,6 +304,8 @@ export default function Main() {
             <Card
               event={currentEvent}
               onInfoPress={() => handleInfoButtonPress(currentEvent)}
+              simultaneousHandlers={panRef}
+              infoButtonRef={infoButtonRef}
             />
           </Animated.View>
         </PanGestureHandler>
@@ -310,7 +319,13 @@ export default function Main() {
           }}
         />
       </View>
-      <Welcome visible={showWelcome} onClose={() => setShowWelcome(false)} />
+      <Welcome
+        visible={showWelcome}
+        onClose={async () => {
+          setShowWelcome(false);
+          await AsyncStorage.setItem('hasSeenWelcome', 'true');
+        }}
+      />
     </GestureHandlerRootView>
   );
 }

@@ -4,8 +4,6 @@ import { StyleSheet } from 'react-native';
 import { colors } from '@styles/globalStyles';
 
 export const styles = StyleSheet.create({
-  // Ejemplo de estilos para el carrusel (ajusta según tu línea gráfica)
-  // Añade estos estilos a tu archivo styles/Explore.js
   clusteringIndicator: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderColor: colors.primary,
@@ -16,6 +14,25 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     right: 10,
     top: 10,
+  },
+  myLocationButton: {
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 28,
+    bottom: 100,
+    elevation: 4,
+    height: 56,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    width: 56,
+  },
+  myLocationButtonActive: {
+    backgroundColor: '#4285F4',
   },
   searchButton: {
     marginLeft: 5,
@@ -251,6 +268,54 @@ export const styles = StyleSheet.create({
     marginBottom: 4,
     flexDirection: 'row',
   },
+  cluster: {
+    alignItems: 'center',
+    backgroundColor: '#4285F4',
+    borderRadius: 18,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  clusterText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  legendColor: {
+    borderRadius: 4,
+    height: 20,
+    marginRight: 10,
+    width: 20,
+  },
+  legendColumn: {
+    flex: 1,
+  },
+  legendContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  legendHeader: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    flexDirection: 'row',
+  },
+  legendItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: 1,
+  },
+  legendText: {
+    color: '#333',
+    fontSize: 10,
+  },
+  legendTitle: {
+    color: '#333',
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
+  },
   eventCardTimeText: {
     color: '#666',
     fontSize: 12,
@@ -270,9 +335,9 @@ export const styles = StyleSheet.create({
     marginTop: 5,
   },
   eventImage: {
-    width: '100%', // Cambia el ancho a 100%
-    height: 100, // Mantiene la altura original
-    borderRadius: 8, // Conserva el radio de los bordes
+    width: '100%',
+    height: 100,
+    borderRadius: 8,
   },
   eventModalCard: {
     backgroundColor: 'white',
@@ -435,30 +500,42 @@ export const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    top: 160,
+    top: 190,
     width: 56,
     zIndex: 1,
   },
-  nearbyEventsContainer: {
-    bottom: 80,
-    left: 0,
-    paddingHorizontal: 20,
-    position: 'absolute',
-    right: 0,
-    zIndex: 10,
-  },
-  nearbyEventsScrollContainer: {
-    paddingBottom: 10,
-  },
-  noResultsContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  emissionsButton: {
     alignItems: 'center',
-    paddingVertical: 30,
+    backgroundColor: 'white',
+    borderRadius: 28,
+    elevation: 4,
+    height: 56,
+    justifyContent: 'center',
+    position: 'absolute',
+    left: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    top: 190,
+    width: 56,
+    zIndex: 1,
   },
-  noResultsText: {
-    color: '#666',
-    fontSize: 16,
+  airQualityLegend: {
+    position: 'absolute',
+    bottom: 80,
+    alignSelf: 'center',
+    left: '50%',
+    marginLeft: -140,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 10,
+    borderRadius: 8,
+    width: 280,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   populationDropdownButton: {
     alignItems: 'center',
@@ -501,7 +578,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   populationList: {
-    flex: 1, // Ocupará el espacio restante después del encabezado y la barra de búsqueda
+    flex: 1,
     marginTop: 10,
   },
   populationListItem: {
@@ -583,5 +660,36 @@ export const styles = StyleSheet.create({
   },
   simpleDatePickerContainer: {
     marginVertical: 10,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

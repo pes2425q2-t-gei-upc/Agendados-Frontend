@@ -62,6 +62,7 @@ export const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'flex-end',
     overflow: 'hidden',
+    position: 'relative',
     width: '100%',
   },
 

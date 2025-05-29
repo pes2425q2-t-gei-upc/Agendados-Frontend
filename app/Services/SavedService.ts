@@ -50,8 +50,36 @@ export class SavedService {
     }
   }
 
-  // Actualiza los otros métodos de manera similar...
-  public static async addFavorite(eventId: number): Promise<any> {
+  /**
+   * Retrieves all favorite events for a specific user
+   * @param userId The ID of the user whose favorites to retrieve
+   * @returns Promise with array of Events
+   */
+  public static async getUserFavorites(userId: number): Promise<Event[]> {
+    try {
+      const token = await this.getAuthToken();
+      const response = await fetch(
+        `${this.baseUrl}/events/user/${userId}/favorites`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Token ${token}`,
+            accept: 'application/json',
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch user favorites: ${response.status}`);
+      }
+      const data: EventDTO[] = await response.json();
+      return data.map((eventDto) => new Event(eventDto));
+    } catch (error) {
+      console.error('Error fetching user favorites:', error);
+      throw error;
+    }
+  }
+
+  public static async addFavorite(eventId: number): Promise<boolean> {
     try {
       const token = await this.getAuthToken();
       const response = await fetch(
@@ -74,7 +102,7 @@ export class SavedService {
     }
   }
 
-  public static async removeFavorite(eventId: number): Promise<any> {
+  public static async removeFavorite(eventId: number): Promise<boolean> {
     try {
       const token = await this.getAuthToken();
       const response = await fetch(

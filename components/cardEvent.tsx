@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Text,
   ImageBackground,
@@ -7,24 +7,28 @@ import {
   TouchableOpacity,
   GestureResponderEvent,
 } from 'react-native';
+import { TapGestureHandler } from 'react-native-gesture-handler';
 import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
 
 import { Event as EventModel } from '@models/Event';
 import { styles } from '@styles/mainPageStyles';
 
-const Card = (props: {
+export default function Card({
+  event,
+  onInfoPress,
+  simultaneousHandlers,
+  infoButtonRef,
+}: {
   event: EventModel;
   onInfoPress: ((event: GestureResponderEvent) => void) | undefined;
-}) => {
-  const event = props.event;
+  simultaneousHandlers?: any; // Añade esta prop para pasar el handler del swipe
+  infoButtonRef: React.RefObject<any>;
+}) {
   const name = event.title;
   const image = event.images[0]
     ? { uri: event.images[0].image_url }
     : require('../assets/images/agendadosbg.png');
-  const place =
-    typeof event.location?.town === 'string'
-      ? event.location.town
-      : 'Unknown Place';
+  const place = event.location?.town.name ?? 'Unknown Place';
   const cat = event.categories?.[0]?.name || 'Unknown Category';
   const date = event.date_ini
     ? new Date(event.date_ini).toLocaleDateString('es', {
@@ -62,20 +66,27 @@ const Card = (props: {
             <Ionicons name='location-outline' size={18} color='#fff' />
             <Text style={styles.tagText}>{place}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.infoButton}
-            onPress={props.onInfoPress}
-          >
-            <Ionicons
-              name='information-circle-outline'
-              size={30}
-              color='white'
-            />
-          </TouchableOpacity>
+          <View pointerEvents='box-none'>
+            <TapGestureHandler
+              ref={infoButtonRef}
+              onActivated={onInfoPress}
+              simultaneousHandlers={simultaneousHandlers}
+            >
+              <TouchableOpacity
+                style={styles.infoButton}
+                onPress={onInfoPress}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name='information-circle-outline'
+                  size={30}
+                  color='white'
+                />
+              </TouchableOpacity>
+            </TapGestureHandler>
+          </View>
         </View>
       </ImageBackground>
     </View>
   );
-};
-
-export default Card;
+}

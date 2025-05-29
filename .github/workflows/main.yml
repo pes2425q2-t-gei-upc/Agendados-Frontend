@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20.18.1'
           cache: 'yarn'
       - name: Install dependencies
         run: yarn install
@@ -27,7 +27,7 @@ jobs:
       - name: Type check
         run: yarn run type-check || echo "Type check skipped"
       - name: Lint code
-        run: yarn run lint
+        run: yarn eslint app --ext .js,.ts,.tsx
       - name: Run tests
         run: yarn test -- --watchAll=false --ci
         timeout-minutes: 5

@@ -18,15 +18,11 @@ const EventCard = ({ event }: EventCardProps) => {
   const imageSource =
     event.images && event.images.length > 0
       ? { uri: event.images[0].image_url }
-      : require('@assets/images/FotoJazz.jpg');
+      : require('@assets/images/Icono.png');
 
   const formatTimeRange = () => {
     const startDate = new Date(event.date_ini);
     const endDate = new Date(event.date_end);
-    const timeOptions: Intl.DateTimeFormatOptions = {
-      hour: '2-digit',
-      minute: '2-digit',
-    };
     const dateOptions: Intl.DateTimeFormatOptions = {
       day: '2-digit',
       month: '2-digit',
@@ -36,7 +32,7 @@ const EventCard = ({ event }: EventCardProps) => {
     if (startDate.toDateString() !== endDate.toDateString()) {
       return `${startDate.toLocaleDateString('es-ES', dateOptions)} - ${endDate.toLocaleDateString('es-ES', dateOptions)}`;
     }
-    return `${startDate.toLocaleTimeString('es-ES', timeOptions)} - ${endDate.toLocaleTimeString('es-ES', timeOptions)}`;
+    return `${startDate.toLocaleDateString('es-ES', dateOptions)}`;
   };
 
   const handleShare = async () => {
@@ -84,7 +80,7 @@ const EventCard = ({ event }: EventCardProps) => {
               source={imageSource}
               style={styles.eventImage}
               progressiveRenderingEnabled={true}
-              defaultSource={require('@assets/images/FotoJazz.jpg')}
+              defaultSource={require('@assets/images/Icono.png')}
             />
           </View>
           <View style={styles.contentContainer}>

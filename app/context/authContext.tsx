@@ -12,6 +12,8 @@ import {
   getUserInfo,
   removeUserToken,
   changePassword as apiChangePassword,
+  storeUserToken, // En lugar de saveUserToken
+  storeUserInfo,
 } from '../Services/AuthService';
 
 // Definir tipos de usuario
@@ -20,6 +22,7 @@ interface UserInfo {
   username?: string;
   name?: string;
   email?: string;
+  profile_image?: string;
   avatar?: string;
   createdAt?: string;
   [key: string]: any;
@@ -33,6 +36,7 @@ interface AuthContextType {
   login: (token: string, userInfo?: UserInfo) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
+  updateUserProfile: (data: Partial<UserInfo>) => Promise<boolean>;
   changePassword: (
     currentPassword: string,
     newPassword: string
@@ -48,6 +52,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   logout: async () => {},
   loading: true,
+  updateUserProfile: async () => false,
   changePassword: async () => false,
   getToken: () => null,
   getUsername: () => null,
@@ -65,13 +70,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const loadToken = async () => {
       try {
+        console.log('🔍 Checking for stored token...');
         const token = await getUserToken();
         const user = await getUserInfo();
+
+        console.log('🔍 Token found:', !!token);
+        console.log('🔍 User found:', !!user);
 
         if (token) {
           setUserToken(token);
           setUserInfo(user);
           setIsAuthenticated(true);
+          console.log('✅ User authenticated from storage');
+        } else {
+          console.log('❌ No token found in storage');
         }
       } catch (error) {
         console.error('Error loading auth state:', error);
@@ -84,11 +96,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (token: string, user?: UserInfo) => {
-    setUserToken(token);
-    if (user) {
-      setUserInfo(user);
+    try {
+      // Usa las funciones originales que tienen las claves correctas
+      await storeUserToken(token);
+      if (user) {
+        await storeUserInfo(user);
+      }
+
+      // Actualizar estado local
+      setUserToken(token);
+      setUserInfo(user ?? null);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Error saving auth data:', error);
+      throw error;
     }
-    setIsAuthenticated(true);
   };
 
   const logout = async () => {
@@ -130,6 +152,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateUserProfile = async (
+    data: Partial<UserInfo>
+  ): Promise<boolean> => {
+    if (!userToken) {
+      console.error('updateUserProfile: No user token available');
+      return false;
+    }
+    if (!userInfo) {
+      console.error('updateUserProfile: No user info available');
+      return false;
+    }
+
+    setLoading(true);
+    try {
+      // Normalizar los datos: si viene avatar o profile_image, asegurarse de que ambos estén sincronizados
+      const normalizedData = { ...data };
+
+      if (data.avatar && !data.profile_image) {
+        normalizedData.profile_image = data.avatar;
+      } else if (data.profile_image && !data.avatar) {
+        normalizedData.avatar = data.profile_image;
+      }
+
+      // Fusionar con la información existente
+      const newUserInfo = { ...userInfo, ...normalizedData };
+
+      // Asegurarse de que ambos campos estén sincronizados
+      if (newUserInfo.profile_image) {
+        newUserInfo.avatar = newUserInfo.profile_image;
+      } else if (newUserInfo.avatar) {
+        newUserInfo.profile_image = newUserInfo.avatar;
+      }
+
+      setUserInfo(newUserInfo);
+      await storeUserInfo(newUserInfo);
+      console.log('✅ User profile updated locally');
+
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
+
+      return true;
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getToken = (): string | null => {
     return userToken;
   };
@@ -147,6 +217,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         logout,
         loading,
+        updateUserProfile,
         changePassword,
         getToken,
         getUsername,

@@ -15,15 +15,31 @@
     "search": "Cercar",
     "of": "de",
     "success": "Èxit",
-    "retry": "Tornar-ho a provar"
-
+    "retry": "Tornar-ho a provar",
+    "grantPermission": "Atorgar permís",
+    "accept": "Acceptar"
   },
+"emissions": {
+  "title": "Mode Emissions",
+  "noEvents": "No s'han trobat esdeveniments",
+  "noEventsWithLocation": "No hi ha esdeveniments amb dades de localització per mostrar la informació de la qualitat de l'aire.",
+  "errorFetchingData": "S'ha produït un error en obtenir les dades de qualitat de l'aire. Torna-ho a intentar.",
+  "legend": "Llegenda de Qualitat de l'Aire",
+  "good": "Bona (0-700)",
+  "moderate": "Moderada (701-800)",
+  "poor": "Dolenta (801-1100)",
+  "unhealthy": "Nociva per a la salut (1101-1500)",
+  "veryUnhealthy": "Molt nociva per a la salut (1501-2000)",
+  "hazardous": "Perillosa (2001-3000)",
+  "extreme": "Extrema (3001+)"
+},
   "navigation": {
     "home": "Inici",
     "explore": "Explorar",
     "saved": "Desats",
     "profile": "Perfil",
-    "settings": "Configuració"
+    "settings": "Configuració",
+    "chats": "Xats"
   },
   "auth": {
     "login": "Iniciar Sessió",
@@ -40,11 +56,20 @@
     "invalidEmail": "Si us plau, introdueix un email vàlid",
     "passwordLength": "La contrasenya ha de tenir almenys 6 caràcters",
     "loginError": "Error a l'iniciar sessió. Torna-ho a provar.",
+    "usernameRequired": "El nom d'usuari és obligatori.",
+    "passwordRequired": "La contrasenya és obligatòria.",
     "registerError": "Error al registrar usuari. Torna-ho a provar.",
     "noAccount": "No tens compte?",
     "registerNow": "Registra't ara",
     "haveAccount": "Ja tens compte?",
-    "loginNow": "Inicia sessió ara"
+    "loginNow": "Inicia sessió ara",
+    "orContinueWith": "o continua amb",
+    "userNotFound": "Usuario o contraseña incorrectos",
+    "invalidCredentials": "Credenciales inválidas",
+    "accountBlocked": "Cuenta bloqueada o sin permisos",
+    "serverError": "Error del servidor. Inténtalo más tarde",
+    "userExists": "El usuario o email ya existe",
+    "badRequest": "Datos inválidos. Verifica la información"
   },
   "explore": {
     "search": {
@@ -94,7 +119,15 @@
     "from": "Des de",
     "to": "Fins a",
     "chat": "Xat",
-    "openChat": "Obrir Xat"
+    "openChat": "Obrir Xat",
+    "report": "Denunciar Esdeveniment",
+    "reportContent": "Denunciar Contingut",
+    "reportTitle": "Denunciar Esdeveniment",
+    "reportConfirm": "Estàs segur que vols denunciar aquest esdeveniment?",
+    "reportSuccess": "Denúncia Enviada",
+    "reportThankYou": "Gràcies pel teu comentari. Revisarem el contingut.",
+    "reportError": "S'ha produït un error en denunciar l'esdeveniment. Torna-ho a intentar.",
+    "reportedSuccess": "Denunciat"
   },
   "saved": {
     "title": "Esdeveniments desats",
@@ -132,7 +165,8 @@
     "preferences": "Preferències",
     "personalInfo": "Informació personal",
     "profile": "Perfil",
-    "joinedOn": "Membre des de {{date}}",
+    "profilePhotoUpdated": "¡Foto de perfil actualizada correctament!",
+    "joinedOn": "Membre des de maig de 2025",
     "savedEvents": "Desats",
     "attendedEvents": "Assistits",
     "favoriteCategories": "Categories Preferides",
@@ -197,9 +231,140 @@
     "pushNotifications": "Notificacions Push",
     "emailNotifications": "Notificacions per Correu",
     "termsOfService": "Termes de Servei",
-    "privacyPolicy": "Política de Privacitat"
+    "privacyPolicy": "Política de Privacitat",
+    "profilePhotoUpdated": "¡Foto de perfil actualizada correctamente!"
+  },
+  "privacyPolicy": {
+    "title": "POLÍTICA DE PRIVACITAT",
+    "lastUpdated": "Darrera actualització {{date}}",
+    "summaryTitle": "RESUM DELS PUNTS CLAU",
+    "summaryIntro": "Aquest resum proporciona els punts clau del nostre Avís de Privacitat, però pots trobar més detalls sobre qualsevol d'aquests temes utilitzant la nostra taula de continguts a continuació per trobar la secció que busques.",
+    "tableOfContents": "TAULA DE CONTINGUTS",
+    "toc": {
+      "informationCollect": "QUINA INFORMACIÓ RECOPILEM?",
+      "processInformation": "COM PROCESSEM LA TEVA INFORMACIÓ?",
+      "legalBases": "EN QUINES BASES LEGALS ENS BASAM PER PROCESSAR LA TEVA INFORMACIÓ PERSONAL?",
+      "shareInformation": "QUAN I AMB QUI COMPARTIM LA TEVA INFORMACIÓ PERSONAL?",
+      "cookiesTracking": "UTILITZEM COOKIES O ALTRES TECNOLOGIES DE SEGUIMENT?",
+      "socialLogins": "COM GESTIONEM ELS TEUS INICIS DE SESSIÓ SOCIALS?",
+      "keepInformation": "DURANT QUANT TEMPS CONSERVEM LA TEVA INFORMACIÓ?",
+      "informationSafe": "COM MANTENIM LA TEVA INFORMACIÓ SEGURA?",
+      "privacyRights": "QUINS SÓN ELS TEUS DRETS DE PRIVACITAT?",
+      "doNotTrack": "CONTROLS PER A FUNCIONS DE NO-SEGUIMENT",
+      "updates": "FEM ACTUALITZACIONS D'AQUEST AVÍS?",
+      "contact": "COM POTS CONTACTAR AMB NOSALTRES SOBRE AQUEST AVÍS?",
+      "reviewData": "COM POTS REVISAR, ACTUALITZAR O ELIMINAR LES DADES QUE RECOPILEM DE TU?"
+    },
+    "section1": {
+      "title": "QUINA INFORMACIÓ RECOPILEM?",
+      "personalInfo": {
+        "title": "Informació personal que ens facilites",
+        "inShort": "En resum: Recopilem la informació personal que ens facilites.",
+        "description": "Recopilem informació personal que ens facilites voluntàriament quan et registres als Serveis, expresses interès a obtenir informació sobre nosaltres o els nostres productes i serveis, participes en activitats als Serveis o d'una altra manera ens contactes.",
+        "provided": "Informació personal facilitada per tu",
+        "providedDescription": "La informació personal que recopilem depèn del context de les teves interaccions amb nosaltres i els Serveis, les opcions que fas i els productes i funcions que utilitzes. La informació personal que recopilem pot incloure el següent:",
+        "phoneNumbers": "números de telèfon",
+        "names": "noms",
+        "emails": "adreces electròniques",
+        "addresses": "adreces postals",
+        "usernames": "noms d'usuari",
+        "authData": "dades de contacte o autenticació",
+        "preferences": "preferències de contacte"
+      },
+      "sensitiveInfo": {
+        "title": "Informació sensible",
+        "description": "No processem informació sensible."
+      },
+      "socialMedia": {
+        "title": "Dades d'inici de sessió de xarxes socials",
+        "description": "Et podem oferir l'opció de registrar-te amb nosaltres utilitzant les dades del teu compte de xarxes socials existents, com Facebook, X o altres. Si tries registrar-te així, recopilarem certa informació de perfil sobre tu del proveïdor de la xarxa social."
+      },
+      "appData": {
+        "title": "Dades de l'aplicació",
+        "description": "Si utilitzes la/les nostra/es aplicació/ns, també podem recopilar la següent informació si decideixes donar-nos accés o permís:",
+        "geolocation": "Informació de geolocalització. Podem sol·licitar accés o permís per rastrejar informació basada en la ubicació des del teu dispositiu mòbil per proporcionar certs serveis basats en la ubicació.",
+        "deviceAccess": "Accés al dispositiu mòbil. Podem sol·licitar accés o permís a certes funcions del teu dispositiu mòbil, inclòs el calendari, la càmera, l'emmagatzematge i altres funcions.",
+        "pushNotifications": "Notificacions push. Podem sol·licitar enviar-te notificacions push sobre el teu compte o certes funcions de la/es aplicació/ns."
+      }
+    },
+    "section2": {
+      "title": "COM PROCESSEM LA TEVA INFORMACIÓ?",
+      "inShort": "En resum: Processem la teva informació per proporcionar, millorar i administrar els nostres Serveis, comunicar-nos amb tu, per seguretat i prevenció de frau, i per complir amb la llei.",
+      "description": "Processem la teva informació personal per diverses raons, depenent de com interactues amb els nostres Serveis, incloent:",
+      "accountCreation": "Facilitar la creació de comptes i l'autenticació i, en general, gestionar els comptes d'usuari. Podem processar la teva informació perquè puguis crear i iniciar sessió al teu compte, així com mantenir el teu compte en funcionament.",
+      "vitalInterests": "Salvar o protegir un interès vital d'una persona. Podem processar la teva informació quan sigui necessari per salvar o protegir un interès vital, com prevenir danys."
+    },
+    "section3": {
+      "title": "EN QUINES BASES LEGALS ENS BASAM PER PROCESSAR LA TEVA INFORMACIÓ?",
+      "inShort": "En resum: Només processem la teva informació personal quan creiem que és necessari i tenim una raó legal vàlida per fer-ho segons la llei aplicable.",
+      "description": "El Reglament General de Protecció de Dades (RGPD) i el RGPD del Regne Unit requereixen que expliquem les bases legals vàlides en què ens basem per processar la teva informació personal. Per tant, podem basar-nos en les següents bases legals per processar la teva informació personal:",
+      "consent": "Consentiment. Podem processar la teva informació si ens has donat permís per utilitzar la teva informació personal per a una finalitat específica. Pots retirar el teu consentiment en qualsevol moment.",
+      "legalObligations": "Obligacions legals. Podem processar la teva informació quan creiem que és necessari per complir amb les nostres obligacions legals.",
+      "vitalInterests": "Interessos vitals. Podem processar la teva informació quan creiem que és necessari per protegir els teus interessos vitals o els d'un tercer."
+    },
+    "section4": {
+      "title": "QUAN I AMB QUI COMPARTIM LA TEVA INFORMACIÓ PERSONAL?",
+      "inShort": "En resum: Podem compartir informació en situacions específiques descrites en aquesta secció i/o amb tercers específics.",
+      "description": "Podem necessitar compartir la teva informació personal en les següents situacions:",
+      "businessTransfers": "Transferències comercials. Podem compartir o transferir la teva informació en relació amb, o durant negociacions de, qualsevol fusió, venda d'actius de l'empresa, finançament o adquisició de tot o part del nostre negoci per una altra empresa.",
+      "googleMaps": "Quan utilitzem les APIs de Google Maps Platform. Podem compartir la teva informació amb certes APIs de Google Maps Platform per proporcionar serveis basats en la ubicació."
+    },
+    "section5": {
+      "title": "UTILITZEM COOKIES O ALTRES TECNOLOGIES DE SEGUIMENT?",
+      "inShort": "En resum: Podem utilitzar cookies i altres tecnologies de seguiment per recopilar i emmagatzemar la teva informació.",
+      "description": "Podem utilitzar cookies i tecnologies de seguiment similars per recopilar informació quan interactues amb els nostres Serveis. Algunes tecnologies de seguiment en línia ens ajuden a mantenir la seguretat dels nostres Serveis i del teu compte, prevenir errors, corregir fallades, desar les teves preferències i ajudar amb funcions bàsiques del lloc."
+    },
+    "section6": {
+      "title": "COM GESTIONEM ELS TEUS INICIS DE SESSIÓ SOCIALS?",
+      "inShort": "En resum: Si tries registrar-te o iniciar sessió als nostres Serveis utilitzant un compte de xarxa social, podem tenir accés a certa informació sobre tu.",
+      "description": "Els nostres Serveis t'ofereixen la possibilitat de registrar-te i iniciar sessió utilitzant les dades del teu compte de xarxa social de tercers. Quan tries fer-ho, rebrem certa informació de perfil sobre tu del teu proveïdor de xarxa social."
+    },
+    "section7": {
+      "title": "DURANT QUANT TEMPS CONSERVEM LA TEVA INFORMACIÓ?",
+      "inShort": "En resum: Conservem la teva informació durant el temps que sigui necessari per complir amb les finalitats descrites en aquest Avís de Privacitat, llevat que la llei exigeixi el contrari.",
+      "description": "Només conservarem la teva informació personal durant el temps que sigui necessari per a les finalitats establertes en aquest Avís de Privacitat, llevat que la llei exigeixi o permeti un període de retenció més llarg."
+    },
+    "section8": {
+      "title": "COM MANTENIM LA TEVA INFORMACIÓ SEGURA?",
+      "inShort": "En resum: El nostre objectiu és protegir la teva informació personal mitjançant un sistema de mesures de seguretat organitzatives i tècniques.",
+      "description": "Hem implementat mesures de seguretat tècniques i organitzatives apropiades i raonables dissenyades per protegir la seguretat de qualsevol informació personal que processem. Tot i això, malgrat les nostres garanties i esforços per protegir la teva informació, cap transmissió electrònica per Internet o tecnologia d'emmagatzematge d'informació pot garantir-se com 100% segura."
+    },
+    "section9": {
+      "title": "QUINS SÓN ELS TEUS DRETS DE PRIVACITAT?",
+      "inShort": "En resum: En algunes regions, tens drets que et permeten un major accés i control sobre la teva informació personal. Pots revisar, canviar o eliminar el teu compte en qualsevol moment.",
+      "description": "En algunes regions (com l'EEE, el Regne Unit i Suïssa), tens certs drets segons les lleis de protecció de dades aplicables. Aquests poden incloure el dret a sol·licitar accés i obtenir una còpia de la teva informació personal, sol·licitar la rectificació o eliminació, restringir el processament de la teva informació personal i la portabilitat de dades.",
+      "withdrawConsent": {
+        "title": "Retirar el teu consentiment",
+        "description": "Si depenem del teu consentiment per processar la teva informació personal, tens dret a retirar el teu consentiment en qualsevol moment. Pots retirar-lo en qualsevol moment contactant-nos."
+      },
+      "accountInfo": {
+        "title": "Informació del compte",
+        "description": "Si en qualsevol moment vols revisar o canviar la informació del teu compte o acabar el teu compte, pots:",
+        "loginSettings": "Iniciar sessió a la configuració del teu compte i actualitzar el teu compte d'usuari."
+      }
+    },
+    "section10": {
+      "title": "CONTROLS PER A FUNCIONS DE NO-SEGUIMENT",
+      "description": "La majoria dels navegadors web i alguns sistemes operatius i aplicacions mòbils inclouen una funció o configuració de No-seguiment (DNT) que pots activar per indicar la teva preferència de privacitat de no tenir dades sobre les teves activitats de navegació en línia monitoritzades i recopilades. Actualment no responem als senyals DNT del navegador."
+    },
+    "section11": {
+      "title": "FEM ACTUALITZACIONS D'AQUEST AVÍS?",
+      "inShort": "En resum: Sí, actualitzarem aquest avís segons sigui necessari per complir amb les lleis rellevants.",
+      "description": "Podem actualitzar aquest Avís de Privacitat de tant en tant. La versió actualitzada s'indicarà mitjançant una data 'Revisada' a la part superior d'aquest Avís de Privacitat. Si fem canvis materials a aquest Avís de Privacitat, podem notificar-t'ho ja sigui publicant prominentment un avís d'aquests canvis o enviant-te una notificació directament."
+    },
+    "section12": {
+      "title": "COM POTS CONTACTAR AMB NOSALTRES SOBRE AQUEST AVÍS?",
+      "description": "Si tens preguntes o comentaris sobre aquest avís, pots contactar amb nosaltres per correu postal a:"
+    },
+    "section13": {
+      "title": "COM POTS REVISAR, ACTUALITZAR O ELIMINAR LES DADES QUE RECOPILEM DE TU?",
+      "description": "Segons les lleis aplicables del teu país, pots tenir dret a sol·licitar accés a la informació personal que recopilem de tu, detalls sobre com l'hem processada, corregir inexactituds o eliminar la teva informació personal. També pots tenir dret a retirar el teu consentiment perquè processem la teva informació personal."
+    },
+    "footer": "Aquesta política de privacitat es va actualitzar per darrera vegada el 23 de maig de 2025. Ens reservem el dret d'actualitzar aquesta política en qualsevol moment per reflectir canvis en les nostres pràctiques o en la llei aplicable."
+  
   },
   "home": {
+    "loadingRecommendations": "Carregant recomanacions...",
     "events": {
       "nearYou": "A prop teu",
       "popular": "Populars",
@@ -247,6 +412,157 @@
   "noUsersFound": "No s'han trobat usuaris",
   "alreadyFriend": "Ja sou amics",
   "friendRequestSent": "Sol·licitud enviada",
-  "send": "Enviar Sol·licitud"
-}
+  "pending": "Pendents",
+  "friends": "Amics",
+  "requests": "Sol·licituds",
+  "send": "Enviar Sol·licitud",
+  "searchHelpText": "Escriu un nom o usuari per cercar amics.",
+    "total": "Total",
+    "favoritesOf": "Favorits de {{name}}",
+    "noFavorites": "Sense esdeveniments desats",
+    "noFavoritesDescription": "{{name}} encara no ha desat cap esdeveniment com a favorit."
+  },
+  "rooms": {
+    "title": "Sales",
+    "createRoom": "Crear Sala",
+    "joinRoom": "Unir-se a Sala",
+    "enterRoomCode": "Introdueix el codi de la sala",
+    "enterRoomCodeDescription": "Introdueix un codi de sala per unir-te a una sala existent",
+    "pleaseEnterRoomCode": "Si us plau introdueix un codi de sala",
+    "roomName": "Nom de la sala",
+    "enterRoomName": "Introdueix el nom de la sala",
+    "qrCode": "Codi QR",
+    "shareQRCode": "Compartir codi QR per unir-se",
+    "scanToJoin": "Escaneja aquest codi QR per unir-te a la sala",
+    "roomCode": "Codi de la sala",
+    "roomCreated": "Sala creada amb èxit!",
+    "roomCreateError": "Error al crear la sala",
+    "shareRoom": "Compartir sala",
+    "scanQRCode": "Escanejar Codi QR",
+    "scanQRCodeDescription": "Escaneja un codi QR per unir-te a una sala",
+    "cameraPermissionTitle": "Permís de Càmera",
+    "cameraPermissionMessage": "Necessitem accés a la càmera per escanejar codis QR",
+    "qrScanError": "Error en escanejar codi QR",
+    "invalidQRCode": "Codi QR invàlid",
+    "roomInformation": "Informació de la sala",
+    "roomId": "ID de la sala",
+    "youAreHost": "Ets l'amfitrió",
+    "participants": "Participants",
+    "noParticipants": "Encara no hi ha altres participants.",
+    "leaveRoom": "Sortir de la sala",
+    "startMatching": "Iniciar emparellament",
+    "waitingForHost": "Esperant que l'amfitrió iniciï...",
+    "cannotStart": "No es pot iniciar",
+    "atLeastTwoParticipants": "Es necessiten almenys dos participants per iniciar l'emparellament.",
+    "leaveRoomConfirm": "Estàs segur que vols sortir d'aquesta sala?",
+    "leave": "Sortir",
+    "roomNotFound": "Sala no trobada o no s'ha pogut unir.",
+    "goToRooms": "Anar a Sales",
+    "loadingRoomDetails": "Carregant detalls de la sala...",
+    "roomDetailsNotAvailable": "Detalls de la sala no disponibles.",
+    "connectionError": "Error de connexió",
+    "notConnectedToRoom": "No connectat a la sala.",
+    "joinARoomTitle": "Unir-se a una Sala",
+    "createNewRoom": "Crear Nova Sala",
+    "minTwoParticipants": "Es necessiten almenys dos participants per iniciar l'emparellament.",
+    "leaveRoomConfirmation": "Estàs segur que vols sortir d'aquesta sala?",
+    "roomCreationTimedOut": "S'ha esgotat el temps per crear la sala.",
+    "failedToCreateRoomConnect": "Error en crear sala i connectar:",
+    "failedToJoinRoom": "Error en unir-se a la sala:",
+    "roomJoinTimedOut": "S'ha esgotat el temps per unir-se a la sala.",
+    "unknownError": "Error desconegut",
+    "timeout": "Temps esgotat",
+    "couldNotJoinRoom": "No s'ha pogut unir a la sala. Si us plau torna-ho a intentar.",
+    "failedToJoinRoomGeneric": "Error en unir-se a la sala. Si us plau torna-ho a intentar."
+  },
+  "matching": {
+    "roomError": "Error de Sala",
+    "leaveRoom": "Sortir de la Sala",
+    "leaveRoomConfirmation": "Estàs segur que vols sortir del procés d'emparellament?",
+    "cancel": "Cancel·lar",
+    "leave": "Sortir",
+    "waitingNextEvent": "Esperant el proper esdeveniment...",
+    "youCanStartRound": "Pots iniciar la ronda.",
+    "leaveRoomButton": "Sortir de la Sala",
+    "timeRemainingToVote": "{{time}}s restants per votar",
+    "getReadyVotingStarts": "Prepara't! La votació comença en {{time}}s",
+    "matchOnEvent": "🎉 Coincidència en {{title}}! 🎉",
+    "votes": "Vots:",
+    "youHaveVoted": "Has votat!",
+    "noMoreEvents": "No hi ha més esdeveniments en aquesta sala, o esperant l'amfitrió.",
+    "leaveRoomButtonFallback": "Sortir de la Sala"
+  },
+  "chats": {
+    "title": "Xats",
+    "noChats": "Encara no hi ha converses de xat",
+    "startChatting": "Uneix-te a xats d'esdeveniments per començar converses",
+    "errorLoadingChats": "Error en carregar els xats",
+    "loading": "Carregant xats...",
+    "chatRules": "Normes del Xat",
+    "rule1": "Respecta tots els participants",
+    "rule2": "No insultis ni usis llenguatge ofensiu",
+    "rule3": "No facis spam ni publicitat",
+    "rule4": "No comparteixis informació personal",
+    "rule5": "Mantén les converses relacionades amb l'esdeveniment",
+    "chatOf": "Xat de",
+    "event": "Esdeveniment",
+    "writePlaceholder": "Escriu un missatge...",
+    "messageHistory": "Historial de missatges",
+    "newMessages": "Nous missatges",
+    "connectionEstablished": "Connexió establerta amb el servidor.",
+    "connectionError": "Error en intentar connectar amb el servidor.",
+    "attemptingReconnect": "Intentant reconnectar...",
+    "authTokenNotFound": "Token d'autenticació no trobat",
+    "enterMessage": "Si us plau, introdueix un missatge.",
+    "sendMessageError": "No s'ha pogut enviar el missatge. Si us plau, torna-ho a intentar.",
+    "deleteMessageError": "No s'ha pogut eliminar el missatge. La connexió està tancada.",
+    "deleteMessage": "Eliminar missatge",
+    "deleteConfirmation": "Estàs segur que vols eliminar aquest missatge?",
+    "delete": "Eliminar"
+  },
+  "termsOfService": {
+    "title": "Termes del Servei",
+    "lastUpdated": "Darrera actualització: {{date}}",
+    "intro": {
+      "title": "Benvingut a Agendados",
+      "description": "Aquests Termes del Servei regulen l'ús de la nostra aplicació. Si us plau, llegeix-los atentament abans d'utilitzar els nostres serveis."
+    },
+    "section1": {
+      "title": "Acceptació dels Termes",
+      "content": "En accedir i utilitzar aquesta aplicació, acceptes i et compromets a complir els termes i disposicions d'aquest acord. Si no estàs d'acord amb l'anterior, si us plau no utilitzis aquest servei."
+    },
+    "section2": {
+      "title": "Descripció del Servei",
+      "content": "Agendados és una aplicació de gestió d'agendes i cites que permet als usuaris organitzar el seu temps, fixar cites i gestionar el seu calendari de manera eficient."
+    },
+    "section3": {
+      "title": "Registre d'Usuari i Compte",
+      "content": "Per utilitzar certes funcionalitats del nostre servei, has de registrar-te i crear un compte. Ets responsable de mantenir la confidencialitat de les teves credencials i de totes les activitats que es produeixin sota el teu compte."
+    },
+    "section4": {
+      "title": "Responsabilitats de l'Usuari",
+      "content": "Et compromets a utilitzar el servei només per a finalitats legals i d'una manera que no infringeixi els drets ni limiti l'ús i gaudi del servei per part d'altres usuaris."
+    },
+    "section5": {
+      "title": "Privacitat i Protecció de Dades",
+      "content": "La teva privacitat és important per a nosaltres. Si us plau, revisa la nostra Política de Privacitat, que també regula l'ús del servei, per entendre les nostres pràctiques respecte a la teva informació personal."
+    },
+    "section6": {
+      "title": "Modificacions dels Termes",
+      "content": "Ens reservem el dret de canviar o modificar aquests termes en qualsevol moment. Qualsevol canvi serà efectiu immediatament després de la seva publicació. L'ús continuat del servei després d'aquests canvis implica l'acceptació dels nous termes."
+    },
+    "section7": {
+      "title": "Disponibilitat del Servei",
+      "content": "Ens esforcem per oferir una disponibilitat contínua del servei, però no garantim que el servei sigui ininterromput o lliure d'errors. Podem suspendre o acabar el servei per manteniment o altres raons."
+    },
+    "section8": {
+      "title": "Limitació de Responsabilitat",
+      "content": "El servei es proporciona 'TAL QUAL' i 'SEGONS DISPONIBILITAT'. Rebutgem tota garantia i no serem responsables de cap dany derivat de l'ús d'aquest servei, excepte quan la llei ho requereixi."
+    },
+    "section9": {
+      "title": "Informació de Contacte",
+      "content": "Si tens alguna pregunta sobre aquests Termes del Servei, si us plau contacta'ns a la següent adreça:"
+    },
+    "footer": "En utilitzar Agendados, reconeixes que has llegit i entès aquests Termes del Servei."
+  }
 }

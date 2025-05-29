@@ -16,12 +16,14 @@ import {
   PanResponder,
   Animated,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 
 import { Event } from '@models/Event';
 import { styles } from '@styles/EventDetailModal.styles';
 import { colors } from '@styles/globalStyles';
 import { useFavorites } from 'app/context/FavoritesContext';
+import { getUserToken } from 'app/Services/AuthService';
 
 interface EventDetailModalProps {
   event: Event;
@@ -41,6 +43,8 @@ const EventDetailModal = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
+  const [isReported, setIsReported] = useState(false);
   const { t } = useTranslation(); // Keep i18n if needed separately
   const locale = 'es'; // Replace with your locale logic
 
@@ -107,6 +111,70 @@ const EventDetailModal = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleReportEvent = async () => {
+    if (!event.id) {
+      return;
+    }
+
+    Alert.alert(
+      t('eventDetails.reportTitle') || 'Report Event',
+      t('eventDetails.reportConfirm') ||
+        'Are you sure you want to report this event?',
+      [
+        {
+          text: t('common.cancel') || 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: t('eventDetails.report') || 'Report',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsReporting(true);
+              const token = await getUserToken();
+
+              if (!token) {
+                throw new Error('Authentication token is missing');
+              }
+
+              const response = await fetch(
+                `https://agendados-backend-842309366027.europe-southwest1.run.app/api/events/${event.id}/report`,
+                {
+                  method: 'POST',
+                  headers: {
+                    Authorization: `Token ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                }
+              );
+
+              if (!response.ok) {
+                throw new Error('Error reporting event');
+              }
+
+              setIsReported(true);
+              setTimeout(() => setIsReported(false), 5000); // Reset after 5 seconds
+              Alert.alert(
+                t('eventDetails.reportSuccess') || 'Report Submitted',
+                t('eventDetails.reportThankYou') ||
+                  'Thank you for your feedback.'
+              );
+            } catch (error) {
+              console.error('Error reporting event:', error);
+              Alert.alert(
+                t('common.error') || 'Error',
+                t('eventDetails.reportError') ||
+                  'Failed to report event. Please try again.'
+              );
+            } finally {
+              setIsReporting(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const panResponder = useRef(
@@ -515,6 +583,33 @@ const EventDetailModal = ({
                 </View>
               </View>
             )}
+
+            {/* Report Content Section - New Addition */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <MaterialIcons name='flag' size={22} color={colors.error} />
+                <Text style={styles.sectionTitle}>
+                  {t('eventDetails.reportContent') || 'Report Content'}
+                </Text>
+              </View>
+              <View style={styles.sectionContent}>
+                <TouchableOpacity
+                  style={styles.reportButton}
+                  onPress={handleReportEvent}
+                  disabled={isReporting || isReported}
+                >
+                  {isReporting ? (
+                    <ActivityIndicator size='small' color={colors.lightText} />
+                  ) : (
+                    <Text style={styles.reportButtonText}>
+                      {isReported
+                        ? t('eventDetails.reportedSuccess') || 'Reported'
+                        : t('eventDetails.report') || 'Report Event'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
 
             {/* Spacer at the bottom */}
             <View style={styles.bottomSpacer} />

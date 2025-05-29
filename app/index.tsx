@@ -1,9 +1,17 @@
 import { Redirect } from 'expo-router';
 import React from 'react';
 
+import { useAuth } from './context/authContext';
+
 export default function Index() {
-  // Redirect to the main tab when the app opens at the root '/'
-  return <Redirect href='/(tabs)/main' />;
-  //return <Redirect href='/registerLogin' />;
-  //return <Redirect href='/registerLogin' />;
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) {
+    return null;
+  }
+
+  if (isAuthenticated) {
+    return <Redirect href='/(tabs)/main' />;
+  } else {
+    return <Redirect href='/registerLogin' />;
+  }
 }

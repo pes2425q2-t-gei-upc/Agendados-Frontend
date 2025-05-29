@@ -14,15 +14,33 @@
     "edit": "Editar",
     "search": "Buscar",
     "of": "de",
+    "or": "O",
     "success": "Éxito",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "grantPermission": "Conceder Permiso",
+    "accept": "Aceptar"
   },
+"emissions": {
+  "title": "Modo de Emisiones",
+  "noEvents": "No se encontraron eventos",
+  "noEventsWithLocation": "No hay eventos con datos de ubicación para mostrar información sobre la calidad del aire.",
+  "errorFetchingData": "Error al obtener los datos de calidad del aire. Por favor, inténtalo de nuevo.",
+  "legend": "Leyenda de Calidad del Aire",
+  "good": "Buena (0-700)",
+  "moderate": "Moderada (701-800)",
+  "poor": "Mala (801-1100)",
+  "unhealthy": "Dañina para la salud (1101-1500)",
+  "veryUnhealthy": "Muy dañina para la salud (1501-2000)",
+  "hazardous": "Peligrosa (2001-3000)",
+  "extreme": "Extrema (3001+)"
+},
   "navigation": {
     "home": "Inicio",
     "explore": "Explorar",
     "saved": "Guardados",
     "profile": "Perfil",
-    "settings": "Configuración"
+    "settings": "Configuración",
+    "chats": "Chats"
   },
   "auth": {
     "login": "Iniciar Sesión",
@@ -39,11 +57,20 @@
     "invalidEmail": "Por favor, introduce un email válido",
     "passwordLength": "La contraseña debe tener al menos 6 caracteres",
     "loginError": "Error al iniciar sesión. Inténtalo de nuevo.",
+    "usernameRequired": "El usuario es obligatorio.",
+    "passwordRequired": "La contraseña es obligatoria.",
     "registerError": "Error al registrar usuario. Inténtalo de nuevo.",
     "noAccount": "¿No tienes cuenta?",
     "registerNow": "Regístrate ahora",
     "haveAccount": "¿Ya tienes cuenta?",
-    "loginNow": "Inicia sesión ahora"
+    "loginNow": "Inicia sesión ahora",
+    "orContinueWith": "o continúa con",
+    "userNotFound": "Usuario o contraseña incorrectos",
+    "invalidCredentials": "Credenciales inválidas",
+    "accountBlocked": "Cuenta bloqueada o sin permisos",
+    "serverError": "Error del servidor. Inténtalo más tarde",
+    "userExists": "El usuario o email ya existe",
+    "badRequest": "Datos inválidos. Verifica la información"
   },
   "explore": {
     "search": {
@@ -93,7 +120,15 @@
     "from": "Desde",
     "to": "Hasta",
     "chat": "Chat",
-    "openChat": "Abrir Chat"
+    "openChat": "Abrir Chat",
+    "report": "Denunciar Evento",
+    "reportContent": "Denunciar Contenido",
+    "reportTitle": "Denunciar Evento",
+    "reportConfirm": "¿Estás seguro de que quieres denunciar este evento?",
+    "reportSuccess": "Denuncia Enviada",
+    "reportThankYou": "Gracias por tu feedback. Revisaremos el contenido.",
+    "reportError": "Error al denunciar el evento. Por favor, inténtalo de nuevo.",
+    "reportedSuccess": "Denunciado"
   },
   "saved": {
     "title": "Eventos guardados",
@@ -127,11 +162,12 @@
   "profile": {
     "welcome": "Bienvenido a tu perfil",
     "goToSettings": "Ir a Configuración",
+    "profilePhotoUpdated": "Foto de perfil actualitzada correctament!",
     "logout": "Cerrar sesión",
     "preferences": "Preferencias",
     "personalInfo": "Información personal",
     "profile": "Perfil",
-    "joinedOn": "Miembro desde {{date}}",
+    "joinedOn": "Miembro desde mayo de 2025",
     "savedEvents": "Guardados",
     "attendedEvents": "Asistidos",
     "favoriteCategories": "Categorías Favoritas",
@@ -140,6 +176,8 @@
     "editProfile": "Editar Perfil",
     "logoutConfirmation": "Confirmación de cierre de sesión",
     "logoutMessage": "¿Estás seguro de que quieres cerrar sesión?",
+    "featuredFriends": "Amigos Destacados",
+    "viewFavorites": "Ver favoritos",
     "badgeLevels": {
       "basic": "Nivel Plateado",
       "intermediate": "Nivel Verde",
@@ -196,9 +234,140 @@
     "pushNotifications": "Notificaciones Push",
     "emailNotifications": "Notificaciones por Email",
     "termsOfService": "Términos de Servicio",
-    "privacyPolicy": "Política de Privacidad"
+    "privacyPolicy": "Política de Privacidad",
+    "profilePhotoUpdated": "Foto de perfil actualitzada correctament!"
+  },
+  "privacyPolicy": {
+    "title": "POLÍTICA DE PRIVACIDAD",
+    "lastUpdated": "Última actualización {{date}}",
+    "summaryTitle": "RESUMEN DE PUNTOS CLAVE",
+    "summaryIntro": "Este resumen proporciona los puntos clave de nuestro Aviso de Privacidad, pero puedes encontrar más detalles sobre cualquiera de estos temas utilizando nuestra tabla de contenidos a continuación para encontrar la sección que buscas.",
+    "tableOfContents": "TABLA DE CONTENIDOS",
+    "toc": {
+      "informationCollect": "¿QUÉ INFORMACIÓN RECOPILAMOS?",
+      "processInformation": "¿CÓMO PROCESAMOS TU INFORMACIÓN?",
+      "legalBases": "¿EN QUÉ BASES LEGALES NOS BASAMOS PARA PROCESAR TU INFORMACIÓN PERSONAL?",
+      "shareInformation": "¿CUÁNDO Y CON QUIÉN COMPARTIMOS TU INFORMACIÓN PERSONAL?",
+      "cookiesTracking": "¿UTILIZAMOS COOKIES U OTRAS TECNOLOGÍAS DE SEGUIMIENTO?",
+      "socialLogins": "¿CÓMO MANEJAMOS TUS INICIOS DE SESIÓN SOCIALES?",
+      "keepInformation": "¿CUÁNTO TIEMPO CONSERVAMOS TU INFORMACIÓN?",
+      "informationSafe": "¿CÓMO MANTENEMOS TU INFORMACIÓN SEGURA?",
+      "privacyRights": "¿CUÁLES SON TUS DERECHOS DE PRIVACIDAD?",
+      "doNotTrack": "CONTROLES PARA FUNCIONES DE NO SEGUIMIENTO",
+      "updates": "¿HACEMOS ACTUALIZACIONES A ESTE AVISO?",
+      "contact": "¿CÓMO PUEDES CONTACTARNOS SOBRE ESTE AVISO?",
+      "reviewData": "¿CÓMO PUEDES REVISAR, ACTUALIZAR O ELIMINAR LOS DATOS QUE RECOPILAMOS DE TI?"
+    },
+    "section1": {
+      "title": "¿QUÉ INFORMACIÓN RECOPILAMOS?",
+      "personalInfo": {
+        "title": "Información personal que nos proporcionas",
+        "inShort": "En resumen: Recopilamos la información personal que nos proporcionas.",
+        "description": "Recopilamos información personal que nos proporcionas voluntariamente cuando te registras en los Servicios, expresas interés en obtener información sobre nosotros o nuestros productos y servicios, participas en actividades en los Servicios o de otra manera nos contactas.",
+        "provided": "Información personal proporcionada por ti",
+        "providedDescription": "La información personal que recopilamos depende del contexto de tus interacciones con nosotros y los Servicios, las elecciones que realizas y los productos y funciones que utilizas. La información personal que recopilamos puede incluir lo siguiente:",
+        "phoneNumbers": "números de teléfono",
+        "names": "nombres",
+        "emails": "direcciones de correo electrónico",
+        "addresses": "direcciones postales",
+        "usernames": "nombres de usuario",
+        "authData": "datos de contacto o autenticación",
+        "preferences": "preferencias de contacto"
+      },
+      "sensitiveInfo": {
+        "title": "Información sensible",
+        "description": "No procesamos información sensible."
+      },
+      "socialMedia": {
+        "title": "Datos de inicio de sesión en redes sociales",
+        "description": "Podemos ofrecerte la opción de registrarte con nosotros utilizando los datos de tu cuenta de redes sociales existentes, como Facebook, X u otra. Si eliges registrarte de esta manera, recopilaremos cierta información de perfil sobre ti del proveedor de la red social."
+      },
+      "appData": {
+        "title": "Datos de la aplicación",
+        "description": "Si utilizas nuestra(s) aplicación(es), también podemos recopilar la siguiente información si decides proporcionarnos acceso o permiso:",
+        "geolocation": "Información de geolocalización. Podemos solicitar acceso o permiso para rastrear información basada en la ubicación desde tu dispositivo móvil para proporcionar ciertos servicios basados en la ubicación.",
+        "deviceAccess": "Acceso al dispositivo móvil. Podemos solicitar acceso o permiso a ciertas funciones de tu dispositivo móvil, incluido el calendario, la cámara, el almacenamiento y otras funciones.",
+        "pushNotifications": "Notificaciones push. Podemos solicitar enviarte notificaciones push sobre tu cuenta o ciertas funciones de la(s) aplicación(es)."
+      }
+    },
+    "section2": {
+      "title": "¿CÓMO PROCESAMOS TU INFORMACIÓN?",
+      "inShort": "En resumen: Procesamos tu información para proporcionar, mejorar y administrar nuestros Servicios, comunicarnos contigo, para seguridad y prevención de fraude, y para cumplir con la ley.",
+      "description": "Procesamos tu información personal por diversas razones, dependiendo de cómo interactúes con nuestros Servicios, incluyendo:",
+      "accountCreation": "Facilitar la creación de cuentas y la autenticación y, en general, gestionar las cuentas de usuario. Podemos procesar tu información para que puedas crear e iniciar sesión en tu cuenta, así como mantener tu cuenta en funcionamiento.",
+      "vitalInterests": "Salvar o proteger un interés vital de una persona. Podemos procesar tu información cuando sea necesario para salvar o proteger un interés vital, como prevenir daños."
+    },
+    "section3": {
+      "title": "¿EN QUÉ BASES LEGALES NOS BASAMOS PARA PROCESAR TU INFORMACIÓN?",
+      "inShort": "En resumen: Solo procesamos tu información personal cuando creemos que es necesario y tenemos una razón legal válida para hacerlo según la ley aplicable.",
+      "description": "El Reglamento General de Protección de Datos (RGPD) y el RGPD del Reino Unido requieren que expliquemos las bases legales válidas en las que nos basamos para procesar tu información personal. Por lo tanto, podemos basarnos en las siguientes bases legales para procesar tu información personal:",
+      "consent": "Consentimiento. Podemos procesar tu información si nos has dado permiso para usar tu información personal para un propósito específico. Puedes retirar tu consentimiento en cualquier momento.",
+      "legalObligations": "Obligaciones legales. Podemos procesar tu información cuando creamos que es necesario para cumplir con nuestras obligaciones legales.",
+      "vitalInterests": "Intereses vitales. Podemos procesar tu información cuando creamos que es necesario para proteger tus intereses vitales o los intereses vitales de un tercero."
+    },
+    "section4": {
+      "title": "¿CUÁNDO Y CON QUIÉN COMPARTIMOS TU INFORMACIÓN PERSONAL?",
+      "inShort": "En resumen: Podemos compartir información en situaciones específicas descritas en esta sección y/o con terceros específicos.",
+      "description": "Podemos necesitar compartir tu información personal en las siguientes situaciones:",
+      "businessTransfers": "Transferencias comerciales. Podemos compartir o transferir tu información en relación con, o durante negociaciones de, cualquier fusión, venta de activos de la empresa, financiación o adquisición de todo o parte de nuestro negocio por otra empresa.",
+      "googleMaps": "Cuando utilizamos las APIs de Google Maps Platform. Podemos compartir tu información con ciertas APIs de Google Maps Platform para proporcionar servicios basados en la ubicación."
+    },
+    "section5": {
+      "title": "¿UTILIZAMOS COOKIES U OTRAS TECNOLOGÍAS DE SEGUIMIENTO?",
+      "inShort": "En resumen: Podemos utilizar cookies y otras tecnologías de seguimiento para recopilar y almacenar tu información.",
+      "description": "Podemos utilizar cookies y tecnologías de seguimiento similares para recopilar información cuando interactúas con nuestros Servicios. Algunas tecnologías de seguimiento en línea nos ayudan a mantener la seguridad de nuestros Servicios y tu cuenta, prevenir fallos, corregir errores, guardar tus preferencias y ayudar con funciones básicas del sitio."
+    },
+    "section6": {
+      "title": "¿CÓMO MANEJAMOS TUS INICIOS DE SESIÓN SOCIALES?",
+      "inShort": "En resumen: Si eliges registrarte o iniciar sesión en nuestros Servicios utilizando una cuenta de red social, podemos tener acceso a cierta información sobre ti.",
+      "description": "Nuestros Servicios te ofrecen la posibilidad de registrarte e iniciar sesión utilizando los datos de tu cuenta de red social de terceros. Cuando eliges hacerlo, recibiremos cierta información de perfil sobre ti de tu proveedor de red social."
+    },
+    "section7": {
+      "title": "¿CUÁNTO TIEMPO CONSERVAMOS TU INFORMACIÓN?",
+      "inShort": "En resumen: Conservamos tu información durante el tiempo que sea necesario para cumplir con los fines descritos en este Aviso de Privacidad, a menos que la ley exija lo contrario.",
+      "description": "Solo conservaremos tu información personal durante el tiempo que sea necesario para los fines establecidos en este Aviso de Privacidad, a menos que la ley exija o permita un periodo de retención más largo."
+    },
+    "section8": {
+      "title": "¿CÓMO MANTENEMOS TU INFORMACIÓN SEGURA?",
+      "inShort": "En resumen: Nuestro objetivo es proteger tu información personal mediante un sistema de medidas de seguridad organizativas y técnicas.",
+      "description": "Hemos implementado medidas de seguridad técnicas y organizativas apropiadas y razonables diseñadas para proteger la seguridad de cualquier información personal que procesamos. Sin embargo, a pesar de nuestras salvaguardas y esfuerzos para proteger tu información, ninguna transmisión electrónica por Internet o tecnología de almacenamiento de información puede garantizarse como 100% segura."
+    },
+    "section9": {
+      "title": "¿CUÁLES SON TUS DERECHOS DE PRIVACIDAD?",
+      "inShort": "En resumen: En algunas regiones, tienes derechos que te permiten un mayor acceso y control sobre tu información personal. Puedes revisar, cambiar o eliminar tu cuenta en cualquier momento.",
+      "description": "En algunas regiones (como el EEE, Reino Unido y Suiza), tienes ciertos derechos según las leyes de protección de datos aplicables. Estos pueden incluir el derecho a solicitar acceso y obtener una copia de tu información personal, solicitar la rectificación o eliminación, restringir el procesamiento de tu información personal y la portabilidad de datos.",
+      "withdrawConsent": {
+        "title": "Retirar tu consentimiento",
+        "description": "Si dependemos de tu consentimiento para procesar tu información personal, tienes derecho a retirar tu consentimiento en cualquier momento. Puedes retirarlo en cualquier momento contactándonos."
+      },
+      "accountInfo": {
+        "title": "Información de la cuenta",
+        "description": "Si en cualquier momento deseas revisar o cambiar la información de tu cuenta o terminar tu cuenta, puedes:",
+        "loginSettings": "Iniciar sesión en la configuración de tu cuenta y actualizar tu cuenta de usuario."
+      }
+    },
+    "section10": {
+      "title": "CONTROLES PARA FUNCIONES DE NO SEGUIMIENTO",
+      "description": "La mayoría de los navegadores web y algunos sistemas operativos y aplicaciones móviles incluyen una función o configuración de No Seguimiento (DNT) que puedes activar para indicar tu preferencia de privacidad de no tener datos sobre tus actividades de navegación en línea monitoreadas y recopiladas. Actualmente no respondemos a las señales DNT del navegador."
+    },
+    "section11": {
+      "title": "¿HACEMOS ACTUALIZACIONES A ESTE AVISO?",
+      "inShort": "En resumen: Sí, actualizaremos este aviso según sea necesario para cumplir con las leyes relevantes.",
+      "description": "Podemos actualizar este Aviso de Privacidad de vez en cuando. La versión actualizada se indicará mediante una fecha 'Revisada' en la parte superior de este Aviso de Privacidad. Si realizamos cambios materiales en este Aviso de Privacidad, podemos notificártelo ya sea publicando prominentemente un aviso de dichos cambios o enviándote una notificación directamente."
+    },
+    "section12": {
+      "title": "¿CÓMO PUEDES CONTACTARNOS SOBRE ESTE AVISO?",
+      "description": "Si tienes preguntas o comentarios sobre este aviso, puedes contactarnos por correo postal en:"
+    },
+    "section13": {
+      "title": "¿CÓMO PUEDES REVISAR, ACTUALIZAR O ELIMINAR LOS DATOS QUE RECOPILAMOS DE TI?",
+      "description": "Según las leyes aplicables de tu país, puedes tener derecho a solicitar acceso a la información personal que recopilamos de ti, detalles sobre cómo la hemos procesado, corregir inexactitudes o eliminar tu información personal. También puedes tener derecho a retirar tu consentimiento para que procesemos tu información personal."
+    },
+    "footer": "Esta política de privacidad fue actualizada por última vez el 23 de mayo de 2025. Nos reservamos el derecho de actualizar esta política en cualquier momento para reflejar cambios en nuestras prácticas o en la ley aplicable."
+  
   },
   "home": {
+    "loadingRecommendations": "Cargando recomendaciones...",
     "events": {
       "nearYou": "Cerca de ti",
       "popular": "Populares",
@@ -246,6 +415,159 @@
     "noUsersFound": "No se encontraron usuarios",
     "alreadyFriend": "Ya son amigos",
     "friendRequestSent": "Solicitud enviada",
-    "send": "Enviar Solicitud"
+    "send": "Enviar Solicitud",
+    "searchHelpText": "Escribe un nombre o usuario para buscar amigos.",
+    "pendingRequest": "Pendiente",
+    "pending": "pendiente",
+    "friends": "Amigos",
+    "requests": "Solicitudes",
+    "total": "Total",
+    "favoritesOf": "Favoritos de {{name}}",
+    "noFavorites": "Sin eventos guardados",
+    "noFavoritesDescription": "{{name}} aún no ha guardado ningún evento como favorito."
+    },
+  "rooms": {
+    "title": "Salas",
+    "createRoom": "Crear Sala",
+    "joinRoom": "Unirse a Sala",
+    "enterRoomCode": "Introduce el código de la sala",
+    "enterRoomCodeDescription": "Introduce un código de sala para unirte a una sala existente",
+    "pleaseEnterRoomCode": "Por favor introduce un código de sala",
+    "requestingCameraPermission": "Solicitando permiso de cámara...",
+    "roomName": "Nombre de la sala",
+    "enterRoomName": "Introduce el nombre de la sala",
+    "qrCode": "Código QR",
+    "shareQRCode": "Compartir código QR para unirse",
+    "scanToJoin": "Escanea este código QR para unirte a la sala",
+    "roomCode": "Código de la sala",
+    "roomCreated": "¡Sala creada con éxito!",
+    "roomCreateError": "Error al crear la sala",
+    "shareRoom": "Compartir sala",
+    "scanQRCode": "Escanear Código QR",
+    "scanQRCodeDescription": "Apunta tu cámara a un código QR para escanearlo",
+    "cameraPermissionTitle": "Permiso de Cámara Requerido",
+    "cameraPermissionMessage": "Por favor concede permiso de cámara para escanear códigos QR",
+    "qrScanError": "Error al escanear código QR",
+    "invalidQRCode": "Código QR inválido",
+    "roomInformation": "Información de la sala",
+    "roomId": "ID de la sala",
+    "youAreHost": "Eres el anfitrión",
+    "participants": "Participantes",
+    "noParticipants": "Aún no hay otros participantes.",
+    "leaveRoom": "Salir de la sala",
+    "startMatching": "Iniciar emparejamiento",
+    "waitingForHost": "Esperando a que el anfitrión inicie...",
+    "cannotStart": "No se puede iniciar",
+    "atLeastTwoParticipants": "Se necesitan al menos dos participantes para iniciar el emparejamiento.",
+    "leaveRoomConfirm": "¿Estás seguro de que quieres salir de esta sala?",
+    "leave": "Salir",
+    "roomNotFound": "Sala no encontrada o no se pudo unir.",
+    "goToRooms": "Ir a Salas",
+    "loadingRoomDetails": "Cargando detalles de la sala...",
+    "roomDetailsNotAvailable": "Detalles de la sala no disponibles.",
+    "connectionError": "Error de conexión",
+    "notConnectedToRoom": "No conectado a la sala.",
+    "joinARoomTitle": "Unirse a una Sala",
+    "createNewRoom": "Crear Nueva Sala",
+    "minTwoParticipants": "Se necesitan al menos dos participantes para iniciar el emparejamiento.",
+    "leaveRoomConfirmation": "¿Estás seguro de que quieres salir de esta sala?",
+    "roomCreationTimedOut": "Se agotó el tiempo para crear la sala.",
+    "failedToCreateRoomConnect": "Error al crear sala y conectar:",
+    "failedToJoinRoom": "Error al unirse a la sala:",
+    "roomJoinTimedOut": "Se agotó el tiempo para unirse a la sala.",
+    "unknownError": "Error desconocido",
+    "timeout": "Tiempo agotado",
+    "couldNotJoinRoom": "No se pudo unirse a la sala. Por favor inténtalo de nuevo.",
+    "failedToJoinRoomGeneric": "Error al unirse a la sala. Por favor inténtalo de nuevo."
+  },
+  "matching": {
+    "roomError": "Error de Sala",
+    "leaveRoom": "Salir de la Sala",
+    "leaveRoomConfirmation": "¿Estás seguro de que quieres salir del proceso de emparejamiento?",
+    "cancel": "Cancelar",
+    "leave": "Salir",
+    "waitingNextEvent": "Esperando el próximo evento...",
+    "youCanStartRound": "Puedes iniciar la ronda.",
+    "leaveRoomButton": "Salir de la Sala",
+    "timeRemainingToVote": "{{time}}s restantes para votar",
+    "getReadyVotingStarts": "¡Prepárate! La votación inicia en {{time}}s",
+    "matchOnEvent": "🎉 ¡Coincidencia en {{title}}! 🎉",
+    "votes": "Votos:",
+    "youHaveVoted": "¡Has votado!",
+    "noMoreEvents": "No hay más eventos en esta sala, o esperando al anfitrión.",
+    "leaveRoomButtonFallback": "Salir de la Sala"
+  },
+  "chats": {
+    "title": "Chats",
+    "noChats": "Aún no hay conversaciones de chat",
+    "startChatting": "Únete a chats de eventos para comenzar conversaciones",
+    "errorLoadingChats": "Error al cargar los chats",
+    "loading": "Cargando chats...",
+    "chatRules": "Normas del Chat",
+    "rule1": "Respeta a todos los participantes",
+    "rule2": "No insultes ni uses lenguaje ofensivo",
+    "rule3": "No hagas spam ni publicidad",
+    "rule4": "No compartas información personal",
+    "rule5": "Mantén las conversaciones relacionadas con el evento",
+    "chatOf": "Chat de",
+    "event": "Evento",
+    "writePlaceholder": "Escribe un mensaje...",
+    "messageHistory": "Historial de mensajes",
+    "newMessages": "Nuevos mensajes",
+    "connectionEstablished": "Conexión establecida con el servidor.",
+    "connectionError": "Error al intentar conectar con el servidor.",
+    "attemptingReconnect": "Intentando reconectar...",
+    "authTokenNotFound": "Token de autenticación no encontrado",
+    "enterMessage": "Por favor, ingresa un mensaje.",
+    "sendMessageError": "No se pudo enviar el mensaje. Por favor, inténtalo de nuevo.",
+    "deleteMessageError": "No se pudo eliminar el mensaje. La conexión está cerrada.",
+    "deleteMessage": "Eliminar mensaje",
+    "deleteConfirmation": "¿Estás seguro de que quieres eliminar este mensaje?",
+    "delete": "Eliminar"
+  },
+  "termsOfService": {
+    "title": "Términos de Servicio",
+    "lastUpdated": "Última actualización: {{date}}",
+    "intro": {
+      "title": "Bienvenido a Agendados",
+      "description": "Estos Términos de Servicio rigen el uso de nuestra aplicación. Por favor, léelos detenidamente antes de utilizar nuestros servicios."
+    },
+    "section1": {
+      "title": "Aceptación de los Términos",
+      "content": "Al acceder y usar esta aplicación, aceptas y te comprometes a cumplir los términos y disposiciones de este acuerdo. Si no estás de acuerdo con lo anterior, por favor no utilices este servicio."
+    },
+    "section2": {
+      "title": "Descripción del Servicio",
+      "content": "Agendados es una aplicación de gestión de citas y horarios que permite a los usuarios organizar su tiempo, fijar citas y gestionar su calendario de manera eficiente."
+    },
+    "section3": {
+      "title": "Registro de Usuario y Cuenta",
+      "content": "Para utilizar ciertas funciones de nuestro servicio, debes registrarte y crear una cuenta. Eres responsable de mantener la confidencialidad de tus credenciales y de todas las actividades que ocurran bajo tu cuenta."
+    },
+    "section4": {
+      "title": "Responsabilidades del Usuario",
+      "content": "Te comprometes a utilizar el servicio solo para fines legales y de una manera que no infrinja los derechos ni limite el uso y disfrute del servicio por parte de otros usuarios."
+    },
+    "section5": {
+      "title": "Privacidad y Protección de Datos",
+      "content": "Tu privacidad es importante para nosotros. Por favor revisa nuestra Política de Privacidad, que también rige el uso del servicio, para entender nuestras prácticas respecto a tu información personal."
+    },
+    "section6": {
+      "title": "Modificaciones de los Términos",
+      "content": "Nos reservamos el derecho de cambiar o modificar estos términos en cualquier momento. Cualquier cambio será efectivo inmediatamente después de su publicación. El uso continuado del servicio después de dichos cambios implica la aceptación de los nuevos términos."
+    },
+    "section7": {
+      "title": "Disponibilidad del Servicio",
+      "content": "Nos esforzamos por ofrecer disponibilidad continua del servicio, pero no garantizamos que el servicio sea ininterrumpido o esté libre de errores. Podemos suspender o terminar el servicio por mantenimiento u otras razones."
+    },
+    "section8": {
+      "title": "Limitación de Responsabilidad",
+      "content": "El servicio se proporciona 'TAL CUAL' y 'SEGÚN DISPONIBILIDAD'. Rechazamos toda garantía y no seremos responsables de ningún daño derivado del uso de este servicio, excepto cuando la ley lo requiera."
+    },
+    "section9": {
+      "title": "Información de Contacto",
+      "content": "Si tienes alguna pregunta sobre estos Términos de Servicio, por favor contáctanos en la siguiente dirección:"
+    },
+    "footer": "Al usar Agendados, reconoces que has leído y comprendido estos Términos de Servicio."
   }
 }
