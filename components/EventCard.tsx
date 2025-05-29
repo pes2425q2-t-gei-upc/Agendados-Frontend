@@ -18,7 +18,7 @@ const EventCard = ({ event }: EventCardProps) => {
   const imageSource =
     event.images && event.images.length > 0
       ? { uri: event.images[0].image_url }
-      : require('@assets/images/Icono.jpg');
+      : require('@assets/images/Icono.png');
 
   const formatTimeRange = () => {
     const startDate = new Date(event.date_ini);
@@ -80,7 +80,7 @@ const EventCard = ({ event }: EventCardProps) => {
               source={imageSource}
               style={styles.eventImage}
               progressiveRenderingEnabled={true}
-              defaultSource={require('@assets/images/Icono.jpg')}
+              defaultSource={require('@assets/images/Icono.png')}
             />
           </View>
           <View style={styles.contentContainer}>

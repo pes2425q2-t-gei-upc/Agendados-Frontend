@@ -433,7 +433,7 @@ export default function ProfileScreen() {
                     source={
                       event.images?.[0]
                         ? { uri: event.images[0].image_url }
-                        : require('@assets/images/Icono.jpg')
+                        : require('@assets/images/Icono.png')
                     }
                     style={styles.eventImage}
                   />
