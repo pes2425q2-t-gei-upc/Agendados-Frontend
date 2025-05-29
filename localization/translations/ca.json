@@ -16,7 +16,8 @@
     "of": "de",
     "success": "Èxit",
     "retry": "Tornar-ho a provar",
-    "grantPermission": "Atorgar permís"
+    "grantPermission": "Atorgar permís",
+    "accept": "Acceptar"
   },
 "emissions": {
   "title": "Mode Emissions",
@@ -164,7 +165,7 @@
     "preferences": "Preferències",
     "personalInfo": "Informació personal",
     "profile": "Perfil",
-    "profilePhotoUpdated": "¡Foto de perfil actualizada correctamente!",
+    "profilePhotoUpdated": "¡Foto de perfil actualizada correctament!",
     "joinedOn": "Membre des de maig de 2025",
     "savedEvents": "Desats",
     "attendedEvents": "Assistits",
