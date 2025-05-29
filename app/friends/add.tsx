@@ -72,30 +72,41 @@ export default function AddFriendScreen() {
   // Enviar solicitud de amistad
   const handleSendRequest = async (userId: number) => {
     if (processingIds.includes(userId)) {
-      return;
+      return; // Ya se está procesando o en el período de 10s
     }
 
     setProcessingIds((prev) => [...prev, userId]);
 
+    // Después de 10 segundos, quitar el userId de processingIds
+    // para que la UI refleje el estado real de pendingRequests.
+    setTimeout(() => {
+      setProcessingIds((prev) => prev.filter((id) => id !== userId));
+    }, 20000);
+
     try {
-      const success = await sendFriendRequest(userId); // MODIFIED: Call API
+      const success = await sendFriendRequest(userId);
       if (success) {
         Alert.alert(t('common.success'), t('friends.friendRequestSent'));
-        // No es necesario gestionar fakeSentRequests, refreshFriends() en el contexto actualizará pendingRequests
+        // refreshFriends es llamado por el contexto, actualizando pendingRequests.
+        // La UI mostrará "Pendiente" (o el texto configurado para isProcessing) durante 10s,
+        // y luego continuará mostrando "Pendiente" si existingPendingRequest es true.
       } else {
-        // El error ya se maneja y muestra en el contexto/hook, pero podrías añadir algo específico aquí si es necesario
         Alert.alert(
           t('common.error'),
           t('friends.sendRequestErrorGeneric') ||
             'Could not send friend request.'
         );
+        // La UI mostrará el estado de procesamiento durante 10s.
+        // Después, si la solicitud falló, existingPendingRequest será false (a menos que hubiera una previa),
+        // y el botón de enviar podría reaparecer.
       }
     } catch (error) {
       console.error('Error sending friend request from component:', error);
       Alert.alert(t('common.error'), String(error));
-    } finally {
-      setProcessingIds((prev) => prev.filter((id) => id !== userId));
+      // Similar al caso de error anterior.
     }
+    // El bloque finally que eliminaba userId de processingIds ya no es necesario aquí,
+    // ya que se gestiona con setTimeout.
   };
 
   // Comprobar si ya es amigo
@@ -116,7 +127,7 @@ export default function AddFriendScreen() {
       // REMOVED: fakeSentRequests check
       return pendingRequests.some(
         (req) =>
-          (req.friend && req.friend.id === userId) ||
+          (req.friend && req.friend.id === userId) ??
           (req.user && req.user.id === userId)
       );
     },
@@ -126,8 +137,7 @@ export default function AddFriendScreen() {
   // Renderizar un resultado de búsqueda de usuario
   const renderUserItem = ({ item }: { item: User }) => {
     const alreadyFriend = isFriend(item.id);
-    const isPending =
-      hasPendingRequest(item.id) || processingIds.includes(item.id);
+    const existingPendingRequest = hasPendingRequest(item.id);
     const isProcessing = processingIds.includes(item.id);
 
     return (
@@ -143,14 +153,19 @@ export default function AddFriendScreen() {
           <Text style={styles.userUsername}>@{item.username}</Text>
         </View>
         {isProcessing ? (
-          <ActivityIndicator size='small' color={colors.primary} />
+          <View style={styles.pendingTag}>
+            {/* Mostrar "Pendiente" durante los 10 segundos de procesamiento */}
+            <Text style={styles.pendingText}>
+              {t('friends.pendingRequest')}
+            </Text>
+          </View>
         ) : alreadyFriend ? (
           <View style={styles.alreadyFriendTag}>
             <Text style={styles.alreadyFriendText}>
               {t('friends.alreadyFriend')}
             </Text>
           </View>
-        ) : isPending ? (
+        ) : existingPendingRequest ? (
           <View style={styles.pendingTag}>
             <Text style={styles.pendingText}>
               {t('friends.pendingRequest')}
@@ -160,6 +175,7 @@ export default function AddFriendScreen() {
           <TouchableOpacity
             style={styles.sendButton}
             onPress={() => handleSendRequest(item.id)}
+            disabled={isProcessing || existingPendingRequest} // Deshabilitar si está procesando o ya hay una pendiente
           >
             <Text style={styles.sendButtonText}>{t('friends.send')}</Text>
           </TouchableOpacity>
