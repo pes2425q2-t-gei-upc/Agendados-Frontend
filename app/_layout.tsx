@@ -11,6 +11,7 @@ import { initializeLanguage } from 'localization/i18n';
 
 import { AuthProvider } from './context/authContext';
 import { EventsProvider } from './context/eventsContext';
+import './utils/disableConsole';
 
 WebBrowser.maybeCompleteAuthSession();
 
